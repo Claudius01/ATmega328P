@@ -1,0 +1,161 @@
+; "$Id: ATmega328P_uOS.def,v 1.3 2026/01/21 16:06:50 administrateur Exp $"
+
+.include		"ATmega328P_uOS.pub"	; Definitions publiques de Micro OS generees automatiquement
+
+; Definition des masques de bits [0x00, 0x01, ..., 0xff] pour les opcodes suivants:
+; - ori  -> Logical OR with Immediate
+; - andi -> Logical AND with Immediate (Faire le complement a 1 ou (0xFF - MSK_BITX))
+; - cbr  -> Clear Bits in Register (= andif avec constante complementee a (0xFF - K))
+; - sbr  -> Set Bits in Register (= ori)
+;
+#define	MSK_BIT7				(1 << 7)
+#define	MSK_BIT6				(1 << 6)
+#define	MSK_BIT5				(1 << 5)
+#define	MSK_BIT4				(1 << 4)
+#define	MSK_BIT3				(1 << 3)
+#define	MSK_BIT2				(1 << 2)
+#define	MSK_BIT1				(1 << 1)
+#define	MSK_BIT0				(1 << 0)
+
+; Definition des index de bits [0, 1, ..., 7] pour les opcodes suivants:
+; - bld       -> Bit Load from the T Flag in SREG to a Bit in Register
+; - bst       -> Bit Store from Bit in Register to T Flag in SREG
+; - cbi/sbi   -> Clear Bit in I/O Register / Set Bit in I/O Register
+; - sbic/sbis -> Skip if Bit in I/O Register is Cleared / Skip if Bit in I/O Register is Set
+; - sbrc/sbrs -> Skip if Bit in Register is Cleared / Skip if Bit in Register is Set
+; - bclr/bset -> Bit Clear / Bit Set in SREG
+; - brbc/brbs -> Branch if Bit in SREG is Cleared / Set
+;
+#define	IDX_BIT7				7
+#define	IDX_BIT6				6
+#define	IDX_BIT5				5
+#define	IDX_BIT4				4
+#define	IDX_BIT3				3
+#define	IDX_BIT2				2
+#define	IDX_BIT1				1
+#define	IDX_BIT0				0
+
+;.def		REG_R0				= r0		; Warning: Used by program C
+;.def		REG_R1				= r1		; Warning: Used by program C
+.def		REG_R2				= r2
+.def		REG_R3				= r3
+.def		REG_R4				= r4
+.def		REG_R5				= r5
+.def		REG_R6				= r6
+.def		REG_R7				= r7
+.def		REG_R8				= r8
+.def		REG_R9				= r9
+.def		REG_R10				= r10
+.def		REG_R11				= r11
+.def		REG_R12				= r12
+.def		REG_R13				= r13
+.def		REG_R14				= r14
+.def		REG_SAVE_SREG		= r15		; Sauvegarde temporaire de SREG dans les methodes ISR
+
+.def		REG_TEMP_R16		= r16
+.def		REG_TEMP_R17		= r17
+.def		REG_TEMP_R18		= r18
+.def		REG_TEMP_R19		= r19
+.def		REG_TEMP_R20		= r20
+.def		REG_TEMP_R21		= r21
+.def		REG_TEMP_R22		= r22
+.def		REG_TEMP_R23		= r23		; Registre de travail en remplacement de 'REG_PORTB_OUT', 'REG_FLAGS_0' et 'REG_FLAGS_1'
+.def		REG_TEMP_R24		= r24		; Warning: Used by program C
+.def		REG_TEMP_R25		= r25		; Warning: Used by program C
+
+.def		REG_X_LSB			= r26		; XL
+.def		REG_X_MSB			= r27		; XH
+.def		REG_Y_LSB			= r28		; YL
+.def		REG_Y_MSB			= r29		; YH
+.def		REG_Z_LSB			= r30		; ZL
+.def		REG_Z_MSB			= r31		; ZH
+
+; --------
+; Macros de pilotage du PORTB en sortie
+.macro setLedsOff				; 0/1: On/Off
+	ldi		REG_TEMP_R23, (UOS_MSK_BIT_LED_RED | UOS_MSK_BIT_LED_GREEN | UOS_MSK_BIT_LED_YELLOW | UOS_MSK_BIT_LED_BLUE)
+	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+.endm
+
+.macro setLedRedOff			; 0/1: On/Off
+	lds		REG_TEMP_R23, UOS_G_FLAGS_1
+	cbr		REG_TEMP_R23, UOS_FLG_1_LED_RED_ON_MSK	; Led RED eteinte (Pulse --\_/--- possible)
+	sts		UOS_G_FLAGS_1, REG_TEMP_R23
+
+	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+	sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_RED	
+	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+.endm
+
+.macro setLedRedOn			; 0/1: On/Off
+	lds		REG_TEMP_R23, UOS_G_FLAGS_1
+	sbr		REG_TEMP_R23, UOS_FLG_1_LED_RED_ON_MSK	; Led RED allumee (Pulse --\_/--- inhibee)
+	sts		UOS_G_FLAGS_1, REG_TEMP_R23
+	sts		UOS_G_FLAGS_1, REG_TEMP_R23
+
+	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+	cbr		REG_TEMP_R23, UOS_MSK_BIT_LED_RED	
+	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+.endm
+
+.macro setLedYellowOff		; 0/1: On/Off
+	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+	sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_YELLOW
+	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+.endm
+
+.macro setLedYellowOn		; 0/1: On/Off
+	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+	cbr		REG_TEMP_R23, UOS_MSK_BIT_LED_YELLOW	
+	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+.endm
+
+.macro setLedGreenOff		; 0/1: On/Off
+	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+	sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_GREEN	
+	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+.endm
+
+.macro setLedGreenOn			; 0/1: On/Off
+	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+	cbr		REG_TEMP_R23, UOS_MSK_BIT_LED_GREEN
+	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+.endm
+
+.macro setLedBlueOn			; 0/1: On/Off
+	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+	cbr		REG_TEMP_R23, UOS_MSK_BIT_LED_BLUE
+	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+.endm
+
+.macro setLedBlueOff			; 0/1: On/Off
+	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+	sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_BLUE	
+	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+.endm
+
+.macro setPulseItUp			; Sortie au niveau haut de la pulse It
+	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+	sbr		REG_TEMP_R23, MSK_BIT_PULSE_IT	
+	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+.endm
+
+.macro setPulseItDown		; Sortie au niveau bas de la pulse It
+	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+	cbr		REG_TEMP_R23, MSK_BIT_PULSE_IT	
+	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+.endm
+; Fin: Macros de pilotage du PORTB en sortie
+
+; End of file
