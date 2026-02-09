@@ -4,4 +4,3 @@ Platine de développement logiciel &amp; matériel avec un ATmega328P permettant
 * un Bootloader
 * *à compléter*
 
-![Platine d'essais](Platine-ATmega328P-20.png)
