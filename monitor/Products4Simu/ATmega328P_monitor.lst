@@ -1,0 +1,2990 @@
+
+AVRA   Ver. 1.4.2 ATmega328P_monitor.asm Sat Feb 21 14:55:09 2026
+
+
+         ; "$Id: ATmega328P_monitor.asm,v 1.19 2026/02/18 18:01:31 administrateur Exp $"
+         
+         ; 2024/06/01 - Add description...
+         ; 2024/06/07 - Test sections for CRC8-MAXIM calculataion...
+         ; 2024/09/05 - Ajout de la commande "<i" pour dumper la SRAM [0x00, ..., 0xFF]
+         ; 2024/11/03 - Ajout de la commande "<thhhl-HhHl" pour tester la sequence:
+         ;                 ldi   r18, hl
+         ;                 ldi   r20, hh
+         ;                 ldi   r19, Hl
+         ;                 ldi   r21, Hh
+         ;                 cp    r18, r20
+         ;                 -> Print SREG
+         ;                 cpc   r19, r21
+         ;                 -> Print SREG
+         ;
+         ;              => Peut etre completee/modifiee pour valider @ a la vrai vie ;-)
+         ; 2024/11/04 - Deplacement de 'uos_puts' dans 'ATmega328P_monitor_P8.pub' avec un
+         ;              un forcage de l'emission (cf. affirmation de 'FLG_1_UART_FIFO_TX_TO_SEND_MSK')
+         ;
+         ; 2025/09/23 - Accueil de la commande "<I" pour une ecriture dans un registre I/O
+         ;
+         ; 2026/01/19 - Reprise du projet 'ATmega328P_monitor_P8A'
+         
+          .include		"m328Pdef.inc"				; Labels and identifiers for ATmega328p
+         ;***** THIS IS A MACHINE GENERATED FILE - DO NOT EDIT ********************
+         ;***** Created: 2011-02-09 12:03 ******* Source: ATmega328P.xml **********
+         ;*************************************************************************
+         ;* A P P L I C A T I O N   N O T E   F O R   T H E   A V R   F A M I L Y
+         ;* 
+         ;* Number            : AVR000
+         ;* File Name         : "m328Pdef.inc"
+         ;* Title             : Register/Bit Definitions for the ATmega328P
+         ;* Date              : 2011-02-09
+         ;* Version           : 2.35
+         ;* Support E-mail    : avr@atmel.com
+         ;* Target MCU        : ATmega328P
+         ;* 
+         ;* DESCRIPTION
+         ;* When including this file in the assembly program file, all I/O register 
+         ;* names and I/O register bit names appearing in the data book can be used.
+         ;* In addition, the six registers forming the three data pointers X, Y and 
+         ;* Z have been assigned names XL - ZH. Highest RAM address for Internal 
+         ;* SRAM is also defined 
+         ;* 
+         ;* The Register names are represented by their hexadecimal address.
+         ;* 
+         ;* The Register Bit names are represented by their bit number (0-7).
+         ;* 
+         ;* Please observe the difference in using the bit names with instructions
+         ;* such as "sbr"/"cbr" (set/clear bit in register) and "sbrs"/"sbrc"
+         ;* (skip if bit in register set/cleared). The following example illustrates
+         ;* this:
+         ;* 
+         ;* in    r16,PORTB             ;read PORTB latch
+         ;* sbr   r16,(1<<PB6)+(1<<PB5) ;set PB6 and PB5 (use masks, not bit#)
+         ;* out   PORTB,r16             ;output to PORTB
+         ;* 
+         ;* in    r16,TIFR              ;read the Timer Interrupt Flag Register
+         ;* sbrc  r16,TOV0              ;test the overflow flag (use bit#)
+         ;* rjmp  TOV0_is_set           ;jump if set
+         ;* ...                         ;otherwise do something else
+         ;*************************************************************************
+         
+          #ifndef _M328PDEF_INC_
+          #define _M328PDEF_INC_
+         
+         
+          #pragma partinc 0
+         
+         ; ***** SPECIFY DEVICE ***************************************************
+          .device ATmega328P
+          #pragma AVRPART ADMIN PART_NAME ATmega328P
+          .equ	SIGNATURE_000	= 0x1e
+          .equ	SIGNATURE_001	= 0x95
+          .equ	SIGNATURE_002	= 0x0f
+         
+          #pragma AVRPART CORE CORE_VERSION V2E
+         
+         
+         ; ***** I/O REGISTER DEFINITIONS *****************************************
+         ; NOTE:
+         ; Definitions marked "MEMORY MAPPED"are extended I/O ports
+         ; and cannot be used with IN/OUT instructions
+          .equ	UDR0	= 0xc6	; MEMORY MAPPED
+          .equ	UBRR0L	= 0xc4	; MEMORY MAPPED
+          .equ	UBRR0H	= 0xc5	; MEMORY MAPPED
+          .equ	UCSR0C	= 0xc2	; MEMORY MAPPED
+          .equ	UCSR0B	= 0xc1	; MEMORY MAPPED
+          .equ	UCSR0A	= 0xc0	; MEMORY MAPPED
+          .equ	TWAMR	= 0xbd	; MEMORY MAPPED
+          .equ	TWCR	= 0xbc	; MEMORY MAPPED
+          .equ	TWDR	= 0xbb	; MEMORY MAPPED
+          .equ	TWAR	= 0xba	; MEMORY MAPPED
+          .equ	TWSR	= 0xb9	; MEMORY MAPPED
+          .equ	TWBR	= 0xb8	; MEMORY MAPPED
+          .equ	ASSR	= 0xb6	; MEMORY MAPPED
+          .equ	OCR2B	= 0xb4	; MEMORY MAPPED
+          .equ	OCR2A	= 0xb3	; MEMORY MAPPED
+          .equ	TCNT2	= 0xb2	; MEMORY MAPPED
+          .equ	TCCR2B	= 0xb1	; MEMORY MAPPED
+          .equ	TCCR2A	= 0xb0	; MEMORY MAPPED
+          .equ	OCR1BL	= 0x8a	; MEMORY MAPPED
+          .equ	OCR1BH	= 0x8b	; MEMORY MAPPED
+          .equ	OCR1AL	= 0x88	; MEMORY MAPPED
+          .equ	OCR1AH	= 0x89	; MEMORY MAPPED
+          .equ	ICR1L	= 0x86	; MEMORY MAPPED
+          .equ	ICR1H	= 0x87	; MEMORY MAPPED
+          .equ	TCNT1L	= 0x84	; MEMORY MAPPED
+          .equ	TCNT1H	= 0x85	; MEMORY MAPPED
+          .equ	TCCR1C	= 0x82	; MEMORY MAPPED
+          .equ	TCCR1B	= 0x81	; MEMORY MAPPED
+          .equ	TCCR1A	= 0x80	; MEMORY MAPPED
+          .equ	DIDR1	= 0x7f	; MEMORY MAPPED
+          .equ	DIDR0	= 0x7e	; MEMORY MAPPED
+          .equ	ADMUX	= 0x7c	; MEMORY MAPPED
+          .equ	ADCSRB	= 0x7b	; MEMORY MAPPED
+          .equ	ADCSRA	= 0x7a	; MEMORY MAPPED
+          .equ	ADCH	= 0x79	; MEMORY MAPPED
+          .equ	ADCL	= 0x78	; MEMORY MAPPED
+          .equ	TIMSK2	= 0x70	; MEMORY MAPPED
+          .equ	TIMSK1	= 0x6f	; MEMORY MAPPED
+          .equ	TIMSK0	= 0x6e	; MEMORY MAPPED
+          .equ	PCMSK1	= 0x6c	; MEMORY MAPPED
+          .equ	PCMSK2	= 0x6d	; MEMORY MAPPED
+          .equ	PCMSK0	= 0x6b	; MEMORY MAPPED
+          .equ	EICRA	= 0x69	; MEMORY MAPPED
+          .equ	PCICR	= 0x68	; MEMORY MAPPED
+          .equ	OSCCAL	= 0x66	; MEMORY MAPPED
+          .equ	PRR	= 0x64	; MEMORY MAPPED
+          .equ	CLKPR	= 0x61	; MEMORY MAPPED
+          .equ	WDTCSR	= 0x60	; MEMORY MAPPED
+          .equ	SREG	= 0x3f
+          .equ	SPL	= 0x3d
+          .equ	SPH	= 0x3e
+          .equ	SPMCSR	= 0x37
+          .equ	MCUCR	= 0x35
+          .equ	MCUSR	= 0x34
+          .equ	SMCR	= 0x33
+          .equ	ACSR	= 0x30
+          .equ	SPDR	= 0x2e
+          .equ	SPSR	= 0x2d
+          .equ	SPCR	= 0x2c
+          .equ	GPIOR2	= 0x2b
+          .equ	GPIOR1	= 0x2a
+          .equ	OCR0B	= 0x28
+          .equ	OCR0A	= 0x27
+          .equ	TCNT0	= 0x26
+          .equ	TCCR0B	= 0x25
+          .equ	TCCR0A	= 0x24
+          .equ	GTCCR	= 0x23
+          .equ	EEARH	= 0x22
+          .equ	EEARL	= 0x21
+          .equ	EEDR	= 0x20
+          .equ	EECR	= 0x1f
+          .equ	GPIOR0	= 0x1e
+          .equ	EIMSK	= 0x1d
+          .equ	EIFR	= 0x1c
+          .equ	PCIFR	= 0x1b
+          .equ	TIFR2	= 0x17
+          .equ	TIFR1	= 0x16
+          .equ	TIFR0	= 0x15
+          .equ	PORTD	= 0x0b
+          .equ	DDRD	= 0x0a
+          .equ	PIND	= 0x09
+          .equ	PORTC	= 0x08
+          .equ	DDRC	= 0x07
+          .equ	PINC	= 0x06
+          .equ	PORTB	= 0x05
+          .equ	DDRB	= 0x04
+          .equ	PINB	= 0x03
+         
+         
+         ; ***** BIT DEFINITIONS **************************************************
+         
+         ; ***** USART0 ***********************
+         ; UDR0 - USART I/O Data Register
+          .equ	UDR0_0	= 0	; USART I/O Data Register bit 0
+          .equ	UDR0_1	= 1	; USART I/O Data Register bit 1
+          .equ	UDR0_2	= 2	; USART I/O Data Register bit 2
+          .equ	UDR0_3	= 3	; USART I/O Data Register bit 3
+          .equ	UDR0_4	= 4	; USART I/O Data Register bit 4
+          .equ	UDR0_5	= 5	; USART I/O Data Register bit 5
+          .equ	UDR0_6	= 6	; USART I/O Data Register bit 6
+          .equ	UDR0_7	= 7	; USART I/O Data Register bit 7
+         
+         ; UCSR0A - USART Control and Status Register A
+          .equ	MPCM0	= 0	; Multi-processor Communication Mode
+          .equ	U2X0	= 1	; Double the USART transmission speed
+          .equ	UPE0	= 2	; Parity Error
+          .equ	DOR0	= 3	; Data overRun
+          .equ	FE0	= 4	; Framing Error
+          .equ	UDRE0	= 5	; USART Data Register Empty
+          .equ	TXC0	= 6	; USART Transmitt Complete
+          .equ	RXC0	= 7	; USART Receive Complete
+         
+         ; UCSR0B - USART Control and Status Register B
+          .equ	TXB80	= 0	; Transmit Data Bit 8
+          .equ	RXB80	= 1	; Receive Data Bit 8
+          .equ	UCSZ02	= 2	; Character Size
+          .equ	TXEN0	= 3	; Transmitter Enable
+          .equ	RXEN0	= 4	; Receiver Enable
+          .equ	UDRIE0	= 5	; USART Data register Empty Interrupt Enable
+          .equ	TXCIE0	= 6	; TX Complete Interrupt Enable
+          .equ	RXCIE0	= 7	; RX Complete Interrupt Enable
+         
+         ; UCSR0C - USART Control and Status Register C
+          .equ	UCPOL0	= 0	; Clock Polarity
+          .equ	UCSZ00	= 1	; Character Size
+          .equ	UCPHA0	= UCSZ00	; For compatibility
+          .equ	UCSZ01	= 2	; Character Size
+          .equ	UDORD0	= UCSZ01	; For compatibility
+          .equ	USBS0	= 3	; Stop Bit Select
+          .equ	UPM00	= 4	; Parity Mode Bit 0
+          .equ	UPM01	= 5	; Parity Mode Bit 1
+          .equ	UMSEL00	= 6	; USART Mode Select
+          .equ	UMSEL0	= UMSEL00	; For compatibility
+          .equ	UMSEL01	= 7	; USART Mode Select
+          .equ	UMSEL1	= UMSEL01	; For compatibility
+         
+         ; UBRR0H - USART Baud Rate Register High Byte
+          .equ	UBRR8	= 0	; USART Baud Rate Register bit 8
+          .equ	UBRR9	= 1	; USART Baud Rate Register bit 9
+          .equ	UBRR10	= 2	; USART Baud Rate Register bit 10
+          .equ	UBRR11	= 3	; USART Baud Rate Register bit 11
+         
+         ; UBRR0L - USART Baud Rate Register Low Byte
+          .equ	_UBRR0	= 0	; USART Baud Rate Register bit 0
+          .equ	_UBRR1	= 1	; USART Baud Rate Register bit 1
+          .equ	UBRR2	= 2	; USART Baud Rate Register bit 2
+          .equ	UBRR3	= 3	; USART Baud Rate Register bit 3
+          .equ	UBRR4	= 4	; USART Baud Rate Register bit 4
+          .equ	UBRR5	= 5	; USART Baud Rate Register bit 5
+          .equ	UBRR6	= 6	; USART Baud Rate Register bit 6
+          .equ	UBRR7	= 7	; USART Baud Rate Register bit 7
+         
+         
+         ; ***** TWI **************************
+         ; TWAMR - TWI (Slave) Address Mask Register
+          .equ	TWAM0	= 1	; 
+          .equ	TWAMR0	= TWAM0	; For compatibility
+          .equ	TWAM1	= 2	; 
+          .equ	TWAMR1	= TWAM1	; For compatibility
+          .equ	TWAM2	= 3	; 
+          .equ	TWAMR2	= TWAM2	; For compatibility
+          .equ	TWAM3	= 4	; 
+          .equ	TWAMR3	= TWAM3	; For compatibility
+          .equ	TWAM4	= 5	; 
+          .equ	TWAMR4	= TWAM4	; For compatibility
+          .equ	TWAM5	= 6	; 
+          .equ	TWAMR5	= TWAM5	; For compatibility
+          .equ	TWAM6	= 7	; 
+          .equ	TWAMR6	= TWAM6	; For compatibility
+         
+         ; TWBR - TWI Bit Rate register
+          .equ	TWBR0	= 0	; 
+          .equ	TWBR1	= 1	; 
+          .equ	TWBR2	= 2	; 
+          .equ	TWBR3	= 3	; 
+          .equ	TWBR4	= 4	; 
+          .equ	TWBR5	= 5	; 
+          .equ	TWBR6	= 6	; 
+          .equ	TWBR7	= 7	; 
+         
+         ; TWCR - TWI Control Register
+          .equ	TWIE	= 0	; TWI Interrupt Enable
+          .equ	TWEN	= 2	; TWI Enable Bit
+          .equ	TWWC	= 3	; TWI Write Collition Flag
+          .equ	TWSTO	= 4	; TWI Stop Condition Bit
+          .equ	TWSTA	= 5	; TWI Start Condition Bit
+          .equ	TWEA	= 6	; TWI Enable Acknowledge Bit
+          .equ	TWINT	= 7	; TWI Interrupt Flag
+         
+         ; TWSR - TWI Status Register
+          .equ	TWPS0	= 0	; TWI Prescaler
+          .equ	TWPS1	= 1	; TWI Prescaler
+          .equ	TWS3	= 3	; TWI Status
+          .equ	TWS4	= 4	; TWI Status
+          .equ	TWS5	= 5	; TWI Status
+          .equ	TWS6	= 6	; TWI Status
+          .equ	TWS7	= 7	; TWI Status
+         
+         ; TWDR - TWI Data register
+          .equ	TWD0	= 0	; TWI Data Register Bit 0
+          .equ	TWD1	= 1	; TWI Data Register Bit 1
+          .equ	TWD2	= 2	; TWI Data Register Bit 2
+          .equ	TWD3	= 3	; TWI Data Register Bit 3
+          .equ	TWD4	= 4	; TWI Data Register Bit 4
+          .equ	TWD5	= 5	; TWI Data Register Bit 5
+          .equ	TWD6	= 6	; TWI Data Register Bit 6
+          .equ	TWD7	= 7	; TWI Data Register Bit 7
+         
+         ; TWAR - TWI (Slave) Address register
+          .equ	TWGCE	= 0	; TWI General Call Recognition Enable Bit
+          .equ	TWA0	= 1	; TWI (Slave) Address register Bit 0
+          .equ	TWA1	= 2	; TWI (Slave) Address register Bit 1
+          .equ	TWA2	= 3	; TWI (Slave) Address register Bit 2
+          .equ	TWA3	= 4	; TWI (Slave) Address register Bit 3
+          .equ	TWA4	= 5	; TWI (Slave) Address register Bit 4
+          .equ	TWA5	= 6	; TWI (Slave) Address register Bit 5
+          .equ	TWA6	= 7	; TWI (Slave) Address register Bit 6
+         
+         
+         ; ***** TIMER_COUNTER_1 **************
+         ; TIMSK1 - Timer/Counter Interrupt Mask Register
+          .equ	TOIE1	= 0	; Timer/Counter1 Overflow Interrupt Enable
+          .equ	OCIE1A	= 1	; Timer/Counter1 Output CompareA Match Interrupt Enable
+          .equ	OCIE1B	= 2	; Timer/Counter1 Output CompareB Match Interrupt Enable
+          .equ	ICIE1	= 5	; Timer/Counter1 Input Capture Interrupt Enable
+         
+         ; TIFR1 - Timer/Counter Interrupt Flag register
+          .equ	TOV1	= 0	; Timer/Counter1 Overflow Flag
+          .equ	OCF1A	= 1	; Output Compare Flag 1A
+          .equ	OCF1B	= 2	; Output Compare Flag 1B
+          .equ	ICF1	= 5	; Input Capture Flag 1
+         
+         ; TCCR1A - Timer/Counter1 Control Register A
+          .equ	WGM10	= 0	; Waveform Generation Mode
+          .equ	WGM11	= 1	; Waveform Generation Mode
+          .equ	COM1B0	= 4	; Compare Output Mode 1B, bit 0
+          .equ	COM1B1	= 5	; Compare Output Mode 1B, bit 1
+          .equ	COM1A0	= 6	; Comparet Ouput Mode 1A, bit 0
+          .equ	COM1A1	= 7	; Compare Output Mode 1A, bit 1
+         
+         ; TCCR1B - Timer/Counter1 Control Register B
+          .equ	CS10	= 0	; Prescaler source of Timer/Counter 1
+          .equ	CS11	= 1	; Prescaler source of Timer/Counter 1
+          .equ	CS12	= 2	; Prescaler source of Timer/Counter 1
+          .equ	WGM12	= 3	; Waveform Generation Mode
+          .equ	WGM13	= 4	; Waveform Generation Mode
+          .equ	ICES1	= 6	; Input Capture 1 Edge Select
+          .equ	ICNC1	= 7	; Input Capture 1 Noise Canceler
+         
+         ; TCCR1C - Timer/Counter1 Control Register C
+          .equ	FOC1B	= 6	; 
+          .equ	FOC1A	= 7	; 
+         
+         ; GTCCR - General Timer/Counter Control Register
+          .equ	PSRSYNC	= 0	; Prescaler Reset Timer/Counter1 and Timer/Counter0
+          .equ	TSM	= 7	; Timer/Counter Synchronization Mode
+         
+         
+         ; ***** TIMER_COUNTER_2 **************
+         ; TIMSK2 - Timer/Counter Interrupt Mask register
+          .equ	TOIE2	= 0	; Timer/Counter2 Overflow Interrupt Enable
+          .equ	TOIE2A	= TOIE2	; For compatibility
+          .equ	OCIE2A	= 1	; Timer/Counter2 Output Compare Match A Interrupt Enable
+          .equ	OCIE2B	= 2	; Timer/Counter2 Output Compare Match B Interrupt Enable
+         
+         ; TIFR2 - Timer/Counter Interrupt Flag Register
+          .equ	TOV2	= 0	; Timer/Counter2 Overflow Flag
+          .equ	OCF2A	= 1	; Output Compare Flag 2A
+          .equ	OCF2B	= 2	; Output Compare Flag 2B
+         
+         ; TCCR2A - Timer/Counter2 Control Register A
+          .equ	WGM20	= 0	; Waveform Genration Mode
+          .equ	WGM21	= 1	; Waveform Genration Mode
+          .equ	COM2B0	= 4	; Compare Output Mode bit 0
+          .equ	COM2B1	= 5	; Compare Output Mode bit 1
+          .equ	COM2A0	= 6	; Compare Output Mode bit 1
+          .equ	COM2A1	= 7	; Compare Output Mode bit 1
+         
+         ; TCCR2B - Timer/Counter2 Control Register B
+          .equ	CS20	= 0	; Clock Select bit 0
+          .equ	CS21	= 1	; Clock Select bit 1
+          .equ	CS22	= 2	; Clock Select bit 2
+          .equ	WGM22	= 3	; Waveform Generation Mode
+          .equ	FOC2B	= 6	; Force Output Compare B
+          .equ	FOC2A	= 7	; Force Output Compare A
+         
+         ; TCNT2 - Timer/Counter2
+          .equ	TCNT2_0	= 0	; Timer/Counter 2 bit 0
+          .equ	TCNT2_1	= 1	; Timer/Counter 2 bit 1
+          .equ	TCNT2_2	= 2	; Timer/Counter 2 bit 2
+          .equ	TCNT2_3	= 3	; Timer/Counter 2 bit 3
+          .equ	TCNT2_4	= 4	; Timer/Counter 2 bit 4
+          .equ	TCNT2_5	= 5	; Timer/Counter 2 bit 5
+          .equ	TCNT2_6	= 6	; Timer/Counter 2 bit 6
+          .equ	TCNT2_7	= 7	; Timer/Counter 2 bit 7
+         
+         ; OCR2A - Timer/Counter2 Output Compare Register A
+          .equ	OCR2A_0	= 0	; Timer/Counter2 Output Compare Register Bit 0
+          .equ	OCR2A_1	= 1	; Timer/Counter2 Output Compare Register Bit 1
+          .equ	OCR2A_2	= 2	; Timer/Counter2 Output Compare Register Bit 2
+          .equ	OCR2A_3	= 3	; Timer/Counter2 Output Compare Register Bit 3
+          .equ	OCR2A_4	= 4	; Timer/Counter2 Output Compare Register Bit 4
+          .equ	OCR2A_5	= 5	; Timer/Counter2 Output Compare Register Bit 5
+          .equ	OCR2A_6	= 6	; Timer/Counter2 Output Compare Register Bit 6
+          .equ	OCR2A_7	= 7	; Timer/Counter2 Output Compare Register Bit 7
+         
+         ; OCR2B - Timer/Counter2 Output Compare Register B
+          .equ	OCR2B_0	= 0	; Timer/Counter2 Output Compare Register Bit 0
+          .equ	OCR2B_1	= 1	; Timer/Counter2 Output Compare Register Bit 1
+          .equ	OCR2B_2	= 2	; Timer/Counter2 Output Compare Register Bit 2
+          .equ	OCR2B_3	= 3	; Timer/Counter2 Output Compare Register Bit 3
+          .equ	OCR2B_4	= 4	; Timer/Counter2 Output Compare Register Bit 4
+          .equ	OCR2B_5	= 5	; Timer/Counter2 Output Compare Register Bit 5
+          .equ	OCR2B_6	= 6	; Timer/Counter2 Output Compare Register Bit 6
+          .equ	OCR2B_7	= 7	; Timer/Counter2 Output Compare Register Bit 7
+         
+         ; ASSR - Asynchronous Status Register
+          .equ	TCR2BUB	= 0	; Timer/Counter Control Register2 Update Busy
+          .equ	TCR2AUB	= 1	; Timer/Counter Control Register2 Update Busy
+          .equ	OCR2BUB	= 2	; Output Compare Register 2 Update Busy
+          .equ	OCR2AUB	= 3	; Output Compare Register2 Update Busy
+          .equ	TCN2UB	= 4	; Timer/Counter2 Update Busy
+          .equ	AS2	= 5	; Asynchronous Timer/Counter2
+          .equ	EXCLK	= 6	; Enable External Clock Input
+         
+         ; GTCCR - General Timer Counter Control register
+          .equ	PSRASY	= 1	; Prescaler Reset Timer/Counter2
+          .equ	PSR2	= PSRASY	; For compatibility
+         ;.equ	TSM	= 7	; Timer/Counter Synchronization Mode
+         
+         
+         ; ***** AD_CONVERTER *****************
+         ; ADMUX - The ADC multiplexer Selection Register
+          .equ	MUX0	= 0	; Analog Channel and Gain Selection Bits
+          .equ	MUX1	= 1	; Analog Channel and Gain Selection Bits
+          .equ	MUX2	= 2	; Analog Channel and Gain Selection Bits
+          .equ	MUX3	= 3	; Analog Channel and Gain Selection Bits
+          .equ	ADLAR	= 5	; Left Adjust Result
+          .equ	REFS0	= 6	; Reference Selection Bit 0
+          .equ	REFS1	= 7	; Reference Selection Bit 1
+         
+         ; ADCSRA - The ADC Control and Status register A
+          .equ	ADPS0	= 0	; ADC  Prescaler Select Bits
+          .equ	ADPS1	= 1	; ADC  Prescaler Select Bits
+          .equ	ADPS2	= 2	; ADC  Prescaler Select Bits
+          .equ	ADIE	= 3	; ADC Interrupt Enable
+          .equ	ADIF	= 4	; ADC Interrupt Flag
+          .equ	ADATE	= 5	; ADC  Auto Trigger Enable
+          .equ	ADSC	= 6	; ADC Start Conversion
+          .equ	ADEN	= 7	; ADC Enable
+         
+         ; ADCSRB - The ADC Control and Status register B
+          .equ	ADTS0	= 0	; ADC Auto Trigger Source bit 0
+          .equ	ADTS1	= 1	; ADC Auto Trigger Source bit 1
+          .equ	ADTS2	= 2	; ADC Auto Trigger Source bit 2
+          .equ	ACME	= 6	; 
+         
+         ; ADCH - ADC Data Register High Byte
+          .equ	ADCH0	= 0	; ADC Data Register High Byte Bit 0
+          .equ	ADCH1	= 1	; ADC Data Register High Byte Bit 1
+          .equ	ADCH2	= 2	; ADC Data Register High Byte Bit 2
+          .equ	ADCH3	= 3	; ADC Data Register High Byte Bit 3
+          .equ	ADCH4	= 4	; ADC Data Register High Byte Bit 4
+          .equ	ADCH5	= 5	; ADC Data Register High Byte Bit 5
+          .equ	ADCH6	= 6	; ADC Data Register High Byte Bit 6
+          .equ	ADCH7	= 7	; ADC Data Register High Byte Bit 7
+         
+         ; ADCL - ADC Data Register Low Byte
+          .equ	ADCL0	= 0	; ADC Data Register Low Byte Bit 0
+          .equ	ADCL1	= 1	; ADC Data Register Low Byte Bit 1
+          .equ	ADCL2	= 2	; ADC Data Register Low Byte Bit 2
+          .equ	ADCL3	= 3	; ADC Data Register Low Byte Bit 3
+          .equ	ADCL4	= 4	; ADC Data Register Low Byte Bit 4
+          .equ	ADCL5	= 5	; ADC Data Register Low Byte Bit 5
+          .equ	ADCL6	= 6	; ADC Data Register Low Byte Bit 6
+          .equ	ADCL7	= 7	; ADC Data Register Low Byte Bit 7
+         
+         ; DIDR0 - Digital Input Disable Register
+          .equ	ADC0D	= 0	; 
+          .equ	ADC1D	= 1	; 
+          .equ	ADC2D	= 2	; 
+          .equ	ADC3D	= 3	; 
+          .equ	ADC4D	= 4	; 
+          .equ	ADC5D	= 5	; 
+         
+         
+         ; ***** ANALOG_COMPARATOR ************
+         ; ACSR - Analog Comparator Control And Status Register
+          .equ	ACIS0	= 0	; Analog Comparator Interrupt Mode Select bit 0
+          .equ	ACIS1	= 1	; Analog Comparator Interrupt Mode Select bit 1
+          .equ	ACIC	= 2	; Analog Comparator Input Capture Enable
+          .equ	ACIE	= 3	; Analog Comparator Interrupt Enable
+          .equ	ACI	= 4	; Analog Comparator Interrupt Flag
+          .equ	ACO	= 5	; Analog Compare Output
+          .equ	ACBG	= 6	; Analog Comparator Bandgap Select
+          .equ	ACD	= 7	; Analog Comparator Disable
+         
+         ; DIDR1 - Digital Input Disable Register 1
+          .equ	AIN0D	= 0	; AIN0 Digital Input Disable
+          .equ	AIN1D	= 1	; AIN1 Digital Input Disable
+         
+         
+         ; ***** PORTB ************************
+         ; PORTB - Port B Data Register
+          .equ	PORTB0	= 0	; Port B Data Register bit 0
+          .equ	PB0	= 0	; For compatibility
+          .equ	PORTB1	= 1	; Port B Data Register bit 1
+          .equ	PB1	= 1	; For compatibility
+          .equ	PORTB2	= 2	; Port B Data Register bit 2
+          .equ	PB2	= 2	; For compatibility
+          .equ	PORTB3	= 3	; Port B Data Register bit 3
+          .equ	PB3	= 3	; For compatibility
+          .equ	PORTB4	= 4	; Port B Data Register bit 4
+          .equ	PB4	= 4	; For compatibility
+          .equ	PORTB5	= 5	; Port B Data Register bit 5
+          .equ	PB5	= 5	; For compatibility
+          .equ	PORTB6	= 6	; Port B Data Register bit 6
+          .equ	PB6	= 6	; For compatibility
+          .equ	PORTB7	= 7	; Port B Data Register bit 7
+          .equ	PB7	= 7	; For compatibility
+         
+         ; DDRB - Port B Data Direction Register
+          .equ	DDB0	= 0	; Port B Data Direction Register bit 0
+          .equ	DDB1	= 1	; Port B Data Direction Register bit 1
+          .equ	DDB2	= 2	; Port B Data Direction Register bit 2
+          .equ	DDB3	= 3	; Port B Data Direction Register bit 3
+          .equ	DDB4	= 4	; Port B Data Direction Register bit 4
+          .equ	DDB5	= 5	; Port B Data Direction Register bit 5
+          .equ	DDB6	= 6	; Port B Data Direction Register bit 6
+          .equ	DDB7	= 7	; Port B Data Direction Register bit 7
+         
+         ; PINB - Port B Input Pins
+          .equ	PINB0	= 0	; Port B Input Pins bit 0
+          .equ	PINB1	= 1	; Port B Input Pins bit 1
+          .equ	PINB2	= 2	; Port B Input Pins bit 2
+          .equ	PINB3	= 3	; Port B Input Pins bit 3
+          .equ	PINB4	= 4	; Port B Input Pins bit 4
+          .equ	PINB5	= 5	; Port B Input Pins bit 5
+          .equ	PINB6	= 6	; Port B Input Pins bit 6
+          .equ	PINB7	= 7	; Port B Input Pins bit 7
+         
+         
+         ; ***** PORTC ************************
+         ; PORTC - Port C Data Register
+          .equ	PORTC0	= 0	; Port C Data Register bit 0
+          .equ	PC0	= 0	; For compatibility
+          .equ	PORTC1	= 1	; Port C Data Register bit 1
+          .equ	PC1	= 1	; For compatibility
+          .equ	PORTC2	= 2	; Port C Data Register bit 2
+          .equ	PC2	= 2	; For compatibility
+          .equ	PORTC3	= 3	; Port C Data Register bit 3
+          .equ	PC3	= 3	; For compatibility
+          .equ	PORTC4	= 4	; Port C Data Register bit 4
+          .equ	PC4	= 4	; For compatibility
+          .equ	PORTC5	= 5	; Port C Data Register bit 5
+          .equ	PC5	= 5	; For compatibility
+          .equ	PORTC6	= 6	; Port C Data Register bit 6
+          .equ	PC6	= 6	; For compatibility
+         
+         ; DDRC - Port C Data Direction Register
+          .equ	DDC0	= 0	; Port C Data Direction Register bit 0
+          .equ	DDC1	= 1	; Port C Data Direction Register bit 1
+          .equ	DDC2	= 2	; Port C Data Direction Register bit 2
+          .equ	DDC3	= 3	; Port C Data Direction Register bit 3
+          .equ	DDC4	= 4	; Port C Data Direction Register bit 4
+          .equ	DDC5	= 5	; Port C Data Direction Register bit 5
+          .equ	DDC6	= 6	; Port C Data Direction Register bit 6
+         
+         ; PINC - Port C Input Pins
+          .equ	PINC0	= 0	; Port C Input Pins bit 0
+          .equ	PINC1	= 1	; Port C Input Pins bit 1
+          .equ	PINC2	= 2	; Port C Input Pins bit 2
+          .equ	PINC3	= 3	; Port C Input Pins bit 3
+          .equ	PINC4	= 4	; Port C Input Pins bit 4
+          .equ	PINC5	= 5	; Port C Input Pins bit 5
+          .equ	PINC6	= 6	; Port C Input Pins bit 6
+         
+         
+         ; ***** PORTD ************************
+         ; PORTD - Port D Data Register
+          .equ	PORTD0	= 0	; Port D Data Register bit 0
+          .equ	PD0	= 0	; For compatibility
+          .equ	PORTD1	= 1	; Port D Data Register bit 1
+          .equ	PD1	= 1	; For compatibility
+          .equ	PORTD2	= 2	; Port D Data Register bit 2
+          .equ	PD2	= 2	; For compatibility
+          .equ	PORTD3	= 3	; Port D Data Register bit 3
+          .equ	PD3	= 3	; For compatibility
+          .equ	PORTD4	= 4	; Port D Data Register bit 4
+          .equ	PD4	= 4	; For compatibility
+          .equ	PORTD5	= 5	; Port D Data Register bit 5
+          .equ	PD5	= 5	; For compatibility
+          .equ	PORTD6	= 6	; Port D Data Register bit 6
+          .equ	PD6	= 6	; For compatibility
+          .equ	PORTD7	= 7	; Port D Data Register bit 7
+          .equ	PD7	= 7	; For compatibility
+         
+         ; DDRD - Port D Data Direction Register
+          .equ	DDD0	= 0	; Port D Data Direction Register bit 0
+          .equ	DDD1	= 1	; Port D Data Direction Register bit 1
+          .equ	DDD2	= 2	; Port D Data Direction Register bit 2
+          .equ	DDD3	= 3	; Port D Data Direction Register bit 3
+          .equ	DDD4	= 4	; Port D Data Direction Register bit 4
+          .equ	DDD5	= 5	; Port D Data Direction Register bit 5
+          .equ	DDD6	= 6	; Port D Data Direction Register bit 6
+          .equ	DDD7	= 7	; Port D Data Direction Register bit 7
+         
+         ; PIND - Port D Input Pins
+          .equ	PIND0	= 0	; Port D Input Pins bit 0
+          .equ	PIND1	= 1	; Port D Input Pins bit 1
+          .equ	PIND2	= 2	; Port D Input Pins bit 2
+          .equ	PIND3	= 3	; Port D Input Pins bit 3
+          .equ	PIND4	= 4	; Port D Input Pins bit 4
+          .equ	PIND5	= 5	; Port D Input Pins bit 5
+          .equ	PIND6	= 6	; Port D Input Pins bit 6
+          .equ	PIND7	= 7	; Port D Input Pins bit 7
+         
+         
+         ; ***** TIMER_COUNTER_0 **************
+         ; TIMSK0 - Timer/Counter0 Interrupt Mask Register
+          .equ	TOIE0	= 0	; Timer/Counter0 Overflow Interrupt Enable
+          .equ	OCIE0A	= 1	; Timer/Counter0 Output Compare Match A Interrupt Enable
+          .equ	OCIE0B	= 2	; Timer/Counter0 Output Compare Match B Interrupt Enable
+         
+         ; TIFR0 - Timer/Counter0 Interrupt Flag register
+          .equ	TOV0	= 0	; Timer/Counter0 Overflow Flag
+          .equ	OCF0A	= 1	; Timer/Counter0 Output Compare Flag 0A
+          .equ	OCF0B	= 2	; Timer/Counter0 Output Compare Flag 0B
+         
+         ; TCCR0A - Timer/Counter  Control Register A
+          .equ	WGM00	= 0	; Waveform Generation Mode
+          .equ	WGM01	= 1	; Waveform Generation Mode
+          .equ	COM0B0	= 4	; Compare Output Mode, Fast PWm
+          .equ	COM0B1	= 5	; Compare Output Mode, Fast PWm
+          .equ	COM0A0	= 6	; Compare Output Mode, Phase Correct PWM Mode
+          .equ	COM0A1	= 7	; Compare Output Mode, Phase Correct PWM Mode
+         
+         ; TCCR0B - Timer/Counter Control Register B
+          .equ	CS00	= 0	; Clock Select
+          .equ	CS01	= 1	; Clock Select
+          .equ	CS02	= 2	; Clock Select
+          .equ	WGM02	= 3	; 
+          .equ	FOC0B	= 6	; Force Output Compare B
+          .equ	FOC0A	= 7	; Force Output Compare A
+         
+         ; TCNT0 - Timer/Counter0
+          .equ	TCNT0_0	= 0	; 
+          .equ	TCNT0_1	= 1	; 
+          .equ	TCNT0_2	= 2	; 
+          .equ	TCNT0_3	= 3	; 
+          .equ	TCNT0_4	= 4	; 
+          .equ	TCNT0_5	= 5	; 
+          .equ	TCNT0_6	= 6	; 
+          .equ	TCNT0_7	= 7	; 
+         
+         ; OCR0A - Timer/Counter0 Output Compare Register
+          .equ	OCR0A_0	= 0	; 
+          .equ	OCR0A_1	= 1	; 
+          .equ	OCR0A_2	= 2	; 
+          .equ	OCR0A_3	= 3	; 
+          .equ	OCR0A_4	= 4	; 
+          .equ	OCR0A_5	= 5	; 
+          .equ	OCR0A_6	= 6	; 
+          .equ	OCR0A_7	= 7	; 
+         
+         ; OCR0B - Timer/Counter0 Output Compare Register
+          .equ	OCR0B_0	= 0	; 
+          .equ	OCR0B_1	= 1	; 
+          .equ	OCR0B_2	= 2	; 
+          .equ	OCR0B_3	= 3	; 
+          .equ	OCR0B_4	= 4	; 
+          .equ	OCR0B_5	= 5	; 
+          .equ	OCR0B_6	= 6	; 
+          .equ	OCR0B_7	= 7	; 
+         
+         ; GTCCR - General Timer/Counter Control Register
+         ;.equ	PSRSYNC	= 0	; Prescaler Reset Timer/Counter1 and Timer/Counter0
+          .equ	PSR10	= PSRSYNC	; For compatibility
+         ;.equ	TSM	= 7	; Timer/Counter Synchronization Mode
+         
+         
+         ; ***** EXTERNAL_INTERRUPT ***********
+         ; EICRA - External Interrupt Control Register
+          .equ	ISC00	= 0	; External Interrupt Sense Control 0 Bit 0
+          .equ	ISC01	= 1	; External Interrupt Sense Control 0 Bit 1
+          .equ	ISC10	= 2	; External Interrupt Sense Control 1 Bit 0
+          .equ	ISC11	= 3	; External Interrupt Sense Control 1 Bit 1
+         
+         ; EIMSK - External Interrupt Mask Register
+          .equ	INT0	= 0	; External Interrupt Request 0 Enable
+          .equ	INT1	= 1	; External Interrupt Request 1 Enable
+         
+         ; EIFR - External Interrupt Flag Register
+          .equ	INTF0	= 0	; External Interrupt Flag 0
+          .equ	INTF1	= 1	; External Interrupt Flag 1
+         
+         ; PCICR - Pin Change Interrupt Control Register
+          .equ	PCIE0	= 0	; Pin Change Interrupt Enable 0
+          .equ	PCIE1	= 1	; Pin Change Interrupt Enable 1
+          .equ	PCIE2	= 2	; Pin Change Interrupt Enable 2
+         
+         ; PCMSK2 - Pin Change Mask Register 2
+          .equ	PCINT16	= 0	; Pin Change Enable Mask 16
+          .equ	PCINT17	= 1	; Pin Change Enable Mask 17
+          .equ	PCINT18	= 2	; Pin Change Enable Mask 18
+          .equ	PCINT19	= 3	; Pin Change Enable Mask 19
+          .equ	PCINT20	= 4	; Pin Change Enable Mask 20
+          .equ	PCINT21	= 5	; Pin Change Enable Mask 21
+          .equ	PCINT22	= 6	; Pin Change Enable Mask 22
+          .equ	PCINT23	= 7	; Pin Change Enable Mask 23
+         
+         ; PCMSK1 - Pin Change Mask Register 1
+          .equ	PCINT8	= 0	; Pin Change Enable Mask 8
+          .equ	PCINT9	= 1	; Pin Change Enable Mask 9
+          .equ	PCINT10	= 2	; Pin Change Enable Mask 10
+          .equ	PCINT11	= 3	; Pin Change Enable Mask 11
+          .equ	PCINT12	= 4	; Pin Change Enable Mask 12
+          .equ	PCINT13	= 5	; Pin Change Enable Mask 13
+          .equ	PCINT14	= 6	; Pin Change Enable Mask 14
+         
+         ; PCMSK0 - Pin Change Mask Register 0
+          .equ	PCINT0	= 0	; Pin Change Enable Mask 0
+          .equ	PCINT1	= 1	; Pin Change Enable Mask 1
+          .equ	PCINT2	= 2	; Pin Change Enable Mask 2
+          .equ	PCINT3	= 3	; Pin Change Enable Mask 3
+          .equ	PCINT4	= 4	; Pin Change Enable Mask 4
+          .equ	PCINT5	= 5	; Pin Change Enable Mask 5
+          .equ	PCINT6	= 6	; Pin Change Enable Mask 6
+          .equ	PCINT7	= 7	; Pin Change Enable Mask 7
+         
+         ; PCIFR - Pin Change Interrupt Flag Register
+          .equ	PCIF0	= 0	; Pin Change Interrupt Flag 0
+          .equ	PCIF1	= 1	; Pin Change Interrupt Flag 1
+          .equ	PCIF2	= 2	; Pin Change Interrupt Flag 2
+         
+         
+         ; ***** SPI **************************
+         ; SPDR - SPI Data Register
+          .equ	SPDR0	= 0	; SPI Data Register bit 0
+          .equ	SPDR1	= 1	; SPI Data Register bit 1
+          .equ	SPDR2	= 2	; SPI Data Register bit 2
+          .equ	SPDR3	= 3	; SPI Data Register bit 3
+          .equ	SPDR4	= 4	; SPI Data Register bit 4
+          .equ	SPDR5	= 5	; SPI Data Register bit 5
+          .equ	SPDR6	= 6	; SPI Data Register bit 6
+          .equ	SPDR7	= 7	; SPI Data Register bit 7
+         
+         ; SPSR - SPI Status Register
+          .equ	SPI2X	= 0	; Double SPI Speed Bit
+          .equ	WCOL	= 6	; Write Collision Flag
+          .equ	SPIF	= 7	; SPI Interrupt Flag
+         
+         ; SPCR - SPI Control Register
+          .equ	SPR0	= 0	; SPI Clock Rate Select 0
+          .equ	SPR1	= 1	; SPI Clock Rate Select 1
+          .equ	CPHA	= 2	; Clock Phase
+          .equ	CPOL	= 3	; Clock polarity
+          .equ	MSTR	= 4	; Master/Slave Select
+          .equ	DORD	= 5	; Data Order
+          .equ	SPE	= 6	; SPI Enable
+          .equ	SPIE	= 7	; SPI Interrupt Enable
+         
+         
+         ; ***** WATCHDOG *********************
+         ; WDTCSR - Watchdog Timer Control Register
+          .equ	WDP0	= 0	; Watch Dog Timer Prescaler bit 0
+          .equ	WDP1	= 1	; Watch Dog Timer Prescaler bit 1
+          .equ	WDP2	= 2	; Watch Dog Timer Prescaler bit 2
+          .equ	WDE	= 3	; Watch Dog Enable
+          .equ	WDCE	= 4	; Watchdog Change Enable
+          .equ	WDP3	= 5	; Watchdog Timer Prescaler Bit 3
+          .equ	WDIE	= 6	; Watchdog Timeout Interrupt Enable
+          .equ	WDIF	= 7	; Watchdog Timeout Interrupt Flag
+         
+         
+         ; ***** CPU **************************
+         ; SREG - Status Register
+          .equ	SREG_C	= 0	; Carry Flag
+          .equ	SREG_Z	= 1	; Zero Flag
+          .equ	SREG_N	= 2	; Negative Flag
+          .equ	SREG_V	= 3	; Two's Complement Overflow Flag
+          .equ	SREG_S	= 4	; Sign Bit
+          .equ	SREG_H	= 5	; Half Carry Flag
+          .equ	SREG_T	= 6	; Bit Copy Storage
+          .equ	SREG_I	= 7	; Global Interrupt Enable
+         
+         ; OSCCAL - Oscillator Calibration Value
+          .equ	CAL0	= 0	; Oscillator Calibration Value Bit0
+          .equ	CAL1	= 1	; Oscillator Calibration Value Bit1
+          .equ	CAL2	= 2	; Oscillator Calibration Value Bit2
+          .equ	CAL3	= 3	; Oscillator Calibration Value Bit3
+          .equ	CAL4	= 4	; Oscillator Calibration Value Bit4
+          .equ	CAL5	= 5	; Oscillator Calibration Value Bit5
+          .equ	CAL6	= 6	; Oscillator Calibration Value Bit6
+          .equ	CAL7	= 7	; Oscillator Calibration Value Bit7
+         
+         ; CLKPR - Clock Prescale Register
+          .equ	CLKPS0	= 0	; Clock Prescaler Select Bit 0
+          .equ	CLKPS1	= 1	; Clock Prescaler Select Bit 1
+          .equ	CLKPS2	= 2	; Clock Prescaler Select Bit 2
+          .equ	CLKPS3	= 3	; Clock Prescaler Select Bit 3
+          .equ	CLKPCE	= 7	; Clock Prescaler Change Enable
+         
+         ; SPMCSR - Store Program Memory Control and Status Register
+          .equ	SELFPRGEN = 0	; Added for backwards compatibility
+          .equ	SPMEN	= 0	; Store Program Memory
+          .equ	PGERS	= 1	; Page Erase
+          .equ	PGWRT	= 2	; Page Write
+          .equ	BLBSET	= 3	; Boot Lock Bit Set
+          .equ	RWWSRE	= 4	; Read-While-Write section read enable
+          .equ	SIGRD	= 5	; Signature Row Read
+          .equ	RWWSB	= 6	; Read-While-Write Section Busy
+          .equ	SPMIE	= 7	; SPM Interrupt Enable
+         
+         ; MCUCR - MCU Control Register
+          .equ	IVCE	= 0	; 
+          .equ	IVSEL	= 1	; 
+          .equ	PUD	= 4	; 
+          .equ	BODSE	= 5	; BOD Sleep Enable
+          .equ	BODS	= 6	; BOD Sleep
+         
+         ; MCUSR - MCU Status Register
+          .equ	PORF	= 0	; Power-on reset flag
+          .equ	EXTRF	= 1	; External Reset Flag
+          .equ	EXTREF	= EXTRF	; For compatibility
+          .equ	BORF	= 2	; Brown-out Reset Flag
+          .equ	WDRF	= 3	; Watchdog Reset Flag
+         
+         ; SMCR - Sleep Mode Control Register
+          .equ	SE	= 0	; Sleep Enable
+          .equ	SM0	= 1	; Sleep Mode Select Bit 0
+          .equ	SM1	= 2	; Sleep Mode Select Bit 1
+          .equ	SM2	= 3	; Sleep Mode Select Bit 2
+         
+         ; GPIOR2 - General Purpose I/O Register 2
+          .equ	GPIOR20	= 0	; 
+          .equ	GPIOR21	= 1	; 
+          .equ	GPIOR22	= 2	; 
+          .equ	GPIOR23	= 3	; 
+          .equ	GPIOR24	= 4	; 
+          .equ	GPIOR25	= 5	; 
+          .equ	GPIOR26	= 6	; 
+          .equ	GPIOR27	= 7	; 
+         
+         ; GPIOR1 - General Purpose I/O Register 1
+          .equ	GPIOR10	= 0	; 
+          .equ	GPIOR11	= 1	; 
+          .equ	GPIOR12	= 2	; 
+          .equ	GPIOR13	= 3	; 
+          .equ	GPIOR14	= 4	; 
+          .equ	GPIOR15	= 5	; 
+          .equ	GPIOR16	= 6	; 
+          .equ	GPIOR17	= 7	; 
+         
+         ; GPIOR0 - General Purpose I/O Register 0
+          .equ	GPIOR00	= 0	; 
+          .equ	GPIOR01	= 1	; 
+          .equ	GPIOR02	= 2	; 
+          .equ	GPIOR03	= 3	; 
+          .equ	GPIOR04	= 4	; 
+          .equ	GPIOR05	= 5	; 
+          .equ	GPIOR06	= 6	; 
+          .equ	GPIOR07	= 7	; 
+         
+         ; PRR - Power Reduction Register
+          .equ	PRADC	= 0	; Power Reduction ADC
+          .equ	PRUSART0	= 1	; Power Reduction USART
+          .equ	PRSPI	= 2	; Power Reduction Serial Peripheral Interface
+          .equ	PRTIM1	= 3	; Power Reduction Timer/Counter1
+          .equ	PRTIM0	= 5	; Power Reduction Timer/Counter0
+          .equ	PRTIM2	= 6	; Power Reduction Timer/Counter2
+          .equ	PRTWI	= 7	; Power Reduction TWI
+         
+         
+         ; ***** EEPROM ***********************
+         ; EEARL - EEPROM Address Register Low Byte
+          .equ	EEAR0	= 0	; EEPROM Read/Write Access Bit 0
+          .equ	EEAR1	= 1	; EEPROM Read/Write Access Bit 1
+          .equ	EEAR2	= 2	; EEPROM Read/Write Access Bit 2
+          .equ	EEAR3	= 3	; EEPROM Read/Write Access Bit 3
+          .equ	EEAR4	= 4	; EEPROM Read/Write Access Bit 4
+          .equ	EEAR5	= 5	; EEPROM Read/Write Access Bit 5
+          .equ	EEAR6	= 6	; EEPROM Read/Write Access Bit 6
+          .equ	EEAR7	= 7	; EEPROM Read/Write Access Bit 7
+         
+         ; EEARH - EEPROM Address Register High Byte
+          .equ	EEAR8	= 0	; EEPROM Read/Write Access Bit 8
+          .equ	EEAR9	= 1	; EEPROM Read/Write Access Bit 9
+         
+         ; EEDR - EEPROM Data Register
+          .equ	EEDR0	= 0	; EEPROM Data Register bit 0
+          .equ	EEDR1	= 1	; EEPROM Data Register bit 1
+          .equ	EEDR2	= 2	; EEPROM Data Register bit 2
+          .equ	EEDR3	= 3	; EEPROM Data Register bit 3
+          .equ	EEDR4	= 4	; EEPROM Data Register bit 4
+          .equ	EEDR5	= 5	; EEPROM Data Register bit 5
+          .equ	EEDR6	= 6	; EEPROM Data Register bit 6
+          .equ	EEDR7	= 7	; EEPROM Data Register bit 7
+         
+         ; EECR - EEPROM Control Register
+          .equ	EERE	= 0	; EEPROM Read Enable
+          .equ	EEPE	= 1	; EEPROM Write Enable
+          .equ	EEMPE	= 2	; EEPROM Master Write Enable
+          .equ	EERIE	= 3	; EEPROM Ready Interrupt Enable
+          .equ	EEPM0	= 4	; EEPROM Programming Mode Bit 0
+          .equ	EEPM1	= 5	; EEPROM Programming Mode Bit 1
+         
+         
+         
+         ; ***** LOCKSBITS ********************************************************
+          .equ	LB1	= 0	; Lock bit
+          .equ	LB2	= 1	; Lock bit
+          .equ	BLB01	= 2	; Boot Lock bit
+          .equ	BLB02	= 3	; Boot Lock bit
+          .equ	BLB11	= 4	; Boot lock bit
+          .equ	BLB12	= 5	; Boot lock bit
+         
+         
+         ; ***** FUSES ************************************************************
+         ; LOW fuse bits
+          .equ	CKSEL0	= 0	; Select Clock Source
+          .equ	CKSEL1	= 1	; Select Clock Source
+          .equ	CKSEL2	= 2	; Select Clock Source
+          .equ	CKSEL3	= 3	; Select Clock Source
+          .equ	SUT0	= 4	; Select start-up time
+          .equ	SUT1	= 5	; Select start-up time
+          .equ	CKOUT	= 6	; Clock output
+          .equ	CKDIV8	= 7	; Divide clock by 8
+         
+         ; HIGH fuse bits
+          .equ	BOOTRST	= 0	; Select reset vector
+          .equ	BOOTSZ0	= 1	; Select boot size
+          .equ	BOOTSZ1	= 2	; Select boot size
+          .equ	EESAVE	= 3	; EEPROM memory is preserved through chip erase
+          .equ	WDTON	= 4	; Watchdog Timer Always On
+          .equ	SPIEN	= 5	; Enable Serial programming and Data Downloading
+          .equ	DWEN	= 6	; debugWIRE Enable
+          .equ	RSTDISBL	= 7	; External reset disable
+         
+         ; EXTENDED fuse bits
+          .equ	BODLEVEL0	= 0	; Brown-out Detector trigger level
+          .equ	BODLEVEL1	= 1	; Brown-out Detector trigger level
+          .equ	BODLEVEL2	= 2	; Brown-out Detector trigger level
+         
+         
+         
+         ; ***** CPU REGISTER DEFINITIONS *****************************************
+          .def	XH	= r27
+          .def	XL	= r26
+          .def	YH	= r29
+          .def	YL	= r28
+          .def	ZH	= r31
+          .def	ZL	= r30
+         
+         
+         
+         ; ***** DATA MEMORY DECLARATIONS *****************************************
+          .equ	FLASHEND	= 0x3fff	; Note: Word address
+          .equ	IOEND	= 0x00ff
+          .equ	SRAM_START	= 0x0100
+          .equ	SRAM_SIZE	= 2048
+          .equ	RAMEND	= 0x08ff
+          .equ	XRAMEND	= 0x0000
+          .equ	E2END	= 0x03ff
+          .equ	EEPROMEND	= 0x03ff
+          .equ	EEADRBITS	= 10
+          #pragma AVRPART MEMORY PROG_FLASH 32768
+          #pragma AVRPART MEMORY EEPROM 1024
+          #pragma AVRPART MEMORY INT_SRAM SIZE 2048
+          #pragma AVRPART MEMORY INT_SRAM START_ADDR 0x100
+         
+         
+         
+         ; ***** BOOTLOADER DECLARATIONS ******************************************
+          .equ	NRWW_START_ADDR	= 0x3800
+          .equ	NRWW_STOP_ADDR	= 0x3fff
+          .equ	RWW_START_ADDR	= 0x0
+          .equ	RWW_STOP_ADDR	= 0x37ff
+          .equ	PAGESIZE	= 64
+          .equ	FIRSTBOOTSTART	= 0x3f00
+          .equ	SECONDBOOTSTART	= 0x3e00
+          .equ	THIRDBOOTSTART	= 0x3c00
+          .equ	FOURTHBOOTSTART	= 0x3800
+          .equ	SMALLBOOTSTART	= FIRSTBOOTSTART
+          .equ	LARGEBOOTSTART	= FOURTHBOOTSTART
+         
+         
+         
+         ; ***** INTERRUPT VECTORS ************************************************
+          .equ	INT0addr	= 0x0002	; External Interrupt Request 0
+          .equ	INT1addr	= 0x0004	; External Interrupt Request 1
+          .equ	PCI0addr	= 0x0006	; Pin Change Interrupt Request 0
+          .equ	PCI1addr	= 0x0008	; Pin Change Interrupt Request 0
+          .equ	PCI2addr	= 0x000a	; Pin Change Interrupt Request 1
+          .equ	WDTaddr	= 0x000c	; Watchdog Time-out Interrupt
+          .equ	OC2Aaddr	= 0x000e	; Timer/Counter2 Compare Match A
+          .equ	OC2Baddr	= 0x0010	; Timer/Counter2 Compare Match A
+          .equ	OVF2addr	= 0x0012	; Timer/Counter2 Overflow
+          .equ	ICP1addr	= 0x0014	; Timer/Counter1 Capture Event
+          .equ	OC1Aaddr	= 0x0016	; Timer/Counter1 Compare Match A
+          .equ	OC1Baddr	= 0x0018	; Timer/Counter1 Compare Match B
+          .equ	OVF1addr	= 0x001a	; Timer/Counter1 Overflow
+          .equ	OC0Aaddr	= 0x001c	; TimerCounter0 Compare Match A
+          .equ	OC0Baddr	= 0x001e	; TimerCounter0 Compare Match B
+          .equ	OVF0addr	= 0x0020	; Timer/Couner0 Overflow
+          .equ	SPIaddr	= 0x0022	; SPI Serial Transfer Complete
+          .equ	URXCaddr	= 0x0024	; USART Rx Complete
+          .equ	UDREaddr	= 0x0026	; USART, Data Register Empty
+          .equ	UTXCaddr	= 0x0028	; USART Tx Complete
+          .equ	ADCCaddr	= 0x002a	; ADC Conversion Complete
+          .equ	ERDYaddr	= 0x002c	; EEPROM Ready
+          .equ	ACIaddr	= 0x002e	; Analog Comparator
+          .equ	TWIaddr	= 0x0030	; Two-wire Serial Interface
+          .equ	SPMRaddr	= 0x0032	; Store Program Memory Read
+         
+          .equ	INT_VECTORS_SIZE	= 52	; size in words
+         
+          #endif  /* _M328PDEF_INC_ */
+         
+         ; ***** END OF FILE ******************************************************
+          ; ***** END OF FILE ******************************************************
+          .include		"ATmega328P_uOS.def"		; Definitions propres a 'ATmega328P_uOS'
+         ; "$Id: ATmega328P_uOS.def,v 1.3 2026/01/21 16:06:50 administrateur Exp $"
+         
+          .include		"ATmega328P_uOS.pub"	; Definitions publiques de Micro OS generees automatiquement
+         ; === 'ATmega328P_uOS.pub': Automatic generated (DON'T MODIFY) ===
+          #define	UOS_FLG_0_PRINT_SKIP_MSK			0x0020
+          #define	UOS_FLG_0_PRINT_SKIP_IDX			0x0005
+          #define	UOS_FLG_1_LED_RED_ON_MSK			0x0080
+          #define	UOS_FLG_1_LED_RED_ON_IDX			0x0007
+          #define	UOS_FLG_2_ENABLE_DERIVATION_MSK			0x0080
+          #define	UOS_FLG_2_ENABLE_DERIVATION_IDX			0x0007
+          #define	UOS_FLG_WRONG_IT_BOOLOADER_MSK			0x0080
+          #define	UOS_FLG_WRONG_IT_PROGRAM_MSK			0x0040
+          #define	UOS_FLG_EXTENSIONS_INIT_MSK			0x0080
+          #define	UOS_FLG_EXTENSIONS_EXEC_BACKGROUND_MSK			0x0008
+          #define	UOS_FLG_EXTENSIONS_EXEC_TICK_MSK			0x0004
+          #define	UOS_FLG_EXTENSIONS_EXEC_1_MS_MSK			0x0002
+          #define	UOS_FLG_EXTENSIONS_EXEC_COMMAND_MSK			0x0001
+          #define	UOS_FLG_EXTENSIONS_INIT_IDX			0x0007
+          #define	UOS_FLG_EXTENSIONS_EXEC_BACKGROUND_IDX			0x0003
+          #define	UOS_FLG_EXTENSIONS_EXEC_TICK_IDX			0x0002
+          #define	UOS_FLG_EXTENSIONS_EXEC_1_MS_IDX			0x0001
+          #define	UOS_FLG_EXTENSIONS_EXEC_COMMAND_IDX			0x0000
+          #define	UOS_MSK_BIT_LED_RED			0x0002
+          #define	UOS_MSK_BIT_LED_GREEN			0x0004
+          #define	UOS_MSK_BIT_LED_BLUE			0x0010
+          #define	UOS_MSK_BIT_LED_YELLOW			0x0020
+          #define	UOS_IDX_BIT_LED_RED			0x0001
+          #define	UOS_IDX_BIT_LED_GREEN			0x0002
+          #define	UOS_IDX_BIT_LED_BLUE			0x0004
+          #define	UOS_IDX_BIT_LED_YELLOW			0x0005
+          #define	UOS_BUTTON_1_NUM			0x0001
+          #define	UOS_BUTTON_2_NUM			0x0002
+          #define	UOS_BUTTON_3_NUM			0x0003
+          #define	UOS_BUTTON_4_NUM			0x0004
+          #define	UOS_FLG_STATE_BUTTON_SHORT_TOUCH_IDX			0x0006
+          #define	UOS_FLG_TEST_EEPROM_ERROR_MSK			0x0040
+          #define	UOS_G_STATES_POST_MORTEM			0x0501
+          #define	UOS_G_HEADER_TYPE_PLATINE			0x050b
+          #define	UOS_G_HEADER_INDEX_PLATINE			0x050c
+          #define	UOS_G_HEADER_BAUDS_VALUE			0x050d
+          #define	UOS_G_PORTB_IMAGE			0x050f
+          #define	UOS_G_FLAGS_0			0x0510
+          #define	UOS_G_FLAGS_1			0x0511
+          #define	UOS_G_FLAGS_2			0x0512
+          #define	UOS_G_GESTION_TEST_LEDS			0x0513
+          #define	UOS_G_SAVE_R0			0x0514
+          #define	UOS_G_SAVE_R1			0x0515
+          #define	UOS_G_SAVE_R2			0x0516
+          #define	UOS_G_SAVE_R3			0x0517
+          #define	UOS_G_SAVE_R4			0x0518
+          #define	UOS_G_SAVE_R5			0x0519
+          #define	UOS_G_SAVE_R6			0x051a
+          #define	UOS_G_SAVE_R7			0x051b
+          #define	UOS_G_SAVE_R8			0x051c
+          #define	UOS_G_SAVE_R9			0x051d
+          #define	UOS_G_SAVE_R10			0x051e
+          #define	UOS_G_SAVE_R11			0x051f
+          #define	UOS_G_SAVE_R12			0x0520
+          #define	UOS_G_SAVE_R13			0x0521
+          #define	UOS_G_SAVE_R14			0x0522
+          #define	UOS_G_SAVE_R15			0x0523
+          #define	UOS_G_SAVE_R16			0x0524
+          #define	UOS_G_SAVE_R17			0x0525
+          #define	UOS_G_SAVE_R18			0x0526
+          #define	UOS_G_SAVE_R19			0x0527
+          #define	UOS_G_SAVE_R20			0x0528
+          #define	UOS_G_SAVE_R21			0x0529
+          #define	UOS_G_SAVE_R22			0x052a
+          #define	UOS_G_SAVE_R23			0x052b
+          #define	UOS_G_SAVE_R24			0x052c
+          #define	UOS_G_SAVE_R25			0x052d
+          #define	UOS_G_SAVE_R26			0x052e
+          #define	UOS_G_SAVE_R27			0x052f
+          #define	UOS_G_SAVE_R28			0x0530
+          #define	UOS_G_SAVE_R29			0x0531
+          #define	UOS_G_SAVE_R30			0x0532
+          #define	UOS_G_SAVE_R31			0x0533
+          #define	UOS_G_FLAGS_EXTENSIONS			0x0534
+          #define	uos_main_program			0x3580
+          #define	uos_derivation_delay_5uS_cont_d			0x3639
+          #define	uos_save_reg_r0_r31			0x3641
+          #define	uos_restore_reg_r0_r31			0x3682
+          #define	uos_print_frequency			0x36c3
+          #define	uos_print_frequency_end			0x36cb
+          #define	uos_delay_big			0x36cd
+          #define	uos_delay_big_2			0x36ce
+          #define	uos_eeprom_write_byte			0x3705
+          #define	uos_eeprom_write_byte_wait			0x370e
+          #define	uos_tim1_compa_isr_program			0x3711
+          #define	uos_usart_rx_complete_isr_program			0x376b
+          #define	uos_pcint2_isr_program			0x378e
+          #define	uos_set_error			0x390b
+          #define	uos_start_timer			0x3955
+          #define	uos_restart_timer			0x396a
+          #define	uos_stop_timer			0x397b
+          #define	uos_test_timer			0x398c
+          #define	uos_set_context_timer			0x39a3
+          #define	uos_get_context_timer			0x39b6
+          #define	uos_uart_fifo_tx_write			0x3a80
+          #define	uos_fifo_tx_to_send_async			0x3adf
+          #define	uos_fifo_tx_to_send_sync			0x3af2
+          #define	UOS_G_STATES_BUTTON			0x06c0
+          #define	UOS_G_STATES_BUTTON_NBR_TOUCH			0x06c1
+          #define	UOS_G_STATES_BUTTON_NOTIF			0x06c2
+          #define	UOS_G_STATES_BUTTON_NBR_TOUCH_NOTIF			0x06c3
+          #define	uos_set_infos_from_eeprom			0x3cb2
+          #define	uos_set_infos_from_eeprom_more			0x3cd7
+          #define	uos_reset_skip_print			0x3cdd
+          #define	uos_set_skip_print			0x3ce3
+          #define	uos_push_text_in_fifo_tx_skip			0x3ce9
+          #define	uos_push_text_in_fifo_tx			0x3ced
+          #define	uos_push_1_char_in_fifo_tx_skip			0x3cfa
+          #define	uos_push_1_char_in_fifo_tx			0x3cfe
+          #define	uos_convert_and_put_fifo_tx			0x3d09
+          #define	uos_print_line_feed_skip			0x3d11
+          #define	uos_print_line_feed			0x3d15
+          #define	uos_print_1_byte_hexa_skip			0x3d22
+          #define	uos_print_1_byte_hexa			0x3d26
+          #define	uos_print_2_bytes_hexa_skip			0x3d33
+          #define	uos_print_2_bytes_hexa			0x3d37
+          #define	uos_print_mark_skip			0x3d46
+          #define	uos_print_mark			0x3d4a
+          #define	uos_print_mark_3_char_skip			0x3d59
+          #define	uos_print_mark_3_char			0x3d5d
+          #define	uos_push_text_in_fifo_tx_from_eeprom_skip			0x3d66
+          #define	uos_push_text_in_fifo_tx_from_eeprom			0x3d6a
+          #define	uos_push_text_in_fifo_tx_from_eeprom_loop			0x3d6a
+          #define	uos_push_text_in_fifo_tx_from_eeprom_end			0x3d73
+          #define	uos_puts			0x3d74
+          #define	uos_puts_loop			0x3d75
+          #define	uos_puts_end			0x3d7b
+          #define	UOS_G_TEST_FLAGS			0x06c4
+          #define	UOS_G_TEST_COMMAND_TYPE			0x06c5
+          #define	UOS_G_TEST_VALUE_MSB			0x06c6
+          #define	UOS_G_TEST_VALUE_LSB			0x06c7
+          #define	UOS_G_TEST_VALUE_MSB_MORE			0x06c8
+          #define	UOS_G_TEST_VALUE_LSB_MORE			0x06c9
+          #define	UOS_G_TEST_VALUE_DEC_MSB			0x06ca
+          #define	UOS_G_TEST_VALUE_DEC_LSB			0x06cb
+          #define	UOS_G_TEST_VALUES_IDX_WRK			0x06cc
+          #define	UOS_G_TEST_VALUES_IDX			0x06cd
+          #define	UOS_G_TEST_VALUES_ZONE			0x06ce
+          #define	uos_print_command_ok			0x3dce
+          #define	uos_print_command_ko			0x3dd3
+          #define	uos_print_command			0x3dd7
+          #define	uos_eeprom_read_byte			0x3f2e
+          #define	UOS_G_SRAM_BOOTLOADER_END_OF_USE			0x074e
+          #define	uos_text_eeprom_error			0x3fb4
+          #define	uos_text_hexa_value			0x3fc5
+          #define	uos_text_hexa_value_lf_end			0x3fc8
+         ; === End of Automatic generated (DON'T MODIFY) ===
+          ; === End of Automatic generated (DON'T MODIFY) ===
+         
+         ; Definition des masques de bits [0x00, 0x01, ..., 0xff] pour les opcodes suivants:
+         ; - ori  -> Logical OR with Immediate
+         ; - andi -> Logical AND with Immediate (Faire le complement a 1 ou (0xFF - MSK_BITX))
+         ; - cbr  -> Clear Bits in Register (= andif avec constante complementee a (0xFF - K))
+         ; - sbr  -> Set Bits in Register (= ori)
+         ;
+          #define	MSK_BIT7				(1 << 7)
+          #define	MSK_BIT6				(1 << 6)
+          #define	MSK_BIT5				(1 << 5)
+          #define	MSK_BIT4				(1 << 4)
+          #define	MSK_BIT3				(1 << 3)
+          #define	MSK_BIT2				(1 << 2)
+          #define	MSK_BIT1				(1 << 1)
+          #define	MSK_BIT0				(1 << 0)
+         
+         ; Definition des index de bits [0, 1, ..., 7] pour les opcodes suivants:
+         ; - bld       -> Bit Load from the T Flag in SREG to a Bit in Register
+         ; - bst       -> Bit Store from Bit in Register to T Flag in SREG
+         ; - cbi/sbi   -> Clear Bit in I/O Register / Set Bit in I/O Register
+         ; - sbic/sbis -> Skip if Bit in I/O Register is Cleared / Skip if Bit in I/O Register is Set
+         ; - sbrc/sbrs -> Skip if Bit in Register is Cleared / Skip if Bit in Register is Set
+         ; - bclr/bset -> Bit Clear / Bit Set in SREG
+         ; - brbc/brbs -> Branch if Bit in SREG is Cleared / Set
+         ;
+          #define	IDX_BIT7				7
+          #define	IDX_BIT6				6
+          #define	IDX_BIT5				5
+          #define	IDX_BIT4				4
+          #define	IDX_BIT3				3
+          #define	IDX_BIT2				2
+          #define	IDX_BIT1				1
+          #define	IDX_BIT0				0
+         
+         ;.def		REG_R0				= r0		; Warning: Used by program C
+         ;.def		REG_R1				= r1		; Warning: Used by program C
+          .def		REG_R2				= r2
+          .def		REG_R3				= r3
+          .def		REG_R4				= r4
+          .def		REG_R5				= r5
+          .def		REG_R6				= r6
+          .def		REG_R7				= r7
+          .def		REG_R8				= r8
+          .def		REG_R9				= r9
+          .def		REG_R10				= r10
+          .def		REG_R11				= r11
+          .def		REG_R12				= r12
+          .def		REG_R13				= r13
+          .def		REG_R14				= r14
+          .def		REG_SAVE_SREG		= r15		; Sauvegarde temporaire de SREG dans les methodes ISR
+         
+          .def		REG_TEMP_R16		= r16
+          .def		REG_TEMP_R17		= r17
+          .def		REG_TEMP_R18		= r18
+          .def		REG_TEMP_R19		= r19
+          .def		REG_TEMP_R20		= r20
+          .def		REG_TEMP_R21		= r21
+          .def		REG_TEMP_R22		= r22
+          .def		REG_TEMP_R23		= r23		; Registre de travail en remplacement de 'REG_PORTB_OUT', 'REG_FLAGS_0' et 'REG_FLAGS_1'
+          .def		REG_TEMP_R24		= r24		; Warning: Used by program C
+          .def		REG_TEMP_R25		= r25		; Warning: Used by program C
+         
+          .def		REG_X_LSB			= r26		; XL
+          .def		REG_X_MSB			= r27		; XH
+          .def		REG_Y_LSB			= r28		; YL
+          .def		REG_Y_MSB			= r29		; YH
+          .def		REG_Z_LSB			= r30		; ZL
+          .def		REG_Z_MSB			= r31		; ZH
+         
+         ; --------
+         ; Macros de pilotage du PORTB en sortie
+          .macro setLedsOff				; 0/1: On/Off
+          	ldi		REG_TEMP_R23, (UOS_MSK_BIT_LED_RED | UOS_MSK_BIT_LED_GREEN | UOS_MSK_BIT_LED_YELLOW | UOS_MSK_BIT_LED_BLUE)
+          	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+          	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+          .endm
+         
+          .macro setLedRedOff			; 0/1: On/Off
+          	lds		REG_TEMP_R23, UOS_G_FLAGS_1
+          	cbr		REG_TEMP_R23, UOS_FLG_1_LED_RED_ON_MSK	; Led RED eteinte (Pulse --\_/--- possible)
+          	sts		UOS_G_FLAGS_1, REG_TEMP_R23
+          
+          	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+          	sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_RED	
+          	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+          	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+          .endm
+         
+          .macro setLedRedOn			; 0/1: On/Off
+          	lds		REG_TEMP_R23, UOS_G_FLAGS_1
+          	sbr		REG_TEMP_R23, UOS_FLG_1_LED_RED_ON_MSK	; Led RED allumee (Pulse --\_/--- inhibee)
+          	sts		UOS_G_FLAGS_1, REG_TEMP_R23
+          	sts		UOS_G_FLAGS_1, REG_TEMP_R23
+          
+          	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+          	cbr		REG_TEMP_R23, UOS_MSK_BIT_LED_RED	
+          	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+          	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+          .endm
+         
+          .macro setLedYellowOff		; 0/1: On/Off
+          	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+          	sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_YELLOW
+          	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+          	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+          .endm
+         
+          .macro setLedYellowOn		; 0/1: On/Off
+          	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+          	cbr		REG_TEMP_R23, UOS_MSK_BIT_LED_YELLOW	
+          	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+          	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+          .endm
+         
+          .macro setLedGreenOff		; 0/1: On/Off
+          	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+          	sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_GREEN	
+          	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+          	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+          .endm
+         
+          .macro setLedGreenOn			; 0/1: On/Off
+          	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+          	cbr		REG_TEMP_R23, UOS_MSK_BIT_LED_GREEN
+          	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+          	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+          .endm
+         
+          .macro setLedBlueOn			; 0/1: On/Off
+          	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+          	cbr		REG_TEMP_R23, UOS_MSK_BIT_LED_BLUE
+          	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+          	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+          .endm
+         
+          .macro setLedBlueOff			; 0/1: On/Off
+          	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+          	sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_BLUE	
+          	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+          	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+          .endm
+         
+          .macro setPulseItUp			; Sortie au niveau haut de la pulse It
+          	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+          	sbr		REG_TEMP_R23, MSK_BIT_PULSE_IT	
+          	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+          	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+          .endm
+         
+          .macro setPulseItDown		; Sortie au niveau bas de la pulse It
+          	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+          	cbr		REG_TEMP_R23, MSK_BIT_PULSE_IT	
+          	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+          	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
+          .endm
+         ; Fin: Macros de pilotage du PORTB en sortie
+         
+         ; End of file
+          
+          .include		"ATmega328P_monitor.h"	; Definitions propres a 'ATmega328P_monitor'
+         ; "$Id: ATmega328P_monitor.h,v 1.7 2026/02/18 17:31:06 administrateur Exp $"
+         
+          #define	CHAR_NULL			0x00		; '\0'
+          #define	CHAR_LF				0x0A		; Line Feed ('\n')
+         
+          #define	CHAR_SEPARATOR		0xFFFF	; Separateur section datas (0xffff opcode invalide ;-)
+         
+          #define	CRC8_POLYNOMIAL	0x8C		; Masque pour le calcul du CR8-MAXIM
+         
+          #define	IDX_BIT_BARGRAPH_0			IDX_BIT0
+          #define	IDX_BIT_BARGRAPH_1			IDX_BIT1
+          #define	IDX_BIT_BARGRAPH_2			IDX_BIT2
+          #define	IDX_BIT_BARGRAPH_3			IDX_BIT3
+         
+          .dseg
+         
+         ; Adresse de debut des variables apres celle de uOS
+D:000100    G_SRAM_SPACE_OF_UOS:					.byte		(UOS_G_SRAM_BOOTLOADER_END_OF_USE - SRAM_START + 1)
+         
+         ; ---------
+         ; Variables dediees l'espace PROGRAM
+         ; => Suite des declarations a la suite de l'adresse en SRAM de 'G_SRAM_BOOTLOADER_END_OF_USE'
+         ;    qui est la derniere adresse en SRAM du Micro OS
+         ;
+         ; ---------
+D:00074f    G_CALC_CRC8:							.byte		1
+         
+D:000750    G_BARGRAPH_COUNTER:					.byte		1
+D:000751    G_BARGRAPH_PASS_MSB:					.byte		1
+D:000752    G_BARGRAPH_PASS_LSB:					.byte		1
+D:000753    G_BARGRAPH_IMAGE:						.byte		1
+         
+         ; ---------
+         ; Test des 2 instructions 'LAC - Load and Clear' et 'LAS - Load and Set"
+         ; ---------
+D:000754    G_RESULT_LAC_LAS:						.byte		1
+         
+         ; Fin des variables propres au PROGRAM d'extension
+D:000755    G_SRAM_EXTENSION_END_OF_USE:		.byte		1		; Initialisee a 0xff pour reperage dans la SRAM
+         ; ---------
+         
+         ; End of file
+         
+          
+         
+          #define USE_TRACE_BUTTON					1
+          #define USE_PRINT_BARGRAPH_COUNTER		0
+          #define USE_TEST_LAC_LAS					1
+         
+          .cseg
+         
+          .org	0x0000 
+         
+         ; ---------
+         ; Vecteurs d'interruptions
+         ; ---------
+         	; Code a telecharger en 0x0000 en remplacement de celui existant
+         	; => Marquage du numero de l'It en hexadecimal pour faciliter
+         	;    la lecture de 'UOS_G_STATES_POST_MORTEM'
+         	;    => Origine: 'FLG_WRONG_IT_PROGRAM' (Bit<7>)
+         	;       Num It:  Bits<0-5>
+         	;
+C:000000 940c 3580 	jmp		uos_main_program					; # 1 RESET (Mandatory)
+         
+C:000002 e012      	ldi		REG_TEMP_R17, 0x02
+C:000003 c05e      	rjmp		monitor_invalid_it_near			; # 2 INT0
+         
+C:000004 e013      	ldi		REG_TEMP_R17, 0x03
+C:000005 c05c      	rjmp		monitor_invalid_it_near			; # 3 INT1
+         
+C:000006 e014      	ldi		REG_TEMP_R17, 0x04
+C:000007 c05a      	rjmp		monitor_invalid_it_near			; # 4 PCINT0
+         
+C:000008 e015      	ldi		REG_TEMP_R17, 0x05
+C:000009 c058      	rjmp		monitor_invalid_it_near			; # 5 PCINT1
+         
+C:00000a 940c 378e 	jmp		uos_pcint2_isr_program			; # 6 PCINT2 (Mandatory)
+         
+C:00000c e017      	ldi		REG_TEMP_R17, 0x07
+C:00000d c054      	rjmp		monitor_invalid_it_near			; # 7 WDT
+         
+C:00000e e018      	ldi		REG_TEMP_R17, 0x08
+C:00000f c052      	rjmp		monitor_invalid_it_near			; # 8 TIMER2 COMPA
+         
+C:000010 e019      	ldi		REG_TEMP_R17, 0x09
+C:000011 c050      	rjmp		monitor_invalid_it_near			; # 9 TIMER2 COMPB
+         
+C:000012 e110      	ldi		REG_TEMP_R17, 0x10
+C:000013 c04e      	rjmp		monitor_invalid_it_near			; #10 TIMER2 OVF
+         
+C:000014 e111      	ldi		REG_TEMP_R17, 0x11
+C:000015 c04c      	rjmp		monitor_invalid_it_near			; #11 TIMER1 CAPT
+         
+C:000016 940c 3711 	jmp		uos_tim1_compa_isr_program		; #12 TIMER1 COMPA (Mandatory)
+         
+C:000018 e113      	ldi		REG_TEMP_R17, 0x13
+C:000019 c048      	rjmp		monitor_invalid_it_near			; #13 TIMER1 COMPB
+         
+C:00001a e114      	ldi		REG_TEMP_R17, 0x14
+C:00001b c046      	rjmp		monitor_invalid_it_near			; #14 TIMER1 OVF
+         
+C:00001c e115      	ldi		REG_TEMP_R17, 0x15
+C:00001d c044      	rjmp		monitor_invalid_it_near			; #15 TIMER0 COMPA
+         
+C:00001e e116      	ldi		REG_TEMP_R17, 0x16
+C:00001f c042      	rjmp		monitor_invalid_it_near			; #16 TIMER0 COMPB
+         
+C:000020 e117      	ldi		REG_TEMP_R17, 0x17
+C:000021 c040      	rjmp		monitor_invalid_it_near			; #17 TIMER0 OVF
+         
+C:000022 e118      	ldi		REG_TEMP_R17, 0x18
+C:000023 c03e      	rjmp		monitor_invalid_it_near			; #18 SPI, SPC
+         
+C:000024 940c 376b 	jmp		uos_usart_rx_complete_isr_program	; #19 USART, RX (Mandatory)
+         
+C:000026 e210      	ldi		REG_TEMP_R17, 0x20
+C:000027 c03a      	rjmp		monitor_invalid_it_near			; #20 USART, UDRE
+         
+C:000028 e211      	ldi		REG_TEMP_R17, 0x21
+C:000029 c038      	rjmp		monitor_invalid_it_near			; #21 USART, TX
+         
+C:00002a e212      	ldi		REG_TEMP_R17, 0x22
+C:00002b c036      	rjmp		monitor_invalid_it_near			; #22 ADC
+         
+C:00002c e213      	ldi		REG_TEMP_R17, 0x23
+C:00002d c034      	rjmp		monitor_invalid_it_near			; #23 EE READY
+         
+C:00002e e214      	ldi		REG_TEMP_R17, 0x24
+C:00002f c032      	rjmp		monitor_invalid_it_near			; #24 ANALOG COMP
+         
+C:000030 e215      	ldi		REG_TEMP_R17, 0x25
+C:000031 c030      	rjmp		monitor_invalid_it_near			; #25 TWI
+         
+C:000032 e216      	ldi		REG_TEMP_R17, 0x26
+C:000033 c02e      	rjmp		monitor_invalid_it_near			; #26 SPM READY
+         
+         ; Reservation 2 bytes pour s'aligner sur le 'main' du Langage C
+         ; => TODO: Saut vers '_uos_forever'
+C:000034 0000      	nop
+C:000035 c02c      	rjmp		monitor_invalid_it_near			; Ne sera jamais execute (adresse du 'main()' d'un programme C)
+         
+         ; ---------
+         ; Table des vecteurs d'execution des taches timer codees dans l'espace PROGRAM
+         ; en "prolongement" des executions depuis l'espace BOOTLOADER
+         ; => Cf. '_uos_vector_timer_0_bootloader'
+         ; ---------
+         	; 9 Timers destines au MONITOR (pas de prolongement defini)
+         	; => Car pas d'opcode "jmp xxx"
+C:000036 0000      	nop				; Prolongement de l'execution du Timer #0
+C:000037 0000      	nop
+C:000038 0000      	nop				; Prolongement de l'execution du Timer #1
+C:000039 0000      	nop
+C:00003a 0000      	nop				; Prolongement de l'execution du Timer #2
+C:00003b 0000      	nop
+C:00003c 0000      	nop				; Prolongement de l'execution du Timer #3
+C:00003d 0000      	nop
+C:00003e 0000      	nop				; Prolongement de l'execution du Timer #4
+C:00003f 0000      	nop
+C:000040 0000      	nop				; Prolongement de l'execution du Timer #5
+C:000041 0000      	nop
+C:000042 0000      	nop				; Prolongement de l'execution du Timer #6
+C:000043 0000      	nop
+C:000044 0000      	nop				; Prolongement de l'execution du Timer #7
+C:000045 0000      	nop
+C:000046 0000      	nop				; Prolongement de l'execution du Timer #8
+C:000047 0000      	nop
+         
+         	; 7 Timers utilises par uOS (pas de prolongement defini)
+         	; => Car pas d'opcode "jmp xxx"
+C:000048 0000      	nop				; Prolongement de l'execution du Timer #9
+C:000049 0000      	nop
+C:00004a 0000      	nop				; Prolongement de l'execution du Timer #10
+C:00004b 0000      	nop
+C:00004c 0000      	nop				; Prolongement de l'execution du Timer #11
+C:00004d 0000      	nop
+C:00004e 0000      	nop				; Prolongement de l'execution du Timer #12
+C:00004f 0000      	nop
+C:000050 0000      	nop				; Prolongement de l'execution du Timer #13
+C:000051 0000      	nop
+C:000052 0000      	nop				; Prolongement de l'execution du Timer #14
+C:000053 0000      	nop
+C:000054 0000      	nop				; Prolongement de l'execution du Timer #15
+C:000055 0000      	nop
+         
+         ; ---------
+         ; Table de 6 vecteurs d'execution en prolongement de celui de l'espace BOOTLOADER
+         ; => Terminaison de la 1st page de 64 mots pour la programmation interne au moyen
+         ;    l'instruction 'stm'
+         ; => Remarque: Pas de prolongement lorsque pas d'opcode "rjmp xxx"
+         ; => Les 6 methodes sont interruptibles sauf inhibition ponctuelle...
+         ; ---------
+C:000056 940c 1000 	jmp		callback_init		; Prolongement de l'execution de l'initialisation
+         
+C:000058 0000      	nop								; Prolongement de l'execution en fond de tache (pas de prolongement)
+C:000059 0000      	nop
+         
+C:00005a 0000      	nop								; Prolongement de l'execution du tick de cadencement (pas de prolongement)
+C:00005b 0000      	nop
+         
+C:00005c 940c 101b 	jmp		callback_1_ms				; Prolongement de l'execution toutes les 1mS
+         
+C:00005e 940c 1032 	jmp		callback_gest_buttons	; Prolongement de la gestion des boutons (pas de prolongement)
+         				 								; => appropriation possible car appele AVANT traitement BOOTLOADER ;-)
+         
+C:000060 940c 1061 	jmp		callback_command			; Prolongement de l'interpreteur de commande non prise en compte dans l'espace BOOTLOADER
+         
+          monitor_invalid_it_near:
+C:000062 940c 10c7 	jmp		monitor_invalid_it
+         
+         ; Exexution a une adresse "haute" et proche de uOS pour laisser le maximum
+         ; de place au programme C qui sera telecharge en "bas" de la flash
+          .org	0x1000 
+         
+         ; ---------
+         ; Code d'extension en prologement de celui execute dans l'espace BOOTLOADER
+         ; => Doit imperativement se terminer par un 'ret'
+         ;
+         ; Warning: Imperatif en attendant le prolongement de l'initialisation de la SRAM
+         ;          apres l'appel de '_uos_init_sram_fill' ;-)
+         ;
+         ; Add initialisations materielles propres au Monitor
+         ; ---------
+          callback_init:
+         	; Initialisations propres au moniteur (Inhibition des Its)
+C:001000 94f8      	cli
+         
+C:001001 9100 0534 	lds		REG_TEMP_R16, UOS_G_FLAGS_EXTENSIONS
+C:001003 6800      	sbr		REG_TEMP_R16, UOS_FLG_EXTENSIONS_INIT_MSK		; Initialisation effectuee
+C:001004 9300 0534 	sts		UOS_G_FLAGS_EXTENSIONS, REG_TEMP_R16
+         
+         	; Raz des variables propres aux extensions
+         	; => RAZ qui ne doit pas etre fait au RESET
+C:001006 d0b6      	rcall		monitor_init_sram_fill
+         
+         	; Add initialisations materielles propres au Monitor
+         	; - 4 led du bargraphe sur PORTC<3:0>
+C:001007 e00f      	ldi		REG_TEMP_R16, (1 << IDX_BIT_BARGRAPH_0) | (1 << IDX_BIT_BARGRAPH_1) | (1 << IDX_BIT_BARGRAPH_2) | (1 << IDX_BIT_BARGRAPH_3)
+C:001008 b907      	out		DDRC, REG_TEMP_R16
+         
+         	; Extinction des 4 premieres Leds du bargraphe
+C:001009 e00f      	ldi		REG_TEMP_R16, 0x0F
+C:00100a b908      	out		PORTC, REG_TEMP_R16
+         
+C:00100b 2700      	clr		REG_TEMP_R16
+C:00100c 9300 0751 	sts		G_BARGRAPH_PASS_MSB, REG_TEMP_R16
+C:00100e 9300 0752 	sts		G_BARGRAPH_PASS_LSB, REG_TEMP_R16
+         
+C:001010 e00f      	ldi		REG_TEMP_R16, 0x0F
+C:001011 9300 0753 	sts		G_BARGRAPH_IMAGE, REG_TEMP_R16
+         	; Fin: Add initialisations materielles propres au Monitor
+         
+C:001013 9478      	sei
+         	; Fin: Initialisations propres au moniteur (Inhibition des Its)
+         
+         	; Print du passage dans l'initialisation 'text_monitor_init'
+C:001014 e2f6      	ldi		REG_Z_MSB, high(text_monitor_init << 1)
+C:001015 eaee      	ldi		REG_Z_LSB, low(text_monitor_init << 1)
+C:001016 940e 3ced 	call		uos_push_text_in_fifo_tx
+         
+         	; TODO: Si pas d'appel a 'uos_fifo_tx_to_send_sync'
+         	;       => Emission differe suite a d'autres ecriture dans le FIFO/Tx ?!..
+C:001018 940e 3af2 	call		uos_fifo_tx_to_send_sync
+         
+         ;callback_init_end:
+C:00101a 9508      	ret
+         ; ---------
+         
+          callback_1_ms:
+         	; Test de clignotement sur le bargraphe
+C:00101b 91b0 0751 	lds		REG_X_MSB, G_BARGRAPH_PASS_MSB
+C:00101d 91a0 0752 	lds		REG_X_LSB, G_BARGRAPH_PASS_LSB
+C:00101f 9611      	adiw		REG_X_LSB, 1
+C:001020 93b0 0751 	sts		G_BARGRAPH_PASS_MSB, REG_X_MSB
+C:001022 93a0 0752 	sts		G_BARGRAPH_PASS_LSB, REG_X_LSB
+         
+         	; Clignotement a 1Hz
+C:001024 30b3      	cpi		REG_X_MSB, (1000 / 256)
+C:001025 f459      	brne		callback_1_ms_end
+         
+C:001026 3ea8      	cpi		REG_X_LSB, (1000 % 256)
+C:001027 f449      	brne		callback_1_ms_end
+         
+C:001028 2700      	clr		REG_TEMP_R16
+C:001029 9300 0751 	sts		G_BARGRAPH_PASS_MSB, REG_TEMP_R16
+C:00102b 9300 0752 	sts		G_BARGRAPH_PASS_LSB, REG_TEMP_R16
+         
+         	; Methode sans image (generation par 'avr-gcc')
+C:00102d b108      	in		r16, 0x08		; Read PORTC
+C:00102e e014      	ldi	r17, 0x04 		; 3rd Led
+C:00102f 2701      	eor	r16, r17			; Clignotement
+C:001030 b908      	out	0x08, r16		; Write PORTC
+         	; Fin: Test de clignotement sur le bargraphe
+         
+          #if USE_PRINT_BARGRAPH_COUNTER
+          #endif
+         
+          callback_1_ms_end:
+C:001031 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Code d'extension en prologement de celui execute dans l'espace BOOTLOADER
+         ; => Doit imperativement se terminer par un 'ret'
+         ; ---------
+          callback_gest_buttons:
+         
+          #if USE_TRACE_BUTTON
+C:001032 e21d      	ldi		REG_TEMP_R17, '-'
+C:001033 e720      	ldi		REG_TEMP_R18, 'p'				; Marquage 'p' avant 'P'
+C:001034 e23d      	ldi		REG_TEMP_R19, '-'
+C:001035 940e 3d5d 	call		uos_print_mark_3_char
+C:001037 940e 3d15 	call		uos_print_line_feed
+         
+C:001039 9110 06c2 	lds		REG_TEMP_R17, UOS_G_STATES_BUTTON_NOTIF
+C:00103b 9100 06c3 	lds		REG_TEMP_R16, UOS_G_STATES_BUTTON_NBR_TOUCH_NOTIF
+         
+C:00103d 01d8      	movw		REG_X_LSB, REG_TEMP_R16		; Recopie de 'G_STATES_BUTTON' et 'G_STATES_BUTTON_NBR_TOUCH'
+C:00103e 940e 3d37 	call		uos_print_2_bytes_hexa		; Trace du bouton "courant" [0x<States+Num Button><Counter>] (ie. "B[0xc301]")
+         
+C:001040 940e 3d15 	call		uos_print_line_feed
+          #endif
+         
+         	; Determination si appui court; sinon ignore
+C:001042 9110 06c2 	lds		REG_TEMP_R17, UOS_G_STATES_BUTTON_NOTIF
+C:001044 ff16      	sbrs		REG_TEMP_R17, UOS_FLG_STATE_BUTTON_SHORT_TOUCH_IDX
+C:001045 c01a      	rjmp		callback_gest_buttons_end
+         
+         	; Determination du bouton #N [1, 2, 3, 4]
+C:001046 9110 06c2 	lds		REG_TEMP_R17, UOS_G_STATES_BUTTON_NOTIF
+C:001048 701f      	andi		REG_TEMP_R17, 0x0F						; Button #1, #2, #3 or #4
+         
+         	; Origine de l'appui bouton
+         	; => Button #1 -> IDX_BIT_BARGRAPH_0 ('R17' = 1 -> PORTC = 0x7)
+         	; => Button #2 -> IDX_BIT_BARGRAPH_1 ('R17' = 2 -> PORTC = 0xB)
+         	; => Button #3 -> IDX_BIT_BARGRAPH_2 ('R17' = 3 -> PORTC = 0xD)
+         	; => Button #4 -> IDX_BIT_BARGRAPH_3 ('R17' = 4 -> PORTC = 0xE)
+         	; WARNING: PORTC<4:5> -> SDA:SCL de l'I2C
+         	;          PORTC<6>   -> RESET
+         
+          callback_gest_buttons_bargraph:
+C:001049 2f01      	mov		REG_TEMP_R16, REG_TEMP_R17
+C:00104a f039      	breq		callback_gest_buttons_bargraph_end
+         
+C:00104b 950a      	dec		REG_TEMP_R16
+         
+C:00104c e2f9      	ldi		REG_Z_MSB, high(text_convert_for_bargraph_table << 1)
+C:00104d e9e0      	ldi		REG_Z_LSB, low(text_convert_for_bargraph_table << 1)
+C:00104e 0fe0      	add		REG_Z_LSB, REG_TEMP_R16
+C:00104f 2700      	clr		REG_TEMP_R16
+C:001050 1ff0      	adc		REG_Z_MSB, REG_TEMP_R16
+C:001051 9104      	lpm      REG_TEMP_R16, Z
+         
+         	;out		PORTC, REG_TEMP_R16			; Inhibition @ 'callback_1_ms'
+         	; Fin: Origine de l'appui bouton
+         
+          callback_gest_buttons_bargraph_end:
+         
+C:001052 3011      	cpi		REG_TEMP_R17, UOS_BUTTON_1_NUM
+C:001053 f439      	brne		callback_gest_buttons_more			; Saut si bouton #1 non appuye
+         
+         	; Appui "court" du bouton #1
+         	; => Saut en 0x0000
+         	;    => Execution du programme C si telecharge
+         	;    => Sinon execution de Monitor via uOS (cf. 'uos_main_program')
+         
+C:001054 94f8      	cli
+         
+         	; Reinitialisation de la stack d'appel et saut...
+C:001055 e008      	ldi		REG_TEMP_R16, high(RAMEND)
+C:001056 bf0e      	out		SPH, REG_TEMP_R16
+         
+C:001057 ef0f      	ldi		REG_TEMP_R16, low(RAMEND)
+C:001058 bf0d      	out		SPL, REG_TEMP_R16
+         
+C:001059 940c 0000 	jmp		0x0000
+         	; Fin: Reinitialisation de la stack d'appel et saut...
+         
+          callback_gest_buttons_more:
+         	; Code de test d'acquitement button #3
+C:00105b 3013      	cpi		REG_TEMP_R17, UOS_BUTTON_3_NUM
+C:00105c c003      	rjmp		callback_gest_buttons_end
+         
+         	; Effacement button #3 dans 'UOS_G_STATES_BUTTON' pour ne pas traiter l'appui dans uOS ;-)
+         	; TODO: Inoperant -> Le bouton est traite egalement dans uOS ;-(
+C:00105d 2711      	clr		REG_TEMP_R17
+C:00105e 9310 06c0 	sts		UOS_G_STATES_BUTTON, REG_TEMP_R17	
+         
+          callback_gest_buttons_end:
+C:001060 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Code d'extension en prologement de celui execute dans l'espace BOOTLOADER
+         ; => Doit imperativement se terminer par un 'ret'
+         ; ---------
+          callback_command:
+         	; Marquage du passage dans l'extension
+C:001061 9100 0534 	lds		REG_TEMP_R16, UOS_G_FLAGS_EXTENSIONS
+C:001063 6001      	sbr		REG_TEMP_R16, UOS_FLG_EXTENSIONS_EXEC_COMMAND_MSK
+C:001064 9300 0534 	sts		UOS_G_FLAGS_EXTENSIONS, REG_TEMP_R16
+         
+         	; Interpretation des commandes etendues
+C:001066 9100 06c5 	lds		REG_TEMP_R16, UOS_G_TEST_COMMAND_TYPE
+         
+C:001068 94e8      	clt											; Commande non reconnue a priori
+         
+         	; Switch/Case @ commande 'UOS_G_TEST_COMMAND_TYPE'
+         	; => Code minimal utilisant 'r17' en recopie de 'SREG' qui evite des etiquettes intermediaires
+         	;    et permettant une implementation dans la limite de +/- 2K mots instructions ;-))
+         	; => Remarque: SREG (0x3F) ne permet pas l'utilisation de "sbic ..." ;-((
+         	; => TODO: Evolution de l'assembleur 'avra' pour accueillir la syntaxe "breq  $+/-xx"
+         
+C:001069 330f      	cpi		REG_TEMP_R16, '?'				; Print prompt
+C:00106a b71f      	in			REG_TEMP_R17, SREG	
+C:00106b fd11      	sbrc		REG_TEMP_R17, SREG_Z
+C:00106c c044      	rjmp		monitor_command_prompt
+         
+C:00106d 3601      	cpi		REG_TEMP_R16, 'a'				; [a] (Calcul du CRC8-MAXIM d'une zone programme)
+C:00106e b71f      	in			REG_TEMP_R17, SREG	
+C:00106f fd11      	sbrc		REG_TEMP_R17, SREG_Z
+C:001070 c09a      	rjmp		monitor_command_a_min
+         
+C:001071 3605      	cpi		REG_TEMP_R16, 'e'				; [e] (Dump de l'eeprom)
+C:001072 b71f      	in			REG_TEMP_R17, SREG	
+C:001073 fd11      	sbrc		REG_TEMP_R17, SREG_Z
+C:001074 c130      	rjmp		monitor_command_e_min
+         
+C:001075 3405      	cpi		REG_TEMP_R16, 'E'				; [E] (Ecriture dans l'eeprom)
+C:001076 b71f      	in			REG_TEMP_R17, SREG	
+C:001077 fd11      	sbrc		REG_TEMP_R17, SREG_Z
+C:001078 c155      	rjmp		monitor_command_e_maj
+         
+C:001079 3503      	cpi		REG_TEMP_R16, 'S'				; [S] (Write into SRAM)
+C:00107a b71f      	in			REG_TEMP_R17, SREG	
+C:00107b fd11      	sbrc		REG_TEMP_R17, SREG_Z
+C:00107c c1cf      	rjmp		monitor_command_s_maj
+         
+C:00107d 3409      	cpi		REG_TEMP_R16, 'I'				; [I] (Write byte in SRAM @ I/O)
+C:00107e b71f      	in			REG_TEMP_R17, SREG	
+C:00107f fd11      	sbrc		REG_TEMP_R17, SREG_Z
+C:001080 c1ae      	rjmp		monitor_command_i_maj
+         
+C:001081 340a      	cpi		REG_TEMP_R16, 'J'				; [J] (Write word in SRAM @ I/O)
+C:001082 b71f      	in			REG_TEMP_R17, SREG	
+C:001083 fd11      	sbrc		REG_TEMP_R17, SREG_Z
+C:001084 c1b5      	rjmp		monitor_command_j_maj
+         
+C:001085 3609      	cpi		REG_TEMP_R16, 'i'				; [i] (Read from SRAM @ I/O)
+C:001086 b71f      	in			REG_TEMP_R17, SREG	
+C:001087 fd11      	sbrc		REG_TEMP_R17, SREG_Z
+C:001088 c17d      	rjmp		monitor_command_i_min
+         
+          #if USE_TEST_LAC_LAS
+C:001089 360c      	cpi		REG_TEMP_R16, 'l'				; [l] (Load and clear with LAC instruction)
+C:00108a b71f      	in			REG_TEMP_R17, SREG	
+C:00108b fd11      	sbrc		REG_TEMP_R17, SREG_Z
+C:00108c c28f      	rjmp		monitor_command_l_min
+         
+C:00108d 340c      	cpi		REG_TEMP_R16, 'L'				; [l] (Load and set with LAS instruction)
+C:00108e b71f      	in			REG_TEMP_R17, SREG	
+C:00108f fd11      	sbrc		REG_TEMP_R17, SREG_Z
+C:001090 c2a0      	rjmp		monitor_command_l_maj
+          #endif
+         
+C:001091 3704      	cpi		REG_TEMP_R16, 't'				; [t] (Test sequence)
+C:001092 b71f      	in			REG_TEMP_R17, SREG	
+C:001093 fd11      	sbrc		REG_TEMP_R17, SREG_Z
+C:001094 c1c2      	rjmp		monitor_command_t_min
+         
+C:001095 3606      	cpi		REG_TEMP_R16, 'f'				; [f] (Lecture des fuses)
+C:001096 b71f      	in			REG_TEMP_R17, SREG
+C:001097 fd11      	sbrc		REG_TEMP_R17, SREG_Z
+C:001098 c1ea      	rjmp		monitor_command_f_min
+         
+C:001099 3708      	cpi		REG_TEMP_R16, 'x'				; [x] (Execution a une adresse)
+C:00109a b71f      	in			REG_TEMP_R17, SREG
+C:00109b fd11      	sbrc		REG_TEMP_R17, SREG_Z
+C:00109c c21f      	rjmp		monitor_command_x_min
+         	; Fin: Switch/Case @ commande 'UOS_G_TEST_COMMAND_TYPE'
+         
+          callback_command_end:
+C:00109d 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Print bloquant d'une chaine de caracteres definie en memoire flash
+         ;
+         ; Usage:
+         ;      ldi		REG_Z_MSB, <address MSB>
+         ;      ldi		REG_Z_LSB, <address LSB>
+         ;      rcall   uos_print_blocking_string
+         ;
+         ; Registres utilises
+         ;    REG_Z_LSB:REG_Z_LSB -> Pointeur sur le texte en memoire programme (preserve)
+         ;    REG_TEMP_R16        -> Working register (preserve)
+         ; ---------
+          print_blocking_string:
+C:00109e 93ff      	push		REG_Z_MSB
+C:00109f 93ef      	push		REG_Z_LSB
+C:0010a0 930f      	push		REG_TEMP_R16
+C:0010a1 931f      	push		REG_TEMP_R17
+         
+          print_blocking_string_loop:
+C:0010a2 9105      	lpm		REG_TEMP_R16, Z+
+C:0010a3 3000      	cpi		REG_TEMP_R16, CHAR_NULL		; '\0' terminal ?
+C:0010a4 f039      	breq		print_blocking_string_end
+         
+         	; Attente fin du precedent caractere emis
+          print_blocking_string_wait:
+C:0010a5 9110 00c0 	lds		REG_TEMP_R17, UCSR0A
+C:0010a7 ff15      	sbrs		REG_TEMP_R17, UDRE0
+C:0010a8 cffc      	rjmp		print_blocking_string_wait
+         	; Fin: Attente fin du precedent caractere emis
+         
+C:0010a9 9300 00c6 	sts		UDR0, REG_TEMP_R16
+         
+C:0010ab cff6      	rjmp		print_blocking_string_loop
+         
+          print_blocking_string_end:
+C:0010ac 911f      	pop		REG_TEMP_R17
+C:0010ad 910f      	pop		REG_TEMP_R16
+C:0010ae 91ef      	pop		REG_Z_LSB
+C:0010af 91ff      	pop		REG_Z_MSB
+C:0010b0 9508      	ret
+         ; ---------
+         
+         ; ---------
+          monitor_command_prompt:
+C:0010b1 940e 3dce 	call		uos_print_command_ok
+         
+         	; Print de 'text_monitor_prompt' en mode non bloquant
+C:0010b3 e2f6      	ldi		REG_Z_MSB, high(text_monitor_prompt << 1)
+C:0010b4 e8ee      	ldi		REG_Z_LSB, low(text_monitor_prompt << 1)
+C:0010b5 940e 3ce9 	call		uos_push_text_in_fifo_tx_skip
+         
+         	; Suite avec le detail des fonctionnalites supportees
+C:0010b7 e2f6      	ldi		REG_Z_MSB, high(text_monitor_desc << 1)
+C:0010b8 ece6      	ldi		REG_Z_LSB, low(text_monitor_desc << 1)
+C:0010b9 940e 3ce9 	call		uos_push_text_in_fifo_tx_skip
+         
+C:0010bb 9468      	set													; Commande reconnue
+C:0010bc 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Initialisation de la SRAM dans la plage ]G_SRAM_EXTENSION_END_OF_USE, ..., UOS_G_SRAM_BOOTLOADER_END_OF_USE[
+         ; => On suppose que 'G_SRAM_EXTENSION_END_OF_USE' > 'UOS_G_SRAM_BOOTLOADER_END_OF_USE'
+         ; ---------
+          monitor_init_sram_fill:
+C:0010bd 2700      	clr		REG_TEMP_R16
+C:0010be e0b7      	ldi		REG_X_MSB, high(G_SRAM_EXTENSION_END_OF_USE - 1)
+C:0010bf e5a4      	ldi		REG_X_LSB, low(G_SRAM_EXTENSION_END_OF_USE - 1)
+         
+          monitor_init_sram_fill_loop_a:
+C:0010c0 930c      	st			X, REG_TEMP_R16
+C:0010c1 9711      	sbiw		REG_X_LSB, 1
+C:0010c2 30b7      	cpi		REG_X_MSB, high(UOS_G_SRAM_BOOTLOADER_END_OF_USE)
+C:0010c3 f7e1      	brne		monitor_init_sram_fill_loop_a
+C:0010c4 34ae      	cpi		REG_X_LSB, low(UOS_G_SRAM_BOOTLOADER_END_OF_USE)
+C:0010c5 f7d1      	brne		monitor_init_sram_fill_loop_a
+         
+C:0010c6 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Mise sur voie de garage avec clignotement "lent" de la Led RED
+         ; ---------
+          monitor_invalid_it:
+C:0010c7 94f8      	cli
+C:0010c8 e500      	ldi		REG_TEMP_R16, 80
+         
+          monitor_invalid_it_more:
+         	; Memorisation du numero de l'It non attendue dans l'espace programme
+C:0010c9 771f      	cbr		REG_TEMP_R17, UOS_FLG_WRONG_IT_BOOLOADER_MSK
+C:0010ca 6410      	sbr		REG_TEMP_R17, UOS_FLG_WRONG_IT_PROGRAM_MSK
+C:0010cb 9310 0501 	sts		UOS_G_STATES_POST_MORTEM, REG_TEMP_R17
+         
+         	; Extinction de toutes les Leds
+C:0010cd   +  	setLedBlueOff
+C:0010cd 9170 050f lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+C:0010cf 6170      sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_BLUE	
+C:0010d0 9370 050f sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+C:0010d2 b975      out		PORTB, REG_TEMP_R23					
+
+C:0010d3   +  	setLedYellowOff
+C:0010d3 9170 050f lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+C:0010d5 6270      sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_YELLOW
+C:0010d6 9370 050f sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+C:0010d8 b975      out		PORTB, REG_TEMP_R23					
+
+C:0010d9   +  	setLedGreenOff
+C:0010d9 9170 050f lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+C:0010db 6074      sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_GREEN	
+C:0010dc 9370 050f sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+C:0010de b975      out		PORTB, REG_TEMP_R23					
+
+C:0010df   +  	setLedRedOff
+C:0010df 9170 0511 lds		REG_TEMP_R23, UOS_G_FLAGS_1
+C:0010e1 777f      cbr		REG_TEMP_R23, UOS_FLG_1_LED_RED_ON_MSK	
+
+C:0010e2 9370 0511 sts		UOS_G_FLAGS_1, REG_TEMP_R23
+         
+C:0010e4 9170 050f lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+C:0010e6 6072      sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_RED	
+C:0010e7 9370 050f sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+C:0010e9 b975      out		PORTB, REG_TEMP_R23					
+
+         
+          monitor_invalid_it_loop:
+C:0010ea 930f      	push		REG_TEMP_R16			; Save/Restore temporisation dans REG_TEMP_R16
+C:0010eb   +  	setLedRedOn
+C:0010eb 9170 0511 lds		REG_TEMP_R23, UOS_G_FLAGS_1
+C:0010ed 6870      sbr		REG_TEMP_R23, UOS_FLG_1_LED_RED_ON_MSK	
+
+C:0010ee 9370 0511 sts		UOS_G_FLAGS_1, REG_TEMP_R23
+C:0010f0 9370 0511 sts		UOS_G_FLAGS_1, REG_TEMP_R23
+         
+C:0010f2 9170 050f lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+C:0010f4 7f7d      cbr		REG_TEMP_R23, UOS_MSK_BIT_LED_RED	
+C:0010f5 9370 050f sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+C:0010f7 b975      out		PORTB, REG_TEMP_R23					
+
+C:0010f8 940e 36ce 	call		uos_delay_big_2
+C:0010fa 910f      	pop		REG_TEMP_R16
+C:0010fb 930f      	push		REG_TEMP_R16
+C:0010fc   +  	setLedRedOff
+C:0010fc 9170 0511 lds		REG_TEMP_R23, UOS_G_FLAGS_1
+C:0010fe 777f      cbr		REG_TEMP_R23, UOS_FLG_1_LED_RED_ON_MSK	
+
+C:0010ff 9370 0511 sts		UOS_G_FLAGS_1, REG_TEMP_R23
+         
+C:001101 9170 050f lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
+C:001103 6072      sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_RED	
+C:001104 9370 050f sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+C:001106 b975      out		PORTB, REG_TEMP_R23					
+
+C:001107 940e 36ce 	call		uos_delay_big_2
+C:001109 910f      	pop		REG_TEMP_R16
+C:00110a cfdf      	rjmp		monitor_invalid_it_loop
+         ; ---------
+         
+         ; ======================================================= Monitoring des commandes
+         ; ---------
+         ; Execution de la commande 'a'
+         ; => Calcul du CRC8-MAXIM d'une zone programme
+         ;    - 0xAAAA: l'adresse du 1st byte a lire et calculer
+         ;    - 0xBBBB: l'adresse du dernier byte inclus a lire et calculer
+         ;
+         ; Reponse: "[NN>aAAAA]"
+         ;          "TODO"
+         ; ---------
+          monitor_command_a_min:
+C:00110b 940e 3dce 	call		uos_print_command_ok			; Commande acceptee
+         
+         	; Prises des parametres
+         	; => 
+C:00110d 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB			; Adresse du 1st byte a lire et calculer
+C:00110f 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+         
+C:001111 91d0 06c8 	lds		REG_Y_MSB, UOS_G_TEST_VALUE_MSB_MORE	; Adresse du dernier byte inclus a lire et calculer
+C:001113 91c0 06c9 	lds		REG_Y_LSB, UOS_G_TEST_VALUE_LSB_MORE
+         
+         	; TODO: Test si Adresse TO > Adresse FROM
+C:001115 93bf      	push		REG_X_MSB
+C:001116 93af      	push		REG_X_LSB
+C:001117 93df      	push		REG_Y_MSB
+C:001118 93cf      	push		REG_Y_LSB
+         
+C:001119 940e 3d37 	call		uos_print_2_bytes_hexa		; Adresse FROM
+         
+C:00111b 91af      	pop		REG_X_LSB						; Recuperation adresse du dernier byte inclus a lire et calculer
+C:00111c 91bf      	pop		REG_X_MSB
+C:00111d 93bf      	push		REG_X_MSB
+C:00111e 93af      	push		REG_X_LSB
+         
+C:00111f 940e 3d37 	call		uos_print_2_bytes_hexa		; Adresse TO
+C:001121 940e 3d15 	call		uos_print_line_feed
+         
+C:001123 91cf      	pop		REG_Y_LSB
+C:001124 91df      	pop		REG_Y_MSB
+C:001125 91af      	pop		REG_X_LSB
+C:001126 91bf      	pop		REG_X_MSB
+         
+         	; Si les 2 adresses 'FROM' et 'TO' sont a zero
+         	; => Calcul sur la plage [0x0000, ..., ('end_of_program' - 1)]
+C:001127 23bb      	tst		REG_X_MSB
+C:001128 f451      	brne		monitor_command_a_min_calcul
+C:001129 23aa      	tst		REG_X_LSB
+C:00112a f441      	brne		monitor_command_a_min_calcul
+         
+C:00112b 23dd      	tst		REG_Y_MSB
+C:00112c f431      	brne		monitor_command_a_min_calcul
+C:00112d 23cc      	tst		REG_Y_LSB
+C:00112e f421      	brne		monitor_command_a_min_calcul
+         	
+C:00112f 27bb      	clr		REG_X_MSB			; Calcul a partir de l'adresse 0x0000
+C:001130 27aa      	clr		REG_X_LSB			; jusqu'a 'end_of_program' non incluse par defaut
+         
+C:001131 e1d4      	ldi		REG_Y_MSB, high(end_of_program - 1)
+C:001132 edcf      	ldi		REG_Y_LSB, low(end_of_program - 1)
+         
+          monitor_command_a_min_calcul:
+         	; Adresse sur des mots en flash
+C:001133 0faa      	lsl		REG_X_LSB
+C:001134 1fbb      	rol		REG_X_MSB
+         
+         	; Raz CRC8
+C:001135 2700      	clr		REG_TEMP_R16
+C:001136 9300 074f 	sts		G_CALC_CRC8, REG_TEMP_R16
+         
+          monitor_command_a_min_loop_0:
+         	; Impression de 'X' ("[0xHHHH] ")
+         	; Remarque: Division par 2 car dump de word ;-)
+C:001138 95b6      	lsr		REG_X_MSB
+C:001139 95a7      	ror		REG_X_LSB
+C:00113a 940e 3d37 	call		uos_print_2_bytes_hexa
+         
+         	; Retablissement de 'X' qui est toujours pair ici
+C:00113c 0faa      	lsl		REG_X_LSB
+C:00113d 1fbb      	rol		REG_X_MSB
+         
+         	; Impression du dump ("[0x....]")
+         	; => TODO: Si saut 'end_of_program' est de la forme 0xhhh0, pas de valeur apres [0x...]
+C:00113e e2f9      	ldi		REG_Z_MSB, ((text_hexa_value << 1) / 256)
+C:00113f e7e8      	ldi		REG_Z_LSB, ((text_hexa_value << 1) % 256)
+C:001140 940e 3ced 	call		uos_push_text_in_fifo_tx
+         
+C:001142 e220      	ldi		REG_TEMP_R18, 32
+         
+          monitor_command_a_min_loop_1:
+         	; Valeur de la memoire programme indexee par 'REG_X_MSB:REG_X_LSB'
+C:001143 01fd      	movw		REG_Z_LSB, REG_X_LSB
+C:001144 9611      	adiw		REG_X_LSB, 1								; Preparation prochain byte
+         
+         	; Calcul jusqu'a l'adresse 'end_of_program' non incluse
+C:001145 e001      	ldi		REG_TEMP_R16, 0x01
+C:001146 230a      	and		REG_TEMP_R16, REG_X_LSB
+C:001147 f059      	breq		monitor_command_a_min_loop_1_cont_d	; Lecture par mot
+         
+C:001148 93bf      	push		REG_X_MSB
+C:001149 93af      	push		REG_X_LSB
+C:00114a 95b6      	lsr		REG_X_MSB
+C:00114b 95a7      	ror		REG_X_LSB
+         
+         	; TODO: 'end_of_program' a saisir en parametre
+C:00114c 2f0c      	mov		REG_TEMP_R16, REG_Y_LSB
+C:00114d 170a      	cp			REG_TEMP_R16, REG_X_LSB
+         
+C:00114e 2f0d      	mov		REG_TEMP_R16, REG_Y_MSB
+C:00114f 070b      	cpc		REG_TEMP_R16, REG_X_MSB
+         
+C:001150 91af      	pop		REG_X_LSB
+C:001151 91bf      	pop		REG_X_MSB
+C:001152 f0b2      	brmi		monitor_command_a_min_end
+         	; Fin: Calcul jusqu'a l'adresse contenue dans 'Y'
+         
+          monitor_command_a_min_loop_1_cont_d:
+C:001153 e001      	ldi		REG_TEMP_R16, 0x01
+C:001154 27e0      	eor		REG_Z_LSB, REG_TEMP_R16		; Lecture MSB puis LSB
+C:001155 9104      	lpm		REG_TEMP_R16, Z
+C:001156 930f      	push		REG_TEMP_R16
+C:001157 940e 3d09 	call		uos_convert_and_put_fifo_tx
+         
+C:001159 910f      	pop		REG_TEMP_R16
+C:00115a d02e      	rcall		calc_crc8_maxim
+         
+C:00115b 952a      	dec		REG_TEMP_R18
+C:00115c f731      	brne		monitor_command_a_min_loop_1
+         
+C:00115d e50d      	ldi		REG_TEMP_R16, ']'
+C:00115e 940e 3cfe 	call		uos_push_1_char_in_fifo_tx
+         
+C:001160 93af      	push		REG_X_LSB
+C:001161 91a0 074f 	lds		REG_X_LSB, G_CALC_CRC8
+C:001163 940e 3d26 	call		uos_print_1_byte_hexa
+C:001165 940e 3d15 	call		uos_print_line_feed
+C:001167 91af      	pop		REG_X_LSB
+         
+C:001168 cfcf      	rjmp		monitor_command_a_min_loop_0
+         
+          monitor_command_a_min_end:
+C:001169 e50d      	ldi		REG_TEMP_R16, ']'
+C:00116a 940e 3cfe 	call		uos_push_1_char_in_fifo_tx
+C:00116c 93af      	push		REG_X_LSB
+C:00116d 91a0 074f 	lds		REG_X_LSB, G_CALC_CRC8
+C:00116f 940e 3d26 	call		uos_print_1_byte_hexa
+C:001171 940e 3d15 	call		uos_print_line_feed
+C:001173 91af      	pop		REG_X_LSB
+         
+          monitor_command_a_min_rtn:
+C:001174 e2f9      	ldi		REG_Z_MSB, ((text_crc8_maxim << 1) / 256)
+C:001175 e6ec      	ldi		REG_Z_LSB, ((text_crc8_maxim << 1) % 256)
+C:001176 940e 3ced 	call		uos_push_text_in_fifo_tx
+         
+         	; Reprise et print de la 1st adresse testee
+C:001178 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB			; Adresse du 1st byte a lire et calculer
+C:00117a 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+C:00117c 940e 3d37 	call		uos_print_2_bytes_hexa
+         
+         	; Print de la derniere adresse testee
+C:00117e 01de      	movw		REG_X_LSB, REG_Y_LSB
+C:00117f 940e 3d37 	call		uos_print_2_bytes_hexa
+         
+         	; Print du CRC8-MAXIM final
+C:001181 91a0 074f 	lds		REG_X_LSB, G_CALC_CRC8
+C:001183 940e 3d26 	call		uos_print_1_byte_hexa
+         
+C:001185 940e 3d15 	call		uos_print_line_feed
+         
+C:001187 9468      	set											; Commande reconnue
+C:001188 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Calcul du CRC8-MAXIM
+         ;
+         ; Input:  G_CALC_CRC8 and REG_TEMP_R16
+         ; Output: G_CALC_CRC8 updated for retry
+         ; ---------
+          calc_crc8_maxim:
+C:001189 930f      	push		REG_TEMP_R16
+C:00118a 931f      	push		REG_TEMP_R17
+C:00118b 932f      	push		REG_TEMP_R18
+C:00118c 933f      	push		REG_TEMP_R19
+         
+C:00118d 2f10      	mov		REG_TEMP_R17, REG_TEMP_R16
+C:00118e 9130 074f 	lds		REG_TEMP_R19, G_CALC_CRC8
+         
+C:001190 e028      	ldi		REG_TEMP_R18, 8
+         
+          calc_crc8_maxim_loop_bit:
+C:001191 2f03      	mov		REG_TEMP_R16, REG_TEMP_R19	; 'REG_TEMP_R19' contient le CRC8 calcule
+C:001192 2701      	eor		REG_TEMP_R16, REG_TEMP_R17	; 'REG_TEMP_R17' contient le byte a inserer dans le polynome
+C:001193 7001      	andi		REG_TEMP_R16, 0x01			; carry = ((crc ^ i__byte) & 0x01);
+         
+C:001194 94e8      	clt											; 'T' determine le report de la carry	
+C:001195 f009      	breq		calc_crc8_maxim_a
+C:001196 9468      	set
+         
+          calc_crc8_maxim_a:
+C:001197 9536      	lsr		REG_TEMP_R19					; crc >>= 1;
+C:001198 f416      	brtc		calc_crc8_maxim_b
+         
+C:001199 e80c      	ldi		REG_TEMP_R16, CRC8_POLYNOMIAL
+C:00119a 2730      	eor		REG_TEMP_R19, REG_TEMP_R16					; crc ^= (carry ? CRC8_POLYNOMIAL: 0x00);
+         
+          calc_crc8_maxim_b:
+C:00119b 9330 074f 	sts		G_CALC_CRC8, REG_TEMP_R19
+         
+C:00119d 9516      	lsr		REG_TEMP_R17									; i__byte >>= 1
+         
+C:00119e 952a      	dec		REG_TEMP_R18
+C:00119f f789      	brne		calc_crc8_maxim_loop_bit
+         
+C:0011a0 913f      	pop		REG_TEMP_R19
+C:0011a1 912f      	pop		REG_TEMP_R18
+C:0011a2 911f      	pop		REG_TEMP_R17
+C:0011a3 910f      	pop		REG_TEMP_R16
+         
+C:0011a4 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Execution de la commande 'e'
+         ; => Dump de l'EEPROM: "<eAAAA-BBBB" avec:
+         ;    - 0xAAAA: l'adresse du 1st byte a lire (si 0xAAAA == 0x0000 => Debut a l'adresse 0 de l'EEPROM
+         ;    - 0xBBBB: le nombre de blocs de 16 bytes
+         ;    - La lecture et l'emission sont effectuees 8 bytes par 8 bytes
+         ;      avec une limitation des adresses dans la plage [0, ..., EEPROMEND]
+         ;
+         ; Reponse: "[NN>eAAAA]"
+         ;          "[0xAAAA] [0xd0d1d2d3d4d5d6d7...]" (0xAAAA actualise @ adresse en cours)
+         ; ---------
+          monitor_command_e_min:
+C:0011a5 940e 3dce 	call		uos_print_command_ok			; Commande acceptee
+         
+         	; Recuperation de l'adresse du 1st byte a lire
+C:0011a7 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
+C:0011a9 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+         
+C:0011ab 23bb      	tst		REG_X_MSB
+C:0011ac f421      	brne		monitor_command_e_min_cont_d
+C:0011ad 23aa      	tst		REG_X_LSB
+C:0011ae f411      	brne		monitor_command_e_min_cont_d
+         
+         	; Dump de toute l'EEPROM
+         	; TODO: Calcul @ 'EEPROMEND'
+C:0011af e210      	ldi		REG_TEMP_R17, 32
+C:0011b0 c001      	rjmp		monitor_command_e_min_loop_0
+         
+          monitor_command_e_min_cont_d:
+         	; Dump sur 8 x 16 bytes
+         	; TODO: Get 'UOS_G_TEST_VALUE_MSB_MORE:UOS_G_TEST_VALUE_LSB_MORE'
+C:0011b1 e018      	ldi		REG_TEMP_R17, 8
+         
+          monitor_command_e_min_loop_0:
+         	; Impression de 'X' ("[0xHHHH] ")
+C:0011b2 940e 3d37 	call		uos_print_2_bytes_hexa
+         
+         	; Impression du dump ("[0x....]")
+C:0011b4 e2f9      	ldi		REG_Z_MSB, ((text_hexa_value << 1) / 256)
+C:0011b5 e7e8      	ldi		REG_Z_LSB, ((text_hexa_value << 1) % 256)
+C:0011b6 940e 3ced 	call		uos_push_text_in_fifo_tx
+         
+C:0011b8 e120      	ldi		REG_TEMP_R18, 16
+         
+          monitor_command_e_min_loop_1:
+         	; Valeur de l'EEPROM indexee par 'REG_X_MSB:REG_X_LSB'
+C:0011b9 940e 3f2e 	call		uos_eeprom_read_byte
+C:0011bb 940e 3d09 	call		uos_convert_and_put_fifo_tx
+         
+C:0011bd 9611      	adiw		REG_X_LSB, 1
+         
+         	; Test limite 'EEPROMEND'
+         	; => On suppose qu'au depart 'X <= EEPROMEND'
+C:0011be 30b4      	cpi		REG_X_MSB, ((EEPROMEND + 1) / 256)
+C:0011bf f421      	brne		monitor_command_e_min_more2
+C:0011c0 30a0      	cpi		REG_X_LSB, ((EEPROMEND + 1) % 256)
+C:0011c1 f411      	brne		monitor_command_e_min_more2
+         
+         	; Astuce pour gagner du code de presentation ;-)
+C:0011c2 e021      	ldi		REG_TEMP_R18, 1
+C:0011c3 e011      	ldi		REG_TEMP_R17, 1
+         
+          monitor_command_e_min_more2:
+C:0011c4 952a      	dec		REG_TEMP_R18
+C:0011c5 f799      	brne		monitor_command_e_min_loop_1
+         
+C:0011c6 e2f9      	ldi		REG_Z_MSB, ((text_hexa_value_lf_end << 1) / 256)
+C:0011c7 e7ec      	ldi		REG_Z_LSB, ((text_hexa_value_lf_end << 1) % 256)
+C:0011c8 940e 3ced 	call		uos_push_text_in_fifo_tx
+         
+C:0011ca 951a      	dec		REG_TEMP_R17
+C:0011cb f731      	brne		monitor_command_e_min_loop_0
+         
+C:0011cc 9468      	set											; Commande reconnue
+C:0011cd 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Execution de la commande 'E'
+         ; => Ecriture d'une suite de N bytes dans l'EEPROM (N dans [1, 2, ...])
+         ;    - 0xAAAA:    l'adresse du byte a ecrire dans l'EEPROM
+         ;
+         ; Reponse: "[NN>EAAAA]" (Adresse du byte a ecrire)
+         ; ---------
+          monitor_command_e_maj:
+C:0011ce 91a0 06cc 	lds		REG_X_LSB, UOS_G_TEST_VALUES_IDX_WRK
+C:0011d0 95a6      	lsr		REG_X_LSB									; REG_X_LSB /= 2 pour nbr de bytes a ecrire
+         
+C:0011d1 2f2a      	mov		REG_TEMP_R18, REG_X_LSB
+         	; Fin: Prise du nombre de mots passes en arguments
+         
+         	; Recuperation de l'adresse du 1st byte a ecrire
+C:0011d2 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
+C:0011d4 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+         
+         	; Test de 'REG_X_MSB:REG_X_LSB' dans la plage [0, ..., EEPROMEND] @ 'REG_TEMP_R18'
+C:0011d6 e001      	ldi		REG_TEMP_R16, low(EEPROMEND + 2)
+C:0011d7 e014      	ldi		REG_TEMP_R17, high(EEPROMEND + 2)
+C:0011d8 1b02      	sub		REG_TEMP_R16, REG_TEMP_R18
+C:0011d9 4010      	sbci		REG_TEMP_R17, 0					; Soustraction 16 bits (report de la Carry)
+         
+C:0011da 17a0      	cp			REG_X_LSB, REG_TEMP_R16		
+C:0011db 07b1      	cpc		REG_X_MSB, REG_TEMP_R17		
+C:0011dc f52a      	brpl		monitor_command_e_maj_out_of_range
+         	; Fin: Test de 'REG_X_MSB:REG_X_LSB' dans la plage [0, ..., EEPROMEND] @ 'REG_TEMP_R18'
+         
+C:0011dd 940e 3dce 	call		uos_print_command_ok			; Commande reconnue
+         
+         	; Lecture des 'REG_TEMP_R18' mots de la SRAM dont seule la partie LSB sera ecrite
+C:0011df 2f12      	mov		REG_TEMP_R17, REG_TEMP_R18
+C:0011e0 e0d6      	ldi		REG_Y_MSB, high(UOS_G_TEST_VALUES_ZONE)
+C:0011e1 ecce      	ldi		REG_Y_LSB, low(UOS_G_TEST_VALUES_ZONE)
+         
+         	; Clear error
+C:0011e2 9100 06c4 	lds		REG_TEMP_R16, UOS_G_TEST_FLAGS
+C:0011e4 7b0f      	cbr		REG_TEMP_R16, UOS_FLG_TEST_EEPROM_ERROR_MSK
+C:0011e5 9300 06c4 	sts		UOS_G_TEST_FLAGS, REG_TEMP_R16
+         
+          monitor_command_e_maj_loop:
+C:0011e7 8108      	ld			REG_TEMP_R16, Y
+C:0011e8 d127      	rcall		eeprom_write_byte
+         
+         	; Verification de l'ecriture
+C:0011e9 2f20      	mov		REG_TEMP_R18, REG_TEMP_R16		; Save data writed
+C:0011ea 2700      	clr		REG_TEMP_R16						; Raz before read eeprom @ 'X'
+C:0011eb 940e 3f2e 	call		uos_eeprom_read_byte	
+         
+C:0011ed 1302      	cpse		REG_TEMP_R16, REG_TEMP_R18
+C:0011ee c005      	rjmp		monitor_command_e_maj_ko
+         	; Fin: Verification de l'ecriture
+         
+C:0011ef 9611      	adiw		REG_X_LSB, 1			; Adresse EEPROM suivante
+C:0011f0 9622      	adiw		REG_Y_LSB, 2			; Saut au prochain mot
+C:0011f1 951a      	dec		REG_TEMP_R17
+C:0011f2 f7a1      	brne		monitor_command_e_maj_loop
+         
+C:0011f3 c010      	rjmp		monitor_command_e_maj_end
+         
+          monitor_command_e_maj_ko:
+C:0011f4 e2f9      	ldi      REG_Z_MSB, ((text_eeprom_error << 1) / 256)
+C:0011f5 e8e0      	ldi      REG_Z_LSB, ((text_eeprom_error << 1) % 256)
+C:0011f6 940e 3ced 	call		uos_push_text_in_fifo_tx
+C:0011f8 940e 3d37 	call		uos_print_2_bytes_hexa
+C:0011fa 940e 3d15 	call		uos_print_line_feed
+         
+C:0011fc 9100 06c4 	lds		REG_TEMP_R16, UOS_G_TEST_FLAGS
+C:0011fe 6400      	sbr		REG_TEMP_R16, UOS_FLG_TEST_EEPROM_ERROR_MSK
+C:0011ff 9300 06c4 	sts		UOS_G_TEST_FLAGS, REG_TEMP_R16
+C:001201 c002      	rjmp		monitor_command_e_maj_end
+         
+          monitor_command_e_maj_out_of_range:
+C:001202 940e 3dd3 	call		uos_print_command_ko			; Commande non executee
+         
+          monitor_command_e_maj_end:
+C:001204 9468      	set											; Commande reconnue
+C:001205 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Execution de la commande 'i'
+         ; => Dump de la SRAM: "<iAAAA-BBBB" avec:
+         ;    - 0xAAAA: l'adresse du 1st byte a lire (si 0xAAAA == 0x0000 => Debut en 0x00
+         ;    - 0xBBBB: le nombre de blocs de 16 bytes
+         ;    - La lecture et l'emission sont effectuees 8 bytes par 8 bytes
+         ;      avec une limitation des adresses dans la plage [0x00, ..., 0xFF]
+         ;
+         ; Reponse: "[NN>iAAAA-BBBB]"
+         ;          "[0xAAAA] [0xd0d1d2d3d4d5d6d7...]" (0xAAAA actualise @ adresse en cours)
+         ; ---------
+          monitor_command_i_min:
+C:001206 940e 3dce 	call		uos_print_command_ok			; Commande reconnue
+         
+         	; Recuperation de l'adresse du 1st byte a lire
+C:001208 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
+C:00120a 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+         
+C:00120c 23bb      	tst		REG_X_MSB
+C:00120d f431      	brne		_uos_exec_command_type_i_read_cont_d
+C:00120e 23aa      	tst		REG_X_LSB
+C:00120f f421      	brne		_uos_exec_command_type_i_read_cont_d
+         
+C:001210 27bb      	clr		REG_X_MSB
+C:001211 27aa      	clr		REG_X_LSB
+         
+         	; Dump de toute la SRAM
+         	; TODO: Calcul @ 'SRAM_START' et 'RAMEND'
+C:001212 e210      	ldi		REG_TEMP_R17, 32
+C:001213 c001      	rjmp		_uos_exec_command_type_i_read_loop_0
+         
+          _uos_exec_command_type_i_read_cont_d:
+         	; Dump sur 8 x 16 bytes
+         	; TODO: Get 'UOS_G_TEST_VALUE_MSB_MORE:UOS_G_TEST_VALUE_LSB_MORE'
+C:001214 e018      	ldi		REG_TEMP_R17, 8
+         
+          _uos_exec_command_type_i_read_loop_0:
+         	; Impression de 'X' ("[0xHHHH] ")
+C:001215 940e 3d37 	call		uos_print_2_bytes_hexa
+         
+         	; Impression du dump ("[0x....]")
+C:001217 e2f9      	ldi		REG_Z_MSB, ((text_hexa_value << 1) / 256)
+C:001218 e7e8      	ldi		REG_Z_LSB, ((text_hexa_value << 1) % 256)
+C:001219 940e 3ced 	call		uos_push_text_in_fifo_tx
+         
+C:00121b e120      	ldi		REG_TEMP_R18, 16
+         
+          _uos_exec_command_type_i_read_loop_1:
+         	; Valeur de la SRAM indexee par 'REG_X_MSB:REG_X_LSB'
+C:00121c 910d      	ld			REG_TEMP_R16, X+
+C:00121d 940e 3d09 	call		uos_convert_and_put_fifo_tx
+         
+         	; Test limite '0xFF'
+         	; => On suppose qu'au depart 'X <= 0xFF'
+C:00121f 30b1      	cpi		REG_X_MSB, ((0xFF + 1) / 256)
+C:001220 f421      	brne		_uos_exec_command_type_i_read_more2
+C:001221 30a0      	cpi		REG_X_LSB, ((0xFF + 1) % 256)
+C:001222 f411      	brne		_uos_exec_command_type_i_read_more2
+         
+         	; Astuce pour gagner du code de presentation ;-)
+C:001223 e021      	ldi		REG_TEMP_R18, 1
+C:001224 e011      	ldi		REG_TEMP_R17, 1
+         
+          _uos_exec_command_type_i_read_more2:
+C:001225 952a      	dec		REG_TEMP_R18
+C:001226 f7a9      	brne		_uos_exec_command_type_i_read_loop_1
+         
+C:001227 e2f9      	ldi		REG_Z_MSB, ((text_hexa_value_lf_end << 1) / 256)
+C:001228 e7ec      	ldi		REG_Z_LSB, ((text_hexa_value_lf_end << 1) % 256)
+C:001229 940e 3ced 	call		uos_push_text_in_fifo_tx
+         
+C:00122b 951a      	dec		REG_TEMP_R17
+C:00122c f741      	brne		_uos_exec_command_type_i_read_loop_0
+         
+C:00122d 9468      	set													; Commande reconnue
+C:00122e 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Execution de la commande 'I'
+         ; => Ecriture d'un byte dans la SRAM @ I/O: "<IAAAA-BBBB" avec:
+         ;    - 0xAAAA: l'adresse du byte a ecrire
+         ;    - 0xBBBB: la valeur du byte a ecrire (partie LSB)
+         ;
+         ; Reponse: "[NN>IAAAA-BBBB]"
+         ; ---------
+          monitor_command_i_maj:
+C:00122f 940e 3dce 	call		uos_print_command_ok			; Commande reconnue
+         
+         	; Recuperation de l'adresse du byte a ecrire
+C:001231 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
+C:001233 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+         
+         	; Valeur a ecrire
+         	; Fix: Harmonisation des commandes d'ecritures '<SAddress-Value' et '<EAddress+Value'
+         	;      => '+Value' semble correct d'un point de vue ergonomique ;-)
+         
+         	;lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB_MORE	; Syntaxe "<IAddress-Value"
+C:001235 9100 06ce 	lds		REG_TEMP_R16, UOS_G_TEST_VALUES_ZONE		; Syntaxe "<IAddress+Value"
+C:001237 930c      	st			X, REG_TEMP_R16
+         
+C:001238 9468      	set													; Commande reconnue
+C:001239 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Execution de la commande 'J'
+         ; => Ecriture d'un word dans la SRAM @ I/O d'une maniere atomique: "<JAAAA+BBBB" avec:
+         ;    - 0xAAAA: l'adresse du word a ecrire
+         ;    - 0xBBBB: la valeur des 2 bytes (MSB:LSB) a ecrire aux adresses (0xAAAA) + 1 et 0xAAAA
+         ;              car les registres sont definis comme [0xAAAA:(0xAAAA + 1)] <- [LSB:MSB]
+         ;              => La partie MSB est ecrite avant la partie LSB
+         ;                 => Exemple donne dans la datasheet pour [UBRR0H:UBRR0L]
+         ;
+         ; Reponse: "[NN>J [Ok]]"
+         ; ---------
+          monitor_command_j_maj:
+         	; Print de la reponse en mode bloquant car certains registres peuvent
+         	; affecter la vitesse de transmission ;-)
+C:00123a e2f9      	ldi		REG_Z_MSB, high(text_response_j_maj << 1)
+C:00123b eae0      	ldi		REG_Z_LSB, low(text_response_j_maj << 1)
+C:00123c de61      	rcall		print_blocking_string
+         
+         	; Recuperation de l'adresse du word a ecrire
+C:00123d 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
+C:00123f 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+         
+         	; Valeur a ecrire
+         	; Fix: Harmonisation des commandes d'ecritures '<SAddress+Value' et '<EAddress+Value'
+         	;      => '+Value' semble correct d'un point de vue ergonomique ;-)
+         
+C:001241 94f8      	cli		; Ecriture atomique
+         
+C:001242 9100 06cf 	lds		REG_TEMP_R16, (UOS_G_TEST_VALUES_ZONE + 1)	; Ecriture de la partie MSB
+C:001244 930c      	st			X, REG_TEMP_R16
+         
+C:001245 9711      	sbiw		REG_X_LSB, 1											; Acces a l'adresse LSB
+C:001246 9100 06ce 	lds		REG_TEMP_R16, UOS_G_TEST_VALUES_ZONE			; Ecriture de la partie LSB
+C:001248 930c      	st			X, REG_TEMP_R16
+         
+C:001249 9478      	sei		; Fin: Ecriture atomique
+         
+C:00124a 9468      	set													; Commande reconnue
+C:00124b 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Execution de la commande 'S'
+         ; => Ecriture d'un byte dans la SRAM: "<SAAAA-BBBB" avec:
+         ;    - 0xAAAA: l'adresse du byte a ecrire
+         ;    - 0xBBBB: la valeur du byte a ecrire (partie LSB)
+         ;
+         ; Reponse: "[NN>SAAAA-BBBB]"
+         ; ---------
+          monitor_command_s_maj:
+C:00124c 940e 3dce 	call		uos_print_command_ok			; Commande reconnue
+         
+         	; Recuperation de l'adresse du byte a ecrire
+C:00124e 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
+C:001250 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+         
+         	; Valeur a ecrire
+         	; Fix: Harmonisation des commandes d'ecritures '<SAddress-Value' et '<EAddress+Value'
+         	;      => '+Value' semble correct d'un point de vue ergonomique ;-)
+         
+         	;lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB_MORE	; Syntaxe "<SAddress-Value"
+C:001252 9100 06ce 	lds		REG_TEMP_R16, UOS_G_TEST_VALUES_ZONE		; Syntaxe "<SAddress+Value"
+C:001254 930c      	st			X, REG_TEMP_R16
+         
+C:001255 9468      	set													; Commande reconnue
+C:001256 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Execution de la commande 't'
+         ;          "TODO"
+         ; ---------
+          monitor_command_t_min:
+C:001257 940e 3dce 	call		uos_print_command_ok			; Commande acceptee
+         
+         	; Prises des parametres
+         	; => 
+C:001259 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB			; hh
+C:00125b 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB			; hl
+         
+C:00125d 91d0 06c8 	lds		REG_Y_MSB, UOS_G_TEST_VALUE_MSB_MORE	; Hh
+C:00125f 91c0 06c9 	lds		REG_Y_LSB, UOS_G_TEST_VALUE_LSB_MORE	; Hl
+         
+C:001261 93bf      	push		REG_X_MSB
+C:001262 93af      	push		REG_X_LSB
+C:001263 93df      	push		REG_Y_MSB
+C:001264 93cf      	push		REG_Y_LSB
+         
+C:001265 940e 3d37 	call		uos_print_2_bytes_hexa		; Print 'hhhl' contenu dans 'X'
+         
+C:001267 91af      	pop		REG_X_LSB						; Recuperation 'HhHl'
+C:001268 91bf      	pop		REG_X_MSB
+C:001269 93bf      	push		REG_X_MSB
+C:00126a 93af      	push		REG_X_LSB
+         
+C:00126b 940e 3d37 	call		uos_print_2_bytes_hexa		; Print 'HhHl' contenu dans 'X'
+C:00126d 940e 3d15 	call		uos_print_line_feed
+         
+C:00126f 91cf      	pop		REG_Y_LSB
+C:001270 91df      	pop		REG_Y_MSB
+C:001271 91af      	pop		REG_X_LSB
+C:001272 91bf      	pop		REG_X_MSB
+         
+C:001273 9120 06c7 	lds		REG_TEMP_R18, UOS_G_TEST_VALUE_LSB			; hl
+C:001275 9140 06c9 	lds		REG_TEMP_R20, UOS_G_TEST_VALUE_LSB_MORE	; Hl
+C:001277 1724      	cp 		REG_TEMP_R18, REG_TEMP_R20
+         
+C:001278 b60f      	in			r0, SREG
+C:001279 d051      	rcall		extract_and_print_sreg
+         
+C:00127a 9130 06c6 	lds		REG_TEMP_R19, UOS_G_TEST_VALUE_MSB			; hl
+C:00127c 9150 06c8 	lds		REG_TEMP_R21, UOS_G_TEST_VALUE_MSB_MORE	; Hl
+         
+C:00127e be0f      	out		SREG, r0
+C:00127f 0735      	cpc		REG_TEMP_R19, REG_TEMP_R21
+         
+C:001280 d04a      	rcall		extract_and_print_sreg
+         
+C:001281 9468      	set											; Commande reconnue
+C:001282 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Execution de la commande 'f'
+         ; => Lecture des fuses
+         ; ---------
+          monitor_command_f_min:
+C:001283 940e 3dce 	call		uos_print_command_ok			; Commande reconnue
+         
+         	; Signature...
+C:001285 e201      	ldi		REG_TEMP_R16, (1 << SIGRD) | (1 << SPMEN)
+C:001286 bf07      	out		SPMCSR, REG_TEMP_R16
+         
+C:001287 e0f0      	ldi		REG_Z_MSB, 0x00
+C:001288 e0e0      	ldi		REG_Z_LSB, 0x00
+C:001289 91a4      	lpm		REG_X_LSB, Z
+C:00128a 940e 3d26 	call		uos_print_1_byte_hexa
+         
+C:00128c e201      	ldi		REG_TEMP_R16, (1 << SIGRD) | (1 << SPMEN)
+C:00128d bf07      	out		SPMCSR, REG_TEMP_R16
+         
+C:00128e e0f0      	ldi		REG_Z_MSB, 0x00
+C:00128f e0e2      	ldi		REG_Z_LSB, 0x02
+C:001290 91a4      	lpm		REG_X_LSB, Z
+C:001291 940e 3d26 	call		uos_print_1_byte_hexa
+         
+C:001293 e201      	ldi		REG_TEMP_R16, (1 << SIGRD) | (1 << SPMEN)
+C:001294 bf07      	out		SPMCSR, REG_TEMP_R16
+         
+C:001295 e0f0      	ldi		REG_Z_MSB, 0x00
+C:001296 e0e4      	ldi		REG_Z_LSB, 0x04
+C:001297 91a4      	lpm		REG_X_LSB, Z
+C:001298 940e 3d26 	call		uos_print_1_byte_hexa
+         
+C:00129a 940e 3d15 	call		uos_print_line_feed
+         	; Fin: Signature...
+         
+         	; Read Fuse Low Byte
+C:00129c e009      	ldi		REG_TEMP_R16, (1 << BLBSET) | (1 << SELFPRGEN)
+C:00129d bf07      	out		SPMCSR, REG_TEMP_R16
+         
+C:00129e e0f0      	ldi		REG_Z_MSB, 0x00
+C:00129f e0e0      	ldi		REG_Z_LSB, 0x00
+C:0012a0 91a4      	lpm		REG_X_LSB, Z
+C:0012a1 940e 3d26 	call		uos_print_1_byte_hexa
+         
+         	; Read Lock bits
+C:0012a3 e009      	ldi		REG_TEMP_R16, (1 << BLBSET) | (1 << SELFPRGEN)
+C:0012a4 bf07      	out		SPMCSR, REG_TEMP_R16
+         
+C:0012a5 e0f0      	ldi		REG_Z_MSB, 0x00
+C:0012a6 e0e1      	ldi		REG_Z_LSB, 0x01
+C:0012a7 91a4      	lpm		REG_X_LSB, Z
+C:0012a8 940e 3d26 	call		uos_print_1_byte_hexa
+         
+         	; Read Read Fuse Extended Byte
+C:0012aa e009      	ldi		REG_TEMP_R16, (1 << BLBSET) | (1 << SELFPRGEN)
+C:0012ab bf07      	out		SPMCSR, REG_TEMP_R16
+         
+C:0012ac e0f0      	ldi		REG_Z_MSB, 0x00
+C:0012ad e0e2      	ldi		REG_Z_LSB, 0x02
+C:0012ae 91a4      	lpm		REG_X_LSB, Z
+C:0012af 940e 3d26 	call		uos_print_1_byte_hexa
+         
+         	; Read Fuse High Byte
+C:0012b1 e009      	ldi		REG_TEMP_R16, (1 << BLBSET) | (1 << SELFPRGEN)
+C:0012b2 bf07      	out		SPMCSR, REG_TEMP_R16
+         
+C:0012b3 e0f0      	ldi		REG_Z_MSB, 0x00
+C:0012b4 e0e3      	ldi		REG_Z_LSB, 0x03
+C:0012b5 91a4      	lpm		REG_X_LSB, Z
+C:0012b6 940e 3d26 	call		uos_print_1_byte_hexa
+         
+C:0012b8 940e 3d15 	call		uos_print_line_feed
+         
+C:0012ba 9468      	set													; Commande reconnue
+C:0012bb 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Execution de la commande 'x'
+         ; => Execution a une adresse
+         ; ---------
+          monitor_command_x_min:
+C:0012bc 940e 3dce 	call		uos_print_command_ok			; Commande reconnue
+         
+         	; Recuperation de l'adresse d'execution
+C:0012be 91f0 06c6 	lds      REG_Z_MSB, UOS_G_TEST_VALUE_MSB
+C:0012c0 91e0 06c7 	lds      REG_Z_LSB, UOS_G_TEST_VALUE_LSB
+         
+         	; Si execution du 'Reset' (adresse 0x0000)
+         	; => Reinitialisation de 'SPH:SPL' a 'RAMEND'
+C:0012c2 9630      	adiw		REG_Z_LSB, 0
+C:0012c3 f421      	brne		monitor_command_x_min_more
+         
+C:0012c4 e008      	ldi		REG_TEMP_R16, high(RAMEND)
+C:0012c5 bf0e      	out		SPH, REG_TEMP_R16
+         
+C:0012c6 ef0f      	ldi		REG_TEMP_R16, low(RAMEND)
+C:0012c7 bf0d      	out		SPL, REG_TEMP_R16
+         	; Fin: Si execution du 'Reset' (adresse 0x0000)
+         
+         	; Saut a un programme dont l'adresse est passe en argument
+         	; avec d'eventuels parametres apres 'CHAR_COMMAND_PLUS'
+         	; => Remarque: Le 'ret' en fin de programme fera retourner apres
+         	;              l'instruction 'rcall exec_command'
+         
+          monitor_command_x_min_more:
+C:0012c8 9509      	icall
+         
+C:0012c9 9468      	set											; Commande reconnue
+C:0012ca 9508      	ret
+         ; ---------
+         
+         ; ---------
+         ; Extraction de SREG [ITHSVNZC] passe dans 'REG_X_LSB'
+         ; ---------
+          extract_and_print_sreg:
+         	; Valeur de SREG
+C:0012cb b7af      	in			REG_X_LSB, SREG
+C:0012cc 93af      	push		REG_X_LSB
+         
+C:0012cd e2f9      	ldi		REG_Z_MSB, high(text_sreg << 1)
+C:0012ce e9ea      	ldi		REG_Z_LSB, low(text_sreg << 1)
+C:0012cf 940e 3ced 	call		uos_push_text_in_fifo_tx
+         
+C:0012d1 91af      	pop		REG_X_LSB
+C:0012d2 93af      	push		REG_X_LSB
+C:0012d3 940e 3d26 	call		uos_print_1_byte_hexa
+         
+C:0012d5 91af      	pop		REG_X_LSB
+C:0012d6 2f1a      	mov		REG_TEMP_R17, REG_X_LSB
+         
+C:0012d7 e50b      	ldi		REG_TEMP_R16, '['
+C:0012d8 940e 3cfe 	call		uos_push_1_char_in_fifo_tx
+         
+C:0012da 1f11      	rol		REG_TEMP_R17
+C:0012db e20e      	ldi		REG_TEMP_R16, '.'
+C:0012dc f408      	brcc		extract_and_print_sreg_no_i
+C:0012dd e409      	ldi		REG_TEMP_R16, 'I'
+         
+          extract_and_print_sreg_no_i:
+C:0012de 940e 3cfe 	call		uos_push_1_char_in_fifo_tx
+         
+C:0012e0 1f11      	rol		REG_TEMP_R17
+C:0012e1 e20e      	ldi		REG_TEMP_R16, '.'
+C:0012e2 f408      	brcc		extract_and_print_sreg_no_t
+C:0012e3 e504      	ldi		REG_TEMP_R16, 'T'
+         
+          extract_and_print_sreg_no_t:
+C:0012e4 940e 3cfe 	call		uos_push_1_char_in_fifo_tx
+         
+C:0012e6 1f11      	rol		REG_TEMP_R17
+C:0012e7 e20e      	ldi		REG_TEMP_R16, '.'
+C:0012e8 f408      	brcc		extract_and_print_sreg_no_h
+C:0012e9 e408      	ldi		REG_TEMP_R16, 'H'
+         
+          extract_and_print_sreg_no_h:
+C:0012ea 940e 3cfe 	call		uos_push_1_char_in_fifo_tx
+         
+C:0012ec 1f11      	rol		REG_TEMP_R17
+C:0012ed e20e      	ldi		REG_TEMP_R16, '.'
+C:0012ee f408      	brcc		extract_and_print_sreg_no_s
+C:0012ef e503      	ldi		REG_TEMP_R16, 'S'
+         
+          extract_and_print_sreg_no_s:
+C:0012f0 940e 3cfe 	call		uos_push_1_char_in_fifo_tx
+         
+C:0012f2 1f11      	rol		REG_TEMP_R17
+C:0012f3 e20e      	ldi		REG_TEMP_R16, '.'
+C:0012f4 f408      	brcc		extract_and_print_sreg_no_v
+C:0012f5 e506      	ldi		REG_TEMP_R16, 'V'
+         
+          extract_and_print_sreg_no_v:
+C:0012f6 940e 3cfe 	call		uos_push_1_char_in_fifo_tx
+         
+C:0012f8 1f11      	rol		REG_TEMP_R17
+C:0012f9 e20e      	ldi		REG_TEMP_R16, '.'
+C:0012fa f408      	brcc		extract_and_print_sreg_no_n
+C:0012fb e40e      	ldi		REG_TEMP_R16, 'N'
+         
+          extract_and_print_sreg_no_n:
+C:0012fc 940e 3cfe 	call		uos_push_1_char_in_fifo_tx
+         
+C:0012fe 1f11      	rol		REG_TEMP_R17
+C:0012ff e20e      	ldi		REG_TEMP_R16, '.'
+C:001300 f408      	brcc		extract_and_print_sreg_no_z
+C:001301 e50a      	ldi		REG_TEMP_R16, 'Z'
+         
+          extract_and_print_sreg_no_z:
+C:001302 940e 3cfe 	call		uos_push_1_char_in_fifo_tx
+         
+C:001304 1f11      	rol		REG_TEMP_R17
+C:001305 e20e      	ldi		REG_TEMP_R16, '.'
+C:001306 f408      	brcc		extract_and_print_sreg_no_c
+C:001307 e403      	ldi		REG_TEMP_R16, 'C'
+         
+          extract_and_print_sreg_no_c:
+C:001308 940e 3cfe 	call		uos_push_1_char_in_fifo_tx
+         
+C:00130a e50d      	ldi		REG_TEMP_R16, ']'
+C:00130b 940e 3cfe 	call		uos_push_1_char_in_fifo_tx
+         
+C:00130d 940e 3d15 	call		uos_print_line_feed
+         
+C:00130f 9508      	ret
+         ; ---------
+         
+         ; ======================================================= Monitoring des commandes
+         
+         ; ---------
+         ; Ecriture d'un byte contenu dans 'REG_TEMP_R16' a l'adresse 'REG_X_MSB:REG_X_LSB' de l'EEPROM
+         ; ---------
+          eeprom_write_byte:
+         	; Set address
+C:001310 bda1      	out		EEARL, REG_X_LSB
+C:001311 bdb2      	out		EEARH, REG_X_MSB
+         
+         	; Set data
+C:001312 bd00      	out		EEDR, REG_TEMP_R16
+         
+         	; Ecriture a l'adresse 'REG_X_MSB:REG_X_LSB' d'un byte
+C:001313 98fd      	cbi		EECR, EEPM1
+C:001314 98fc      	cbi		EECR, EEPM0
+         
+         	; Sequence interruptible
+C:001315 94f8      	cli
+C:001316 9afa      	sbi		EECR, EEMPE		; Start EEPROM write
+C:001317 9af9      	sbi		EECR, EEPE
+C:001318 9478      	sei
+         	; Fin: Sequence interruptible
+         	; Fin: Ecriture a l'adresse 'REG_X_MSB:REG_X_LSB' d'un byte
+         
+          eeprom_write_byte_wait:
+C:001319 99f9      	sbic		EECR, EEPE
+C:00131a cffe      	rjmp		eeprom_write_byte_wait
+         
+C:00131b 9508      	ret
+         ; ---------
+         
+          #if USE_TEST_LAC_LAS
+         ; ---------
+         ; Test des 2 instructions 'LAC - Load and Clear' et 'LAS - Load and Set'
+         ; ---------
+          monitor_command_l_min:
+          test_lac:
+C:00131c 940e 3dce 	call		uos_print_command_ok			; Commande reconnue
+         
+         	; Recuperation de la valeur a "clear"
+C:00131e 9100 06c7 	lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB
+C:001320 930f      	push		REG_TEMP_R16
+C:001321 2fa0      	mov		REG_X_LSB, REG_TEMP_R16
+C:001322 940e 3d26 	call		uos_print_1_byte_hexa
+C:001324 910f      	pop		REG_TEMP_R16
+         
+         	; Adresse du resultat initialise a 0
+C:001325 e0f7      	ldi		REG_Z_MSB, high(G_RESULT_LAC_LAS)
+C:001326 e5e4      	ldi		REG_Z_LSB, low(G_RESULT_LAC_LAS)
+         
+          #if 1
+         	;lac		Z, REG_TEMP_R16				; Execute (Z) <- ($FF - Rd) and (Z), Rd <- (Z)
+         
+         	; Simulation ecriture avec changement
+C:001327 9503      	inc		REG_TEMP_R16
+C:001328 8300      	st			Z, REG_TEMP_R16
+         	
+          #else
+          #endif
+         
+C:001329 91a0 0754 	lds		REG_X_LSB, G_RESULT_LAC_LAS
+C:00132b 940e 3d26 	call		uos_print_1_byte_hexa
+C:00132d 940e 3d15 	call		uos_print_line_feed
+         
+          test_lac_rtn:
+C:00132f 9468      	set											; Commande executee
+C:001330 9508      	ret
+         ; ---------
+         
+         ; ---------
+          monitor_command_l_maj:
+          test_las:
+C:001331 940e 3dce 	call		uos_print_command_ok			; Commande reconnue
+         
+         	; Recuperation de la valeur a "seter"
+C:001333 9100 06c7 	lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB
+C:001335 930f      	push		REG_TEMP_R16
+C:001336 2fa0      	mov		REG_X_LSB, REG_TEMP_R16
+C:001337 940e 3d26 	call		uos_print_1_byte_hexa
+C:001339 910f      	pop		REG_TEMP_R16
+         
+         	; Adresse du resultat initialise a 0
+C:00133a e0f7      	ldi		REG_Z_MSB, high(G_RESULT_LAC_LAS)
+C:00133b e5e4      	ldi		REG_Z_LSB, low(G_RESULT_LAC_LAS)
+         
+          #if 1
+         	;las		Z, REG_TEMP_R16				; Execute (Z) <- ($FF or Rd) & (Z), Rd <- (Z)
+         
+         	; Simulation ecriture avec changement
+C:00133c 950a      	dec		REG_TEMP_R16
+C:00133d 8300      	st			Z, REG_TEMP_R16
+          #else
+          #endif
+         
+C:00133e 91a0 0754 	lds		REG_X_LSB, G_RESULT_LAC_LAS
+C:001340 940e 3d26 	call		uos_print_1_byte_hexa
+C:001342 940e 3d15 	call		uos_print_line_feed
+         
+          test_las_rtn:
+C:001344 9468      	set											; Commande executee
+C:001345 9508      	ret
+         ; ---------
+          #endif
+         
+         ; Constantes et textes definis naturellement (MSB:LSB et ordre naturel du texte)
+         ; => Remarque: Nombre pair de caracteres pour eviter le message:
+         ;              "Warning : A .DB segment with an odd number..."
+         ;
+         ; Warning: Adresse multiple de 64 pour etre programme page par page par uOS
+         
+          .dw	CHAR_SEPARATOR		; Debut section datas	; NE PAS SUPPRIMER ;-)
+C:001346 ffff
+         
+          text_monitor_prompt:
+          .db	"### Monitor $Revision: 1.19 $", CHAR_LF, CHAR_NULL, CHAR_NULL
+C:001347 232323204D6F6E69746F7220245265766973696F6E3A20312E313920240A0000
+         
+          text_monitor_init:
+          .db	"### Initialization...", CHAR_LF, CHAR_NULL, CHAR_NULL
+C:001357 23232320496E697469616C697A6174696F6E2E2E2E0A0000
+         
+          text_monitor_desc:
+          .db	"### - '<?'                   Whoami", CHAR_LF
+C:001363 232323202D20273C3F272020202020202020202020202020202020202057686F616D690A
+          .db	"### - '<a[AddrFrom-AddrTo]'  Calculate CRC8-MAXIM", CHAR_LF
+C:001375 232323202D20273C615B4164647246726F6D2D41646472546F5D27202043616C63756C61746520435243382D4D4158494D0A
+          .db	"### - '<e[AddrFrom]'         Dump of EEPROM", CHAR_LF
+C:00138E 232323202D20273C655B4164647246726F6D5D2720202020202020202044756D70206F6620454550524F4D0A
+          .db	"### - '<EAddress+v0+v1+...'  Writes values in EEPROM ", CHAR_LF
+C:0013A4 232323202D20273C45416464726573732B76302B76312B2E2E2E2720205772697465732076616C75657320696E20454550524F4D200A
+          .db	"### - '<f'                   Read signature [#0][#1][#2] and the fuses [Low][Lock][Ext][High]", CHAR_LF
+C:0013BF 232323202D20273C66272020202020202020202020202020202020202052656164207369676E6174757265205B23305D5B23315D5B23325D20616E6420746865206675736573205B4C6F775D5B4C6F636B5D5B4578745D5B486967685D0A
+          .db	"### - '<i[AddrFrom]'         Dump of I/O ", CHAR_LF
+C:0013EE 232323202D20273C695B4164647246726F6D5D2720202020202020202044756D70206F6620492F4F200A
+          .db	"### - '<IAddress+Value'      Write byte in I/O ", CHAR_LF
+C:001403 232323202D20273C49416464726573732B56616C7565272020202020205772697465206279746520696E20492F4F200A
+          .db	"### - '<JAddress+Value'      Write word MSB:LSB in I/O at [Address:(Address-1)]", CHAR_LF
+C:00141B 232323202D20273C4A416464726573732B56616C756527202020202020577269746520776F7264204D53423A4C534220696E20492F4F206174205B416464726573733A28416464726573732D31295D0A
+         
+          #if USE_TEST_LAC_LAS
+          .db	"### - '<lValue'              Load and clear test ", CHAR_LF, 
+C:001443 232323202D20273C6C56616C75652720202020202020202020202020204C6F616420616E6420636C6561722074657374200A
+          .db	"### - '<LValue'              Load and set test ", CHAR_LF
+C:00145C 232323202D20273C4C56616C75652720202020202020202020202020204C6F616420616E64207365742074657374200A
+          #endif
+         
+          .db	"### - '<SAddress+Value'      Write in SRAM ", CHAR_LF
+C:001474 232323202D20273C53416464726573732B56616C756527202020202020577269746520696E205352414D200A
+          .db	"### - '<tValue1-Value2'      Test compare", CHAR_LF
+C:00148A 232323202D20273C7456616C7565312D56616C756532272020202020205465737420636F6D706172650A
+          .db	"### - '<xAddress'            Call to Address", CHAR_LF, CHAR_NULL
+C:00149F 232323202D20273C78416464726573732720202020202020202020202043616C6C20746F20416464726573730A00
+         
+          text_crc8_maxim:
+          .db	"CRC8-MAXIM ", CHAR_NULL
+C:0014B6 435243382D4D4158494D2000
+         
+          text_hexa_value:
+          .db	"[0x", CHAR_NULL
+C:0014BC 5B307800
+         
+          text_hexa_value_lf_end:
+          .db	"]", CHAR_LF, CHAR_NULL, CHAR_NULL
+C:0014BE 5D0A0000
+         
+          text_eeprom_error:
+          .db	"Err: EEPROM at ", CHAR_NULL
+C:0014C0 4572723A20454550524F4D2061742000
+         
+          text_convert_for_bargraph_table:
+          .db   0x7, 0xB, 0xD, 0xE				; [0, 1, 2, 3] -> [0x7, 0xB, 0xD, 0xE]
+C:0014C8 070B0D0E
+         
+          text_monitor_short_message:
+          .db	"### ", CHAR_NULL, CHAR_NULL
+C:0014CA 232323200000
+         
+          text_sreg:
+          .db	"SREG ", CHAR_NULL
+C:0014CD 535245472000
+         
+          text_response_j_maj:
+          .db   ">J [Ok]", CHAR_LF, CHAR_NULL, CHAR_NULL
+C:0014D0 3E4A205B4F6B5D0A0000
+         
+          #if USE_TEST_LAC_LAS
+          text_test_lac:
+          .db	"Test LAC", CHAR_LF, CHAR_NULL
+C:0014D5 54657374204C41430A00
+         
+          text_test_las:
+          .db	"Test LAS", CHAR_LF, CHAR_NULL
+C:0014DA 54657374204C41530A00
+          #endif
+         
+          monitor_magic_const:
+          .dw	0x1234
+C:0014df 1234
+         
+          end_of_program:
+         
+         ; End of file
+         
+Used memory blocks:
+   code      :  Start = 0x0000, End = 0x0063, Length = 0x0064 (100 words), Overlap=N
+   code      :  Start = 0x1000, End = 0x14DF, Length = 0x04E0 (1248 words), Overlap=N
+   data      :  Start = 0x0100, End = 0x0755, Length = 0x0656 (1622 bytes), Overlap=N
+
+
+Segment usage:
+   Code      :      1348 words (2696 bytes)
+   Data      :      1622 bytes
+   EEPROM    :         0 bytes
+
+Assembly completed with no errors.

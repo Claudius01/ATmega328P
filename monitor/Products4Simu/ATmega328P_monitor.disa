@@ -1,0 +1,1299 @@
+# Generate from project [ATmega328P_monitor] with
+# Command [$ avrdisas ATmega328P_monitor]
+
+Label1:
+0000:   94 0c 35 80     jmp     uos_main_program
+0002:   e0 12           ldi     r17, 0x02       ; 2
+0003:   c0 5e           rjmp    monitor_invalid_it_near
+0004:   e0 13           ldi     r17, 0x03       ; 3
+0005:   c0 5c           rjmp    monitor_invalid_it_near
+0006:   e0 14           ldi     r17, 0x04       ; 4
+0007:   c0 5a           rjmp    monitor_invalid_it_near
+0008:   e0 15           ldi     r17, 0x05       ; 5
+0009:   c0 58           rjmp    monitor_invalid_it_near
+000a:   94 0c 37 8e     jmp     uos_pcint2_isr_program
+000c:   e0 17           ldi     r17, 0x07       ; 7
+000d:   c0 54           rjmp    monitor_invalid_it_near
+000e:   e0 18           ldi     r17, 0x08       ; 8
+000f:   c0 52           rjmp    monitor_invalid_it_near
+0010:   e0 19           ldi     r17, 0x09       ; 9
+0011:   c0 50           rjmp    monitor_invalid_it_near
+0012:   e1 10           ldi     r17, 0x10       ; 16
+0013:   c0 4e           rjmp    monitor_invalid_it_near
+0014:   e1 11           ldi     r17, 0x11       ; 17
+0015:   c0 4c           rjmp    monitor_invalid_it_near
+0016:   94 0c 37 11     jmp     uos_tim1_compa_isr_program
+0018:   e1 13           ldi     r17, 0x13       ; 19
+0019:   c0 48           rjmp    monitor_invalid_it_near
+001a:   e1 14           ldi     r17, 0x14       ; 20
+001b:   c0 46           rjmp    monitor_invalid_it_near
+001c:   e1 15           ldi     r17, 0x15       ; 21
+001d:   c0 44           rjmp    monitor_invalid_it_near
+001e:   e1 16           ldi     r17, 0x16       ; 22
+001f:   c0 42           rjmp    monitor_invalid_it_near
+0020:   e1 17           ldi     r17, 0x17       ; 23
+0021:   c0 40           rjmp    monitor_invalid_it_near
+0022:   e1 18           ldi     r17, 0x18       ; 24
+0023:   c0 3e           rjmp    monitor_invalid_it_near
+0024:   94 0c 37 6b     jmp     uos_usart_rx_complete_isr_program
+0026:   e2 10           ldi     r17, 0x20       ; 32
+0027:   c0 3a           rjmp    monitor_invalid_it_near
+0028:   e2 11           ldi     r17, 0x21       ; 33
+0029:   c0 38           rjmp    monitor_invalid_it_near
+002a:   e2 12           ldi     r17, 0x22       ; 34
+002b:   c0 36           rjmp    monitor_invalid_it_near
+002c:   e2 13           ldi     r17, 0x23       ; 35
+002d:   c0 34           rjmp    monitor_invalid_it_near
+002e:   e2 14           ldi     r17, 0x24       ; 36
+002f:   c0 32           rjmp    monitor_invalid_it_near
+0030:   e2 15           ldi     r17, 0x25       ; 37
+0031:   c0 30           rjmp    monitor_invalid_it_near
+0032:   e2 16           ldi     r17, 0x26       ; 38
+0033:   c0 2e           rjmp    monitor_invalid_it_near
+0034:   00 00           nop
+0035:   c0 2c           rjmp    monitor_invalid_it_near
+0036:   00 00           nop
+0037:   00 00           nop
+0038:   00 00           nop
+0039:   00 00           nop
+003a:   00 00           nop
+003b:   00 00           nop
+003c:   00 00           nop
+003d:   00 00           nop
+003e:   00 00           nop
+003f:   00 00           nop
+0040:   00 00           nop
+0041:   00 00           nop
+0042:   00 00           nop
+0043:   00 00           nop
+0044:   00 00           nop
+0045:   00 00           nop
+0046:   00 00           nop
+0047:   00 00           nop
+0048:   00 00           nop
+0049:   00 00           nop
+004a:   00 00           nop
+004b:   00 00           nop
+004c:   00 00           nop
+004d:   00 00           nop
+004e:   00 00           nop
+004f:   00 00           nop
+0050:   00 00           nop
+0051:   00 00           nop
+0052:   00 00           nop
+0053:   00 00           nop
+0054:   00 00           nop
+0055:   00 00           nop
+0056:   94 0c 10 00     jmp     callback_init
+0058:   00 00           nop
+0059:   00 00           nop
+005a:   00 00           nop
+005b:   00 00           nop
+005c:   94 0c 10 1b     jmp     callback_1_ms
+005e:   94 0c 10 32     jmp     callback_gest_buttons
+0060:   94 0c 10 61     jmp     callback_command
+
+monitor_invalid_it_near:
+0062:   94 0c 10 c7     jmp     monitor_invalid_it
+
+callback_init:
+1000:   94 f8           cli
+1001:   91 00 05 34     lds     0x0534, r16     ; UOS_G_FLAGS_EXTENSIONS
+1003:   68 00           ori     r16, 0x80       ; 128
+1004:   93 00 05 34     sts     0x0534, r16     ; UOS_G_FLAGS_EXTENSIONS
+1006:   d0 b6           rcall   monitor_init_sram_fill
+1007:   e0 0f           ldi     r16, 0x0f       ; 15
+1008:   b9 07           out     DDRC, r16
+1009:   e0 0f           ldi     r16, 0x0f       ; 15
+100a:   b9 08           out     PORTC, r16
+100b:   27 00           clr     r16
+100c:   93 00 07 51     sts     0x0751, r16     ; G_BARGRAPH_PASS_MSB
+100e:   93 00 07 52     sts     0x0752, r16     ; G_BARGRAPH_PASS_LSB
+1010:   e0 0f           ldi     r16, 0x0f       ; 15
+1011:   93 00 07 53     sts     0x0753, r16     ; G_BARGRAPH_IMAGE
+1013:   94 78           sei
+1014:   e2 f6           ldi     r31, 0x26       ; 38
+1015:   ea ee           ldi     r30, 0xae       ; 174
+1016:   94 0e 3c ed     call    uos_push_text_in_fifo_tx
+1018:   94 0e 3a f2     call    uos_fifo_tx_to_send_sync
+101a:   95 08           ret
+
+callback_1_ms:
+101b:   91 b0 07 51     lds     0x0751, r27     ; G_BARGRAPH_PASS_MSB
+101d:   91 a0 07 52     lds     0x0752, r26     ; G_BARGRAPH_PASS_LSB
+101f:   96 11           adiw    r26, 0x01       ; 1
+1020:   93 b0 07 51     sts     0x0751, r27     ; G_BARGRAPH_PASS_MSB
+1022:   93 a0 07 52     sts     0x0752, r26     ; G_BARGRAPH_PASS_LSB
+1024:   30 b3           cpi     r27, 0x03       ; 3
+1025:   f4 59           brne    callback_1_ms_end
+1026:   3e a8           cpi     r26, 0xe8       ; 232
+1027:   f4 49           brne    callback_1_ms_end
+1028:   27 00           clr     r16
+1029:   93 00 07 51     sts     0x0751, r16     ; G_BARGRAPH_PASS_MSB
+102b:   93 00 07 52     sts     0x0752, r16     ; G_BARGRAPH_PASS_LSB
+102d:   b1 08           in      r16, PORTC
+102e:   e0 14           ldi     r17, 0x04       ; 4
+102f:   27 01           eor     r16, r17
+1030:   b9 08           out     PORTC, r16
+
+callback_1_ms_end:
+1031:   95 08           ret
+
+callback_gest_buttons:
+1032:   e2 1d           ldi     r17, 0x2d       ; 45
+1033:   e7 20           ldi     r18, 0x70       ; 112
+1034:   e2 3d           ldi     r19, 0x2d       ; 45
+1035:   94 0e 3d 5d     call    uos_print_mark_3_char
+1037:   94 0e 3d 15     call    uos_print_line_feed
+1039:   91 10 06 c2     lds     0x06c2, r17     ; UOS_G_STATES_BUTTON_NOTIF
+103b:   91 00 06 c3     lds     0x06c3, r16     ; UOS_G_STATES_BUTTON_NBR_TOUCH_NOTIF
+103d:   01 d8           movw    r26, r16
+103e:   94 0e 3d 37     call    uos_print_2_bytes_hexa
+1040:   94 0e 3d 15     call    uos_print_line_feed
+1042:   91 10 06 c2     lds     0x06c2, r17     ; UOS_G_STATES_BUTTON_NOTIF
+1044:   ff 16           sbrs    r17, 6          ; 0x40 = 64
+1045:   c0 1a           rjmp    callback_gest_buttons_end
+1046:   91 10 06 c2     lds     0x06c2, r17     ; UOS_G_STATES_BUTTON_NOTIF
+1048:   70 1f           cbr     r17, 0xf0       ; 240
+1049:   2f 01           mov     r16, r17
+104a:   f0 39           breq    callback_gest_buttons_bargraph_end
+104b:   95 0a           dec     r16
+104c:   e2 f9           ldi     r31, 0x29       ; 41
+104d:   e9 e0           ldi     r30, 0x90       ; 144
+104e:   0f e0           add     r30, r16
+104f:   27 00           clr     r16
+1050:   1f f0           adc     r31, r16
+1051:   91 04           lpm     r16, Z
+
+callback_gest_buttons_bargraph_end:
+1052:   30 11           cpi     r17, 0x01       ; 1
+1053:   f4 39           brne    callback_gest_buttons_more
+1054:   94 f8           cli
+1055:   e0 08           ldi     r16, 0x08       ; 8
+1056:   bf 0e           out     SPH, r16
+1057:   ef 0f           ser     r16
+1058:   bf 0d           out     SPL, r16
+1059:   94 0c 00 00     jmp     Label1
+
+callback_gest_buttons_more:
+105b:   30 13           cpi     r17, 0x03       ; 3
+105c:   c0 03           rjmp    callback_gest_buttons_end
+105d:   27 11           clr     r17
+105e:   93 10 06 c0     sts     0x06c0, r17     ; UOS_G_STATES_BUTTON
+
+callback_gest_buttons_end:
+1060:   95 08           ret
+
+callback_command:
+1061:   91 00 05 34     lds     0x0534, r16     ; UOS_G_FLAGS_EXTENSIONS
+1063:   60 01           ori     r16, 0x01       ; 1
+1064:   93 00 05 34     sts     0x0534, r16     ; UOS_G_FLAGS_EXTENSIONS
+1066:   91 00 06 c5     lds     0x06c5, r16     ; UOS_G_TEST_COMMAND_TYPE
+1068:   94 e8           clt
+1069:   33 0f           cpi     r16, 0x3f       ; 63
+106a:   b7 1f           in      r17, SREG
+106b:   fd 11           sbrc    r17, 1          ; 0x02 = 2
+106c:   c0 44           rjmp    monitor_command_prompt
+106d:   36 01           cpi     r16, 0x61       ; 97
+106e:   b7 1f           in      r17, SREG
+106f:   fd 11           sbrc    r17, 1          ; 0x02 = 2
+1070:   c0 9a           rjmp    monitor_command_a_min
+1071:   36 05           cpi     r16, 0x65       ; 101
+1072:   b7 1f           in      r17, SREG
+1073:   fd 11           sbrc    r17, 1          ; 0x02 = 2
+1074:   c1 30           rjmp    monitor_command_e_min
+1075:   34 05           cpi     r16, 0x45       ; 69
+1076:   b7 1f           in      r17, SREG
+1077:   fd 11           sbrc    r17, 1          ; 0x02 = 2
+1078:   c1 55           rjmp    monitor_command_e_maj
+1079:   35 03           cpi     r16, 0x53       ; 83
+107a:   b7 1f           in      r17, SREG
+107b:   fd 11           sbrc    r17, 1          ; 0x02 = 2
+107c:   c1 cf           rjmp    monitor_command_s_maj
+107d:   34 09           cpi     r16, 0x49       ; 73
+107e:   b7 1f           in      r17, SREG
+107f:   fd 11           sbrc    r17, 1          ; 0x02 = 2
+1080:   c1 ae           rjmp    monitor_command_i_maj
+1081:   34 0a           cpi     r16, 0x4a       ; 74
+1082:   b7 1f           in      r17, SREG
+1083:   fd 11           sbrc    r17, 1          ; 0x02 = 2
+1084:   c1 b5           rjmp    monitor_command_j_maj
+1085:   36 09           cpi     r16, 0x69       ; 105
+1086:   b7 1f           in      r17, SREG
+1087:   fd 11           sbrc    r17, 1          ; 0x02 = 2
+1088:   c1 7d           rjmp    monitor_command_i_min
+1089:   36 0c           cpi     r16, 0x6c       ; 108
+108a:   b7 1f           in      r17, SREG
+108b:   fd 11           sbrc    r17, 1          ; 0x02 = 2
+108c:   c2 8f           rjmp    monitor_command_l_min
+108d:   34 0c           cpi     r16, 0x4c       ; 76
+108e:   b7 1f           in      r17, SREG
+108f:   fd 11           sbrc    r17, 1          ; 0x02 = 2
+1090:   c2 a0           rjmp    test_las
+1091:   37 04           cpi     r16, 0x74       ; 116
+1092:   b7 1f           in      r17, SREG
+1093:   fd 11           sbrc    r17, 1          ; 0x02 = 2
+1094:   c1 c2           rjmp    monitor_command_t_min
+1095:   36 06           cpi     r16, 0x66       ; 102
+1096:   b7 1f           in      r17, SREG
+1097:   fd 11           sbrc    r17, 1          ; 0x02 = 2
+1098:   c1 ea           rjmp    monitor_command_f_min
+1099:   37 08           cpi     r16, 0x78       ; 120
+109a:   b7 1f           in      r17, SREG
+109b:   fd 11           sbrc    r17, 1          ; 0x02 = 2
+109c:   c2 1f           rjmp    monitor_command_x_min
+109d:   95 08           ret
+
+print_blocking_string:
+109e:   93 ff           push    r31
+109f:   93 ef           push    r30
+10a0:   93 0f           push    r16
+10a1:   93 1f           push    r17
+
+print_blocking_string_loop:
+10a2:   91 05           lpm     r16, Z+
+10a3:   30 00           cpi     r16, 0x00       ; 0
+10a4:   f0 39           breq    print_blocking_string_end
+
+print_blocking_string_wait:
+10a5:   91 10 00 c0     lds     0x00c0, r17     ; UCSR0A
+10a7:   ff 15           sbrs    r17, 5          ; 0x20 = 32
+10a8:   cf fc           rjmp    print_blocking_string_wait
+10a9:   93 00 00 c6     sts     0x00c6, r16     ; UDR0
+10ab:   cf f6           rjmp    print_blocking_string_loop
+
+print_blocking_string_end:
+10ac:   91 1f           pop     r17
+10ad:   91 0f           pop     r16
+10ae:   91 ef           pop     r30
+10af:   91 ff           pop     r31
+10b0:   95 08           ret
+
+monitor_command_prompt:
+10b1:   94 0e 3d ce     call    uos_print_command_ok
+10b3:   e2 f6           ldi     r31, 0x26       ; 38
+10b4:   e8 ee           ldi     r30, 0x8e       ; 142
+10b5:   94 0e 3c e9     call    uos_push_text_in_fifo_tx_skip
+10b7:   e2 f6           ldi     r31, 0x26       ; 38
+10b8:   ec e6           ldi     r30, 0xc6       ; 198
+10b9:   94 0e 3c e9     call    uos_push_text_in_fifo_tx_skip
+10bb:   94 68           set
+10bc:   95 08           ret
+
+monitor_init_sram_fill:
+10bd:   27 00           clr     r16
+10be:   e0 b7           ldi     r27, 0x07       ; 7
+10bf:   e5 a4           ldi     r26, 0x54       ; 84
+
+monitor_init_sram_fill_loop_a:
+10c0:   93 0c           st      X, r16
+10c1:   97 11           sbiw    r26, 0x01       ; 1
+10c2:   30 b7           cpi     r27, 0x07       ; 7
+10c3:   f7 e1           brne    monitor_init_sram_fill_loop_a
+10c4:   34 ae           cpi     r26, 0x4e       ; 78
+10c5:   f7 d1           brne    monitor_init_sram_fill_loop_a
+10c6:   95 08           ret
+
+monitor_invalid_it:
+10c7:   94 f8           cli
+10c8:   e5 00           ldi     r16, 0x50       ; 80
+10c9:   77 1f           cbr     r17, 0x80       ; 128
+10ca:   64 10           ori     r17, 0x40       ; 64
+10cb:   93 10 05 01     sts     0x0501, r17     ; UOS_G_STATES_POST_MORTEM
+10cd:   91 70 05 0f     lds     0x050f, r23     ; UOS_G_PORTB_IMAGE
+10cf:   61 70           ori     r23, 0x10       ; 16
+10d0:   93 70 05 0f     sts     0x050f, r23     ; UOS_G_PORTB_IMAGE
+10d2:   b9 75           out     PORTB, r23
+10d3:   91 70 05 0f     lds     0x050f, r23     ; UOS_G_PORTB_IMAGE
+10d5:   62 70           ori     r23, 0x20       ; 32
+10d6:   93 70 05 0f     sts     0x050f, r23     ; UOS_G_PORTB_IMAGE
+10d8:   b9 75           out     PORTB, r23
+10d9:   91 70 05 0f     lds     0x050f, r23     ; UOS_G_PORTB_IMAGE
+10db:   60 74           ori     r23, 0x04       ; 4
+10dc:   93 70 05 0f     sts     0x050f, r23     ; UOS_G_PORTB_IMAGE
+10de:   b9 75           out     PORTB, r23
+10df:   91 70 05 11     lds     0x0511, r23     ; UOS_G_FLAGS_1
+10e1:   77 7f           cbr     r23, 0x80       ; 128
+10e2:   93 70 05 11     sts     0x0511, r23     ; UOS_G_FLAGS_1
+10e4:   91 70 05 0f     lds     0x050f, r23     ; UOS_G_PORTB_IMAGE
+10e6:   60 72           ori     r23, 0x02       ; 2
+10e7:   93 70 05 0f     sts     0x050f, r23     ; UOS_G_PORTB_IMAGE
+10e9:   b9 75           out     PORTB, r23
+
+monitor_invalid_it_loop:
+10ea:   93 0f           push    r16
+10eb:   91 70 05 11     lds     0x0511, r23     ; UOS_G_FLAGS_1
+10ed:   68 70           ori     r23, 0x80       ; 128
+10ee:   93 70 05 11     sts     0x0511, r23     ; UOS_G_FLAGS_1
+10f0:   93 70 05 11     sts     0x0511, r23     ; UOS_G_FLAGS_1
+10f2:   91 70 05 0f     lds     0x050f, r23     ; UOS_G_PORTB_IMAGE
+10f4:   7f 7d           cbr     r23, 0x02       ; 2
+10f5:   93 70 05 0f     sts     0x050f, r23     ; UOS_G_PORTB_IMAGE
+10f7:   b9 75           out     PORTB, r23
+10f8:   94 0e 36 ce     call    uos_delay_big_2
+10fa:   91 0f           pop     r16
+10fb:   93 0f           push    r16
+10fc:   91 70 05 11     lds     0x0511, r23     ; UOS_G_FLAGS_1
+10fe:   77 7f           cbr     r23, 0x80       ; 128
+10ff:   93 70 05 11     sts     0x0511, r23     ; UOS_G_FLAGS_1
+1101:   91 70 05 0f     lds     0x050f, r23     ; UOS_G_PORTB_IMAGE
+1103:   60 72           ori     r23, 0x02       ; 2
+1104:   93 70 05 0f     sts     0x050f, r23     ; UOS_G_PORTB_IMAGE
+1106:   b9 75           out     PORTB, r23
+1107:   94 0e 36 ce     call    uos_delay_big_2
+1109:   91 0f           pop     r16
+110a:   cf df           rjmp    monitor_invalid_it_loop
+
+monitor_command_a_min:
+110b:   94 0e 3d ce     call    uos_print_command_ok
+110d:   91 b0 06 c6     lds     0x06c6, r27     ; UOS_G_TEST_VALUE_MSB
+110f:   91 a0 06 c7     lds     0x06c7, r26     ; UOS_G_TEST_VALUE_LSB
+1111:   91 d0 06 c8     lds     0x06c8, r29     ; UOS_G_TEST_VALUE_MSB_MORE
+1113:   91 c0 06 c9     lds     0x06c9, r28     ; UOS_G_TEST_VALUE_LSB_MORE
+1115:   93 bf           push    r27
+1116:   93 af           push    r26
+1117:   93 df           push    r29
+1118:   93 cf           push    r28
+1119:   94 0e 3d 37     call    uos_print_2_bytes_hexa
+111b:   91 af           pop     r26
+111c:   91 bf           pop     r27
+111d:   93 bf           push    r27
+111e:   93 af           push    r26
+111f:   94 0e 3d 37     call    uos_print_2_bytes_hexa
+1121:   94 0e 3d 15     call    uos_print_line_feed
+1123:   91 cf           pop     r28
+1124:   91 df           pop     r29
+1125:   91 af           pop     r26
+1126:   91 bf           pop     r27
+1127:   23 bb           tst     r27
+1128:   f4 51           brne    monitor_command_a_min_calcul
+1129:   23 aa           tst     r26
+112a:   f4 41           brne    monitor_command_a_min_calcul
+112b:   23 dd           tst     r29
+112c:   f4 31           brne    monitor_command_a_min_calcul
+112d:   23 cc           tst     r28
+112e:   f4 21           brne    monitor_command_a_min_calcul
+112f:   27 bb           clr     r27
+1130:   27 aa           clr     r26
+1131:   e1 d4           ldi     r29, 0x14       ; 20
+1132:   ed cf           ldi     r28, 0xdf       ; 223
+
+monitor_command_a_min_calcul:
+1133:   0f aa           lsl     r26
+1134:   1f bb           rol     r27
+1135:   27 00           clr     r16
+1136:   93 00 07 4f     sts     0x074f, r16     ; G_CALC_CRC8
+
+monitor_command_a_min_loop_0:
+1138:   95 b6           lsr     r27
+1139:   95 a7           ror     r26
+113a:   94 0e 3d 37     call    uos_print_2_bytes_hexa
+113c:   0f aa           lsl     r26
+113d:   1f bb           rol     r27
+113e:   e2 f9           ldi     r31, 0x29       ; 41
+113f:   e7 e8           ldi     r30, 0x78       ; 120
+1140:   94 0e 3c ed     call    uos_push_text_in_fifo_tx
+1142:   e2 20           ldi     r18, 0x20       ; 32
+
+monitor_command_a_min_loop_1:
+1143:   01 fd           movw    r30, r26
+1144:   96 11           adiw    r26, 0x01       ; 1
+1145:   e0 01           ldi     r16, 0x01       ; 1
+1146:   23 0a           and     r16, r26
+1147:   f0 59           breq    monitor_command_a_min_loop_1_cont_d
+1148:   93 bf           push    r27
+1149:   93 af           push    r26
+114a:   95 b6           lsr     r27
+114b:   95 a7           ror     r26
+114c:   2f 0c           mov     r16, r28
+114d:   17 0a           cp      r16, r26
+114e:   2f 0d           mov     r16, r29
+114f:   07 0b           cpc     r16, r27
+1150:   91 af           pop     r26
+1151:   91 bf           pop     r27
+1152:   f0 b2           brmi    monitor_command_a_min_end
+
+monitor_command_a_min_loop_1_cont_d:
+1153:   e0 01           ldi     r16, 0x01       ; 1
+1154:   27 e0           eor     r30, r16
+1155:   91 04           lpm     r16, Z
+1156:   93 0f           push    r16
+1157:   94 0e 3d 09     call    uos_convert_and_put_fifo_tx
+1159:   91 0f           pop     r16
+115a:   d0 2e           rcall   calc_crc8_maxim
+115b:   95 2a           dec     r18
+115c:   f7 31           brne    monitor_command_a_min_loop_1
+115d:   e5 0d           ldi     r16, 0x5d       ; 93
+115e:   94 0e 3c fe     call    uos_push_1_char_in_fifo_tx
+1160:   93 af           push    r26
+1161:   91 a0 07 4f     lds     0x074f, r26     ; G_CALC_CRC8
+1163:   94 0e 3d 26     call    uos_print_1_byte_hexa
+1165:   94 0e 3d 15     call    uos_print_line_feed
+1167:   91 af           pop     r26
+1168:   cf cf           rjmp    monitor_command_a_min_loop_0
+
+monitor_command_a_min_end:
+1169:   e5 0d           ldi     r16, 0x5d       ; 93
+116a:   94 0e 3c fe     call    uos_push_1_char_in_fifo_tx
+116c:   93 af           push    r26
+116d:   91 a0 07 4f     lds     0x074f, r26     ; G_CALC_CRC8
+116f:   94 0e 3d 26     call    uos_print_1_byte_hexa
+1171:   94 0e 3d 15     call    uos_print_line_feed
+1173:   91 af           pop     r26
+1174:   e2 f9           ldi     r31, 0x29       ; 41
+1175:   e6 ec           ldi     r30, 0x6c       ; 108
+1176:   94 0e 3c ed     call    uos_push_text_in_fifo_tx
+1178:   91 b0 06 c6     lds     0x06c6, r27     ; UOS_G_TEST_VALUE_MSB
+117a:   91 a0 06 c7     lds     0x06c7, r26     ; UOS_G_TEST_VALUE_LSB
+117c:   94 0e 3d 37     call    uos_print_2_bytes_hexa
+117e:   01 de           movw    r26, r28
+117f:   94 0e 3d 37     call    uos_print_2_bytes_hexa
+1181:   91 a0 07 4f     lds     0x074f, r26     ; G_CALC_CRC8
+1183:   94 0e 3d 26     call    uos_print_1_byte_hexa
+1185:   94 0e 3d 15     call    uos_print_line_feed
+1187:   94 68           set
+1188:   95 08           ret
+
+calc_crc8_maxim:
+1189:   93 0f           push    r16
+118a:   93 1f           push    r17
+118b:   93 2f           push    r18
+118c:   93 3f           push    r19
+118d:   2f 10           mov     r17, r16
+118e:   91 30 07 4f     lds     0x074f, r19     ; G_CALC_CRC8
+1190:   e0 28           ldi     r18, 0x08       ; 8
+
+calc_crc8_maxim_loop_bit:
+1191:   2f 03           mov     r16, r19
+1192:   27 01           eor     r16, r17
+1193:   70 01           andi    r16, 0x01       ; 1
+1194:   94 e8           clt
+1195:   f0 09           breq    calc_crc8_maxim_a
+1196:   94 68           set
+
+calc_crc8_maxim_a:
+1197:   95 36           lsr     r19
+1198:   f4 16           brtc    calc_crc8_maxim_b
+1199:   e8 0c           ldi     r16, 0x8c       ; 140
+119a:   27 30           eor     r19, r16
+
+calc_crc8_maxim_b:
+119b:   93 30 07 4f     sts     0x074f, r19     ; G_CALC_CRC8
+119d:   95 16           lsr     r17
+119e:   95 2a           dec     r18
+119f:   f7 89           brne    calc_crc8_maxim_loop_bit
+11a0:   91 3f           pop     r19
+11a1:   91 2f           pop     r18
+11a2:   91 1f           pop     r17
+11a3:   91 0f           pop     r16
+11a4:   95 08           ret
+
+monitor_command_e_min:
+11a5:   94 0e 3d ce     call    uos_print_command_ok
+11a7:   91 b0 06 c6     lds     0x06c6, r27     ; UOS_G_TEST_VALUE_MSB
+11a9:   91 a0 06 c7     lds     0x06c7, r26     ; UOS_G_TEST_VALUE_LSB
+11ab:   23 bb           tst     r27
+11ac:   f4 21           brne    monitor_command_e_min_cont_d
+11ad:   23 aa           tst     r26
+11ae:   f4 11           brne    monitor_command_e_min_cont_d
+11af:   e2 10           ldi     r17, 0x20       ; 32
+11b0:   c0 01           rjmp    monitor_command_e_min_loop_0
+
+monitor_command_e_min_cont_d:
+11b1:   e0 18           ldi     r17, 0x08       ; 8
+
+monitor_command_e_min_loop_0:
+11b2:   94 0e 3d 37     call    uos_print_2_bytes_hexa
+11b4:   e2 f9           ldi     r31, 0x29       ; 41
+11b5:   e7 e8           ldi     r30, 0x78       ; 120
+11b6:   94 0e 3c ed     call    uos_push_text_in_fifo_tx
+11b8:   e1 20           ldi     r18, 0x10       ; 16
+
+monitor_command_e_min_loop_1:
+11b9:   94 0e 3f 2e     call    uos_eeprom_read_byte
+11bb:   94 0e 3d 09     call    uos_convert_and_put_fifo_tx
+11bd:   96 11           adiw    r26, 0x01       ; 1
+11be:   30 b4           cpi     r27, 0x04       ; 4
+11bf:   f4 21           brne    monitor_command_e_min_more2
+11c0:   30 a0           cpi     r26, 0x00       ; 0
+11c1:   f4 11           brne    monitor_command_e_min_more2
+11c2:   e0 21           ldi     r18, 0x01       ; 1
+11c3:   e0 11           ldi     r17, 0x01       ; 1
+
+monitor_command_e_min_more2:
+11c4:   95 2a           dec     r18
+11c5:   f7 99           brne    monitor_command_e_min_loop_1
+11c6:   e2 f9           ldi     r31, 0x29       ; 41
+11c7:   e7 ec           ldi     r30, 0x7c       ; 124
+11c8:   94 0e 3c ed     call    uos_push_text_in_fifo_tx
+11ca:   95 1a           dec     r17
+11cb:   f7 31           brne    monitor_command_e_min_loop_0
+11cc:   94 68           set
+11cd:   95 08           ret
+
+monitor_command_e_maj:
+11ce:   91 a0 06 cc     lds     0x06cc, r26     ; UOS_G_TEST_VALUES_IDX_WRK
+11d0:   95 a6           lsr     r26
+11d1:   2f 2a           mov     r18, r26
+11d2:   91 b0 06 c6     lds     0x06c6, r27     ; UOS_G_TEST_VALUE_MSB
+11d4:   91 a0 06 c7     lds     0x06c7, r26     ; UOS_G_TEST_VALUE_LSB
+11d6:   e0 01           ldi     r16, 0x01       ; 1
+11d7:   e0 14           ldi     r17, 0x04       ; 4
+11d8:   1b 02           sub     r16, r18
+11d9:   40 10           sbci    r17, 0x00       ; 0
+11da:   17 a0           cp      r26, r16
+11db:   07 b1           cpc     r27, r17
+11dc:   f5 2a           brpl    monitor_command_e_maj_out_of_range
+11dd:   94 0e 3d ce     call    uos_print_command_ok
+11df:   2f 12           mov     r17, r18
+11e0:   e0 d6           ldi     r29, 0x06       ; 6
+11e1:   ec ce           ldi     r28, 0xce       ; 206
+11e2:   91 00 06 c4     lds     0x06c4, r16     ; UOS_G_TEST_FLAGS
+11e4:   7b 0f           cbr     r16, 0x40       ; 64
+11e5:   93 00 06 c4     sts     0x06c4, r16     ; UOS_G_TEST_FLAGS
+
+monitor_command_e_maj_loop:
+11e7:   81 08           ld      r16, Y
+11e8:   d1 27           rcall   eeprom_write_byte
+11e9:   2f 20           mov     r18, r16
+11ea:   27 00           clr     r16
+11eb:   94 0e 3f 2e     call    uos_eeprom_read_byte
+11ed:   13 02           cpse    r16, r18
+11ee:   c0 05           rjmp    monitor_command_e_maj_ko
+11ef:   96 11           adiw    r26, 0x01       ; 1
+11f0:   96 22           adiw    r28, 0x02       ; 2
+11f1:   95 1a           dec     r17
+11f2:   f7 a1           brne    monitor_command_e_maj_loop
+11f3:   c0 10           rjmp    monitor_command_e_maj_end
+
+monitor_command_e_maj_ko:
+11f4:   e2 f9           ldi     r31, 0x29       ; 41
+11f5:   e8 e0           ldi     r30, 0x80       ; 128
+11f6:   94 0e 3c ed     call    uos_push_text_in_fifo_tx
+11f8:   94 0e 3d 37     call    uos_print_2_bytes_hexa
+11fa:   94 0e 3d 15     call    uos_print_line_feed
+11fc:   91 00 06 c4     lds     0x06c4, r16     ; UOS_G_TEST_FLAGS
+11fe:   64 00           ori     r16, 0x40       ; 64
+11ff:   93 00 06 c4     sts     0x06c4, r16     ; UOS_G_TEST_FLAGS
+1201:   c0 02           rjmp    monitor_command_e_maj_end
+
+monitor_command_e_maj_out_of_range:
+1202:   94 0e 3d d3     call    uos_print_command_ko
+
+monitor_command_e_maj_end:
+1204:   94 68           set
+1205:   95 08           ret
+
+monitor_command_i_min:
+1206:   94 0e 3d ce     call    uos_print_command_ok
+1208:   91 b0 06 c6     lds     0x06c6, r27     ; UOS_G_TEST_VALUE_MSB
+120a:   91 a0 06 c7     lds     0x06c7, r26     ; UOS_G_TEST_VALUE_LSB
+120c:   23 bb           tst     r27
+120d:   f4 31           brne    _uos_exec_command_type_i_read_cont_d
+120e:   23 aa           tst     r26
+120f:   f4 21           brne    _uos_exec_command_type_i_read_cont_d
+1210:   27 bb           clr     r27
+1211:   27 aa           clr     r26
+1212:   e2 10           ldi     r17, 0x20       ; 32
+1213:   c0 01           rjmp    _uos_exec_command_type_i_read_loop_0
+
+_uos_exec_command_type_i_read_cont_d:
+1214:   e0 18           ldi     r17, 0x08       ; 8
+
+_uos_exec_command_type_i_read_loop_0:
+1215:   94 0e 3d 37     call    uos_print_2_bytes_hexa
+1217:   e2 f9           ldi     r31, 0x29       ; 41
+1218:   e7 e8           ldi     r30, 0x78       ; 120
+1219:   94 0e 3c ed     call    uos_push_text_in_fifo_tx
+121b:   e1 20           ldi     r18, 0x10       ; 16
+
+_uos_exec_command_type_i_read_loop_1:
+121c:   91 0d           ld      r16, X+
+121d:   94 0e 3d 09     call    uos_convert_and_put_fifo_tx
+121f:   30 b1           cpi     r27, 0x01       ; 1
+1220:   f4 21           brne    _uos_exec_command_type_i_read_more2
+1221:   30 a0           cpi     r26, 0x00       ; 0
+1222:   f4 11           brne    _uos_exec_command_type_i_read_more2
+1223:   e0 21           ldi     r18, 0x01       ; 1
+1224:   e0 11           ldi     r17, 0x01       ; 1
+
+_uos_exec_command_type_i_read_more2:
+1225:   95 2a           dec     r18
+1226:   f7 a9           brne    _uos_exec_command_type_i_read_loop_1
+1227:   e2 f9           ldi     r31, 0x29       ; 41
+1228:   e7 ec           ldi     r30, 0x7c       ; 124
+1229:   94 0e 3c ed     call    uos_push_text_in_fifo_tx
+122b:   95 1a           dec     r17
+122c:   f7 41           brne    _uos_exec_command_type_i_read_loop_0
+122d:   94 68           set
+122e:   95 08           ret
+
+monitor_command_i_maj:
+122f:   94 0e 3d ce     call    uos_print_command_ok
+1231:   91 b0 06 c6     lds     0x06c6, r27     ; UOS_G_TEST_VALUE_MSB
+1233:   91 a0 06 c7     lds     0x06c7, r26     ; UOS_G_TEST_VALUE_LSB
+1235:   91 00 06 ce     lds     0x06ce, r16     ; UOS_G_TEST_VALUES_ZONE
+1237:   93 0c           st      X, r16
+1238:   94 68           set
+1239:   95 08           ret
+
+monitor_command_j_maj:
+123a:   e2 f9           ldi     r31, 0x29       ; 41
+123b:   ea e0           ldi     r30, 0xa0       ; 160
+123c:   de 61           rcall   print_blocking_string
+123d:   91 b0 06 c6     lds     0x06c6, r27     ; UOS_G_TEST_VALUE_MSB
+123f:   91 a0 06 c7     lds     0x06c7, r26     ; UOS_G_TEST_VALUE_LSB
+1241:   94 f8           cli
+1242:   91 00 06 cf     lds     0x06cf, r16
+1244:   93 0c           st      X, r16
+1245:   97 11           sbiw    r26, 0x01       ; 1
+1246:   91 00 06 ce     lds     0x06ce, r16     ; UOS_G_TEST_VALUES_ZONE
+1248:   93 0c           st      X, r16
+1249:   94 78           sei
+124a:   94 68           set
+124b:   95 08           ret
+
+monitor_command_s_maj:
+124c:   94 0e 3d ce     call    uos_print_command_ok
+124e:   91 b0 06 c6     lds     0x06c6, r27     ; UOS_G_TEST_VALUE_MSB
+1250:   91 a0 06 c7     lds     0x06c7, r26     ; UOS_G_TEST_VALUE_LSB
+1252:   91 00 06 ce     lds     0x06ce, r16     ; UOS_G_TEST_VALUES_ZONE
+1254:   93 0c           st      X, r16
+1255:   94 68           set
+1256:   95 08           ret
+
+monitor_command_t_min:
+1257:   94 0e 3d ce     call    uos_print_command_ok
+1259:   91 b0 06 c6     lds     0x06c6, r27     ; UOS_G_TEST_VALUE_MSB
+125b:   91 a0 06 c7     lds     0x06c7, r26     ; UOS_G_TEST_VALUE_LSB
+125d:   91 d0 06 c8     lds     0x06c8, r29     ; UOS_G_TEST_VALUE_MSB_MORE
+125f:   91 c0 06 c9     lds     0x06c9, r28     ; UOS_G_TEST_VALUE_LSB_MORE
+1261:   93 bf           push    r27
+1262:   93 af           push    r26
+1263:   93 df           push    r29
+1264:   93 cf           push    r28
+1265:   94 0e 3d 37     call    uos_print_2_bytes_hexa
+1267:   91 af           pop     r26
+1268:   91 bf           pop     r27
+1269:   93 bf           push    r27
+126a:   93 af           push    r26
+126b:   94 0e 3d 37     call    uos_print_2_bytes_hexa
+126d:   94 0e 3d 15     call    uos_print_line_feed
+126f:   91 cf           pop     r28
+1270:   91 df           pop     r29
+1271:   91 af           pop     r26
+1272:   91 bf           pop     r27
+1273:   91 20 06 c7     lds     0x06c7, r18     ; UOS_G_TEST_VALUE_LSB
+1275:   91 40 06 c9     lds     0x06c9, r20     ; UOS_G_TEST_VALUE_LSB_MORE
+1277:   17 24           cp      r18, r20
+1278:   b6 0f           in      r0, SREG
+1279:   d0 51           rcall   extract_and_print_sreg
+127a:   91 30 06 c6     lds     0x06c6, r19     ; UOS_G_TEST_VALUE_MSB
+127c:   91 50 06 c8     lds     0x06c8, r21     ; UOS_G_TEST_VALUE_MSB_MORE
+127e:   be 0f           out     SREG, r0
+127f:   07 35           cpc     r19, r21
+1280:   d0 4a           rcall   extract_and_print_sreg
+1281:   94 68           set
+1282:   95 08           ret
+
+monitor_command_f_min:
+1283:   94 0e 3d ce     call    uos_print_command_ok
+1285:   e2 01           ldi     r16, 0x21       ; 33
+1286:   bf 07           out     SPMCSR, r16
+1287:   e0 f0           ldi     r31, 0x00       ; 0
+1288:   e0 e0           ldi     r30, 0x00       ; 0
+1289:   91 a4           lpm     r26, Z
+128a:   94 0e 3d 26     call    uos_print_1_byte_hexa
+128c:   e2 01           ldi     r16, 0x21       ; 33
+128d:   bf 07           out     SPMCSR, r16
+128e:   e0 f0           ldi     r31, 0x00       ; 0
+128f:   e0 e2           ldi     r30, 0x02       ; 2
+1290:   91 a4           lpm     r26, Z
+1291:   94 0e 3d 26     call    uos_print_1_byte_hexa
+1293:   e2 01           ldi     r16, 0x21       ; 33
+1294:   bf 07           out     SPMCSR, r16
+1295:   e0 f0           ldi     r31, 0x00       ; 0
+1296:   e0 e4           ldi     r30, 0x04       ; 4
+1297:   91 a4           lpm     r26, Z
+1298:   94 0e 3d 26     call    uos_print_1_byte_hexa
+129a:   94 0e 3d 15     call    uos_print_line_feed
+129c:   e0 09           ldi     r16, 0x09       ; 9
+129d:   bf 07           out     SPMCSR, r16
+129e:   e0 f0           ldi     r31, 0x00       ; 0
+129f:   e0 e0           ldi     r30, 0x00       ; 0
+12a0:   91 a4           lpm     r26, Z
+12a1:   94 0e 3d 26     call    uos_print_1_byte_hexa
+12a3:   e0 09           ldi     r16, 0x09       ; 9
+12a4:   bf 07           out     SPMCSR, r16
+12a5:   e0 f0           ldi     r31, 0x00       ; 0
+12a6:   e0 e1           ldi     r30, 0x01       ; 1
+12a7:   91 a4           lpm     r26, Z
+12a8:   94 0e 3d 26     call    uos_print_1_byte_hexa
+12aa:   e0 09           ldi     r16, 0x09       ; 9
+12ab:   bf 07           out     SPMCSR, r16
+12ac:   e0 f0           ldi     r31, 0x00       ; 0
+12ad:   e0 e2           ldi     r30, 0x02       ; 2
+12ae:   91 a4           lpm     r26, Z
+12af:   94 0e 3d 26     call    uos_print_1_byte_hexa
+12b1:   e0 09           ldi     r16, 0x09       ; 9
+12b2:   bf 07           out     SPMCSR, r16
+12b3:   e0 f0           ldi     r31, 0x00       ; 0
+12b4:   e0 e3           ldi     r30, 0x03       ; 3
+12b5:   91 a4           lpm     r26, Z
+12b6:   94 0e 3d 26     call    uos_print_1_byte_hexa
+12b8:   94 0e 3d 15     call    uos_print_line_feed
+12ba:   94 68           set
+12bb:   95 08           ret
+
+monitor_command_x_min:
+12bc:   94 0e 3d ce     call    uos_print_command_ok
+12be:   91 f0 06 c6     lds     0x06c6, r31     ; UOS_G_TEST_VALUE_MSB
+12c0:   91 e0 06 c7     lds     0x06c7, r30     ; UOS_G_TEST_VALUE_LSB
+12c2:   96 30           adiw    r30, 0x00       ; 0
+12c3:   f4 21           brne    monitor_command_x_min_more
+12c4:   e0 08           ldi     r16, 0x08       ; 8
+12c5:   bf 0e           out     SPH, r16
+12c6:   ef 0f           ser     r16
+12c7:   bf 0d           out     SPL, r16
+
+monitor_command_x_min_more:
+12c8:   95 09           icall
+12c9:   94 68           set
+12ca:   95 08           ret
+
+extract_and_print_sreg:
+12cb:   b7 af           in      r26, SREG
+12cc:   93 af           push    r26
+12cd:   e2 f9           ldi     r31, 0x29       ; 41
+12ce:   e9 ea           ldi     r30, 0x9a       ; 154
+12cf:   94 0e 3c ed     call    uos_push_text_in_fifo_tx
+12d1:   91 af           pop     r26
+12d2:   93 af           push    r26
+12d3:   94 0e 3d 26     call    uos_print_1_byte_hexa
+12d5:   91 af           pop     r26
+12d6:   2f 1a           mov     r17, r26
+12d7:   e5 0b           ldi     r16, 0x5b       ; 91
+12d8:   94 0e 3c fe     call    uos_push_1_char_in_fifo_tx
+12da:   1f 11           rol     r17
+12db:   e2 0e           ldi     r16, 0x2e       ; 46
+12dc:   f4 08           brcc    extract_and_print_sreg_no_i
+12dd:   e4 09           ldi     r16, 0x49       ; 73
+
+extract_and_print_sreg_no_i:
+12de:   94 0e 3c fe     call    uos_push_1_char_in_fifo_tx
+12e0:   1f 11           rol     r17
+12e1:   e2 0e           ldi     r16, 0x2e       ; 46
+12e2:   f4 08           brcc    extract_and_print_sreg_no_t
+12e3:   e5 04           ldi     r16, 0x54       ; 84
+
+extract_and_print_sreg_no_t:
+12e4:   94 0e 3c fe     call    uos_push_1_char_in_fifo_tx
+12e6:   1f 11           rol     r17
+12e7:   e2 0e           ldi     r16, 0x2e       ; 46
+12e8:   f4 08           brcc    extract_and_print_sreg_no_h
+12e9:   e4 08           ldi     r16, 0x48       ; 72
+
+extract_and_print_sreg_no_h:
+12ea:   94 0e 3c fe     call    uos_push_1_char_in_fifo_tx
+12ec:   1f 11           rol     r17
+12ed:   e2 0e           ldi     r16, 0x2e       ; 46
+12ee:   f4 08           brcc    extract_and_print_sreg_no_s
+12ef:   e5 03           ldi     r16, 0x53       ; 83
+
+extract_and_print_sreg_no_s:
+12f0:   94 0e 3c fe     call    uos_push_1_char_in_fifo_tx
+12f2:   1f 11           rol     r17
+12f3:   e2 0e           ldi     r16, 0x2e       ; 46
+12f4:   f4 08           brcc    extract_and_print_sreg_no_v
+12f5:   e5 06           ldi     r16, 0x56       ; 86
+
+extract_and_print_sreg_no_v:
+12f6:   94 0e 3c fe     call    uos_push_1_char_in_fifo_tx
+12f8:   1f 11           rol     r17
+12f9:   e2 0e           ldi     r16, 0x2e       ; 46
+12fa:   f4 08           brcc    extract_and_print_sreg_no_n
+12fb:   e4 0e           ldi     r16, 0x4e       ; 78
+
+extract_and_print_sreg_no_n:
+12fc:   94 0e 3c fe     call    uos_push_1_char_in_fifo_tx
+12fe:   1f 11           rol     r17
+12ff:   e2 0e           ldi     r16, 0x2e       ; 46
+1300:   f4 08           brcc    extract_and_print_sreg_no_z
+1301:   e5 0a           ldi     r16, 0x5a       ; 90
+
+extract_and_print_sreg_no_z:
+1302:   94 0e 3c fe     call    uos_push_1_char_in_fifo_tx
+1304:   1f 11           rol     r17
+1305:   e2 0e           ldi     r16, 0x2e       ; 46
+1306:   f4 08           brcc    extract_and_print_sreg_no_c
+1307:   e4 03           ldi     r16, 0x43       ; 67
+
+extract_and_print_sreg_no_c:
+1308:   94 0e 3c fe     call    uos_push_1_char_in_fifo_tx
+130a:   e5 0d           ldi     r16, 0x5d       ; 93
+130b:   94 0e 3c fe     call    uos_push_1_char_in_fifo_tx
+130d:   94 0e 3d 15     call    uos_print_line_feed
+130f:   95 08           ret
+
+eeprom_write_byte:
+1310:   bd a1           out     EEARL, r26
+1311:   bd b2           out     EEARH, r27
+1312:   bd 00           out     EEDR, r16
+1313:   98 fd           cbi     EECR, 5         ; 0x20 = 32
+1314:   98 fc           cbi     EECR, 4         ; 0x10 = 16
+1315:   94 f8           cli
+1316:   9a fa           sbi     EECR, 2         ; 0x04 = 4
+1317:   9a f9           sbi     EECR, 1         ; 0x02 = 2
+1318:   94 78           sei
+
+eeprom_write_byte_wait:
+1319:   99 f9           sbic    EECR, 1         ; 0x02 = 2
+131a:   cf fe           rjmp    eeprom_write_byte_wait
+131b:   95 08           ret
+
+monitor_command_l_min:
+131c:   94 0e 3d ce     call    uos_print_command_ok
+131e:   91 00 06 c7     lds     0x06c7, r16     ; UOS_G_TEST_VALUE_LSB
+1320:   93 0f           push    r16
+1321:   2f a0           mov     r26, r16
+1322:   94 0e 3d 26     call    uos_print_1_byte_hexa
+1324:   91 0f           pop     r16
+1325:   e0 f7           ldi     r31, 0x07       ; 7
+1326:   e5 e4           ldi     r30, 0x54       ; 84
+1327:   95 03           inc     r16
+1328:   83 00           st      Z, r16
+1329:   91 a0 07 54     lds     0x0754, r26     ; G_RESULT_LAC_LAS
+132b:   94 0e 3d 26     call    uos_print_1_byte_hexa
+132d:   94 0e 3d 15     call    uos_print_line_feed
+132f:   94 68           set
+1330:   95 08           ret
+
+test_las:
+1331:   94 0e 3d ce     call    uos_print_command_ok
+1333:   91 00 06 c7     lds     0x06c7, r16     ; UOS_G_TEST_VALUE_LSB
+1335:   93 0f           push    r16
+1336:   2f a0           mov     r26, r16
+1337:   94 0e 3d 26     call    uos_print_1_byte_hexa
+1339:   91 0f           pop     r16
+133a:   e0 f7           ldi     r31, 0x07       ; 7
+133b:   e5 e4           ldi     r30, 0x54       ; 84
+133c:   95 0a           dec     r16
+133d:   83 00           st      Z, r16
+133e:   91 a0 07 54     lds     0x0754, r26     ; G_RESULT_LAC_LAS
+1340:   94 0e 3d 26     call    uos_print_1_byte_hexa
+1342:   94 0e 3d 15     call    uos_print_line_feed
+1344:   94 68           set
+1345:   95 08           ret
+
+1346:   .dw	ffff
+1347:   .dw	2323
+1348:   .dw	2320
+1349:   .dw	4d6f
+134a:   .dw	6e69
+134b:   .dw	746f
+134c:   .dw	7220
+134d:   .dw	2452
+134e:   .dw	6576
+134f:   .dw	6973
+1350:   .dw	696f
+1351:   .dw	6e3a
+1352:   .dw	2031
+1353:   .dw	2e31
+1354:   .dw	3920
+1355:   .dw	240a
+1356:   .dw	0000
+1357:   .dw	2323
+1358:   .dw	2320
+1359:   .dw	496e
+135a:   .dw	6974
+135b:   .dw	6961
+135c:   .dw	6c69
+135d:   .dw	7a61
+135e:   .dw	7469
+135f:   .dw	6f6e
+1360:   .dw	2e2e
+1361:   .dw	2e0a
+1362:   .dw	0000
+1363:   .dw	2323
+1364:   .dw	2320
+1365:   .dw	2d20
+1366:   .dw	273c
+1367:   .dw	3f27
+1368:   .dw	2020
+1369:   .dw	2020
+136a:   .dw	2020
+136b:   .dw	2020
+136c:   .dw	2020
+136d:   .dw	2020
+136e:   .dw	2020
+136f:   .dw	2020
+1370:   .dw	2020
+1371:   .dw	2057
+1372:   .dw	686f
+1373:   .dw	616d
+1374:   .dw	690a
+1375:   .dw	2323
+1376:   .dw	2320
+1377:   .dw	2d20
+1378:   .dw	273c
+1379:   .dw	615b
+137a:   .dw	4164
+137b:   .dw	6472
+137c:   .dw	4672
+137d:   .dw	6f6d
+137e:   .dw	2d41
+137f:   .dw	6464
+1380:   .dw	7254
+1381:   .dw	6f5d
+1382:   .dw	2720
+1383:   .dw	2043
+1384:   .dw	616c
+1385:   .dw	6375
+1386:   .dw	6c61
+1387:   .dw	7465
+1388:   .dw	2043
+1389:   .dw	5243
+138a:   .dw	382d
+138b:   .dw	4d41
+138c:   .dw	5849
+138d:   .dw	4d0a
+138e:   .dw	2323
+138f:   .dw	2320
+1390:   .dw	2d20
+1391:   .dw	273c
+1392:   .dw	655b
+1393:   .dw	4164
+1394:   .dw	6472
+1395:   .dw	4672
+1396:   .dw	6f6d
+1397:   .dw	5d27
+1398:   .dw	2020
+1399:   .dw	2020
+139a:   .dw	2020
+139b:   .dw	2020
+139c:   .dw	2044
+139d:   .dw	756d
+139e:   .dw	7020
+139f:   .dw	6f66
+13a0:   .dw	2045
+13a1:   .dw	4550
+13a2:   .dw	524f
+13a3:   .dw	4d0a
+13a4:   .dw	2323
+13a5:   .dw	2320
+13a6:   .dw	2d20
+13a7:   .dw	273c
+13a8:   .dw	4541
+13a9:   .dw	6464
+13aa:   .dw	7265
+13ab:   .dw	7373
+13ac:   .dw	2b76
+13ad:   .dw	302b
+13ae:   .dw	7631
+13af:   .dw	2b2e
+13b0:   .dw	2e2e
+13b1:   .dw	2720
+13b2:   .dw	2057
+13b3:   .dw	7269
+13b4:   .dw	7465
+13b5:   .dw	7320
+13b6:   .dw	7661
+13b7:   .dw	6c75
+13b8:   .dw	6573
+13b9:   .dw	2069
+13ba:   .dw	6e20
+13bb:   .dw	4545
+13bc:   .dw	5052
+13bd:   .dw	4f4d
+13be:   .dw	200a
+13bf:   .dw	2323
+13c0:   .dw	2320
+13c1:   .dw	2d20
+13c2:   .dw	273c
+13c3:   .dw	6627
+13c4:   .dw	2020
+13c5:   .dw	2020
+13c6:   .dw	2020
+13c7:   .dw	2020
+13c8:   .dw	2020
+13c9:   .dw	2020
+13ca:   .dw	2020
+13cb:   .dw	2020
+13cc:   .dw	2020
+13cd:   .dw	2052
+13ce:   .dw	6561
+13cf:   .dw	6420
+13d0:   .dw	7369
+13d1:   .dw	676e
+13d2:   .dw	6174
+13d3:   .dw	7572
+13d4:   .dw	6520
+13d5:   .dw	5b23
+13d6:   .dw	305d
+13d7:   .dw	5b23
+13d8:   .dw	315d
+13d9:   .dw	5b23
+13da:   .dw	325d
+13db:   .dw	2061
+13dc:   .dw	6e64
+13dd:   .dw	2074
+13de:   .dw	6865
+13df:   .dw	2066
+13e0:   .dw	7573
+13e1:   .dw	6573
+13e2:   .dw	205b
+13e3:   .dw	4c6f
+13e4:   .dw	775d
+13e5:   .dw	5b4c
+13e6:   .dw	6f63
+13e7:   .dw	6b5d
+13e8:   .dw	5b45
+13e9:   .dw	7874
+13ea:   .dw	5d5b
+13eb:   .dw	4869
+13ec:   .dw	6768
+13ed:   .dw	5d0a
+13ee:   .dw	2323
+13ef:   .dw	2320
+13f0:   .dw	2d20
+13f1:   .dw	273c
+13f2:   .dw	695b
+13f3:   .dw	4164
+13f4:   .dw	6472
+13f5:   .dw	4672
+13f6:   .dw	6f6d
+13f7:   .dw	5d27
+13f8:   .dw	2020
+13f9:   .dw	2020
+13fa:   .dw	2020
+13fb:   .dw	2020
+13fc:   .dw	2044
+13fd:   .dw	756d
+13fe:   .dw	7020
+13ff:   .dw	6f66
+1400:   .dw	2049
+1401:   .dw	2f4f
+1402:   .dw	200a
+1403:   .dw	2323
+1404:   .dw	2320
+1405:   .dw	2d20
+1406:   .dw	273c
+1407:   .dw	4941
+1408:   .dw	6464
+1409:   .dw	7265
+140a:   .dw	7373
+140b:   .dw	2b56
+140c:   .dw	616c
+140d:   .dw	7565
+140e:   .dw	2720
+140f:   .dw	2020
+1410:   .dw	2020
+1411:   .dw	2057
+1412:   .dw	7269
+1413:   .dw	7465
+1414:   .dw	2062
+1415:   .dw	7974
+1416:   .dw	6520
+1417:   .dw	696e
+1418:   .dw	2049
+1419:   .dw	2f4f
+141a:   .dw	200a
+141b:   .dw	2323
+141c:   .dw	2320
+141d:   .dw	2d20
+141e:   .dw	273c
+141f:   .dw	4a41
+1420:   .dw	6464
+1421:   .dw	7265
+1422:   .dw	7373
+1423:   .dw	2b56
+1424:   .dw	616c
+1425:   .dw	7565
+1426:   .dw	2720
+1427:   .dw	2020
+1428:   .dw	2020
+1429:   .dw	2057
+142a:   .dw	7269
+142b:   .dw	7465
+142c:   .dw	2077
+142d:   .dw	6f72
+142e:   .dw	6420
+142f:   .dw	4d53
+1430:   .dw	423a
+1431:   .dw	4c53
+1432:   .dw	4220
+1433:   .dw	696e
+1434:   .dw	2049
+1435:   .dw	2f4f
+1436:   .dw	2061
+1437:   .dw	7420
+1438:   .dw	5b41
+1439:   .dw	6464
+143a:   .dw	7265
+143b:   .dw	7373
+143c:   .dw	3a28
+143d:   .dw	4164
+143e:   .dw	6472
+143f:   .dw	6573
+1440:   .dw	732d
+1441:   .dw	3129
+1442:   .dw	5d0a
+1443:   .dw	2323
+1444:   .dw	2320
+1445:   .dw	2d20
+1446:   .dw	273c
+1447:   .dw	6c56
+1448:   .dw	616c
+1449:   .dw	7565
+144a:   .dw	2720
+144b:   .dw	2020
+144c:   .dw	2020
+144d:   .dw	2020
+144e:   .dw	2020
+144f:   .dw	2020
+1450:   .dw	2020
+1451:   .dw	204c
+1452:   .dw	6f61
+1453:   .dw	6420
+1454:   .dw	616e
+1455:   .dw	6420
+1456:   .dw	636c
+1457:   .dw	6561
+1458:   .dw	7220
+1459:   .dw	7465
+145a:   .dw	7374
+145b:   .dw	200a
+145c:   .dw	2323
+145d:   .dw	2320
+145e:   .dw	2d20
+145f:   .dw	273c
+1460:   .dw	4c56
+1461:   .dw	616c
+1462:   .dw	7565
+1463:   .dw	2720
+1464:   .dw	2020
+1465:   .dw	2020
+1466:   .dw	2020
+1467:   .dw	2020
+1468:   .dw	2020
+1469:   .dw	2020
+146a:   .dw	204c
+146b:   .dw	6f61
+146c:   .dw	6420
+146d:   .dw	616e
+146e:   .dw	6420
+146f:   .dw	7365
+1470:   .dw	7420
+1471:   .dw	7465
+1472:   .dw	7374
+1473:   .dw	200a
+1474:   .dw	2323
+1475:   .dw	2320
+1476:   .dw	2d20
+1477:   .dw	273c
+1478:   .dw	5341
+1479:   .dw	6464
+147a:   .dw	7265
+147b:   .dw	7373
+147c:   .dw	2b56
+147d:   .dw	616c
+147e:   .dw	7565
+147f:   .dw	2720
+1480:   .dw	2020
+1481:   .dw	2020
+1482:   .dw	2057
+1483:   .dw	7269
+1484:   .dw	7465
+1485:   .dw	2069
+1486:   .dw	6e20
+1487:   .dw	5352
+1488:   .dw	414d
+1489:   .dw	200a
+148a:   .dw	2323
+148b:   .dw	2320
+148c:   .dw	2d20
+148d:   .dw	273c
+148e:   .dw	7456
+148f:   .dw	616c
+1490:   .dw	7565
+1491:   .dw	312d
+1492:   .dw	5661
+1493:   .dw	6c75
+1494:   .dw	6532
+1495:   .dw	2720
+1496:   .dw	2020
+1497:   .dw	2020
+1498:   .dw	2054
+1499:   .dw	6573
+149a:   .dw	7420
+149b:   .dw	636f
+149c:   .dw	6d70
+149d:   .dw	6172
+149e:   .dw	650a
+149f:   .dw	2323
+14a0:   .dw	2320
+14a1:   .dw	2d20
+14a2:   .dw	273c
+14a3:   .dw	7841
+14a4:   .dw	6464
+14a5:   .dw	7265
+14a6:   .dw	7373
+14a7:   .dw	2720
+14a8:   .dw	2020
+14a9:   .dw	2020
+14aa:   .dw	2020
+14ab:   .dw	2020
+14ac:   .dw	2020
+14ad:   .dw	2043
+14ae:   .dw	616c
+14af:   .dw	6c20
+14b0:   .dw	746f
+14b1:   .dw	2041
+14b2:   .dw	6464
+14b3:   .dw	7265
+14b4:   .dw	7373
+14b5:   .dw	0a00
+14b6:   .dw	4352
+14b7:   .dw	4338
+14b8:   .dw	2d4d
+14b9:   .dw	4158
+14ba:   .dw	494d
+14bb:   .dw	2000
+14bc:   .dw	5b30
+14bd:   .dw	7800
+14be:   .dw	5d0a
+14bf:   .dw	0000
+14c0:   .dw	4572
+14c1:   .dw	723a
+14c2:   .dw	2045
+14c3:   .dw	4550
+14c4:   .dw	524f
+14c5:   .dw	4d20
+14c6:   .dw	6174
+14c7:   .dw	2000
+14c8:   .dw	070b
+14c9:   .dw	0d0e
+14ca:   .dw	2323
+14cb:   .dw	2320
+14cc:   .dw	0000
+14cd:   .dw	5352
+14ce:   .dw	4547
+14cf:   .dw	2000
+14d0:   .dw	3e4a
+14d1:   .dw	205b
+14d2:   .dw	4f6b
+14d3:   .dw	5d0a
+14d4:   .dw	0000
+14d5:   .dw	5465
+14d6:   .dw	7374
+14d7:   .dw	204c
+14d8:   .dw	4143
+14d9:   .dw	0a00
+14da:   .dw	5465
+14db:   .dw	7374
+14dc:   .dw	204c
+14dd:   .dw	4153
+14de:   .dw	0a00
+14df:   .dw	3412
+
+# End of file
