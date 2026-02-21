@@ -1,7 +1,9 @@
-; "$Id: ATmega328P_monitor.h,v 1.6 2026/02/03 09:14:46 administrateur Exp $"
+; "$Id: ATmega328P_monitor.h,v 1.7 2026/02/18 17:31:06 administrateur Exp $"
 
 #define	CHAR_NULL			0x00		; '\0'
 #define	CHAR_LF				0x0A		; Line Feed ('\n')
+
+#define	CHAR_SEPARATOR		0xFFFF	; Separateur section datas (0xffff opcode invalide ;-)
 
 #define	CRC8_POLYNOMIAL	0x8C		; Masque pour le calcul du CR8-MAXIM
 
@@ -27,6 +29,11 @@ G_BARGRAPH_COUNTER:					.byte		1
 G_BARGRAPH_PASS_MSB:					.byte		1
 G_BARGRAPH_PASS_LSB:					.byte		1
 G_BARGRAPH_IMAGE:						.byte		1
+
+; ---------
+; Test des 2 instructions 'LAC - Load and Clear' et 'LAS - Load and Set"
+; ---------
+G_RESULT_LAC_LAS:						.byte		1
 
 ; Fin des variables propres au PROGRAM d'extension
 G_SRAM_EXTENSION_END_OF_USE:		.byte		1		; Initialisee a 0xff pour reperage dans la SRAM

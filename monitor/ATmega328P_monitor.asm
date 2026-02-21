@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_monitor.asm,v 1.17 2026/02/04 16:21:42 administrateur Exp $"
+; "$Id: ATmega328P_monitor.asm,v 1.19 2026/02/18 18:01:31 administrateur Exp $"
 
 ; 2024/06/01 - Add description...
 ; 2024/06/07 - Test sections for CRC8-MAXIM calculataion...
@@ -27,6 +27,7 @@
 
 #define USE_TRACE_BUTTON					1
 #define USE_PRINT_BARGRAPH_COUNTER		0
+#define USE_TEST_LAC_LAS					1
 
 .cseg
 
@@ -443,6 +444,18 @@ callback_command:
 	sbrc		REG_TEMP_R17, SREG_Z
 	rjmp		monitor_command_i_min
 
+#if USE_TEST_LAC_LAS
+	cpi		REG_TEMP_R16, 'l'				; [l] (Load and clear with LAC instruction)
+	in			REG_TEMP_R17, SREG	
+	sbrc		REG_TEMP_R17, SREG_Z
+	rjmp		monitor_command_l_min
+
+	cpi		REG_TEMP_R16, 'L'				; [l] (Load and set with LAS instruction)
+	in			REG_TEMP_R17, SREG	
+	sbrc		REG_TEMP_R17, SREG_Z
+	rjmp		monitor_command_l_maj
+#endif
+
 	cpi		REG_TEMP_R16, 't'				; [t] (Test sequence)
 	in			REG_TEMP_R17, SREG	
 	sbrc		REG_TEMP_R17, SREG_Z
@@ -727,8 +740,19 @@ monitor_command_a_min_rtn:
 	ldi		REG_Z_LSB, ((text_crc8_maxim << 1) % 256)
 	call		uos_push_text_in_fifo_tx
 
+	; Reprise et print de la 1st adresse testee
+	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB			; Adresse du 1st byte a lire et calculer
+	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+	call		uos_print_2_bytes_hexa
+
+	; Print de la derniere adresse testee
+	movw		REG_X_LSB, REG_Y_LSB
+	call		uos_print_2_bytes_hexa
+
+	; Print du CRC8-MAXIM final
 	lds		REG_X_LSB, G_CALC_CRC8
 	call		uos_print_1_byte_hexa
+
 	call		uos_print_line_feed
 
 	set											; Commande reconnue
@@ -1407,14 +1431,93 @@ eeprom_write_byte_wait:
 	ret
 ; ---------
 
+#if USE_TEST_LAC_LAS
+; ---------
+; Test des 2 instructions 'LAC - Load and Clear' et 'LAS - Load and Set'
+; ---------
+monitor_command_l_min:
+test_lac:
+	call		uos_print_command_ok			; Commande reconnue
+
+	; Recuperation de la valeur a "clear"
+	lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB
+	push		REG_TEMP_R16
+	mov		REG_X_LSB, REG_TEMP_R16
+	call		uos_print_1_byte_hexa
+	pop		REG_TEMP_R16
+
+	; Adresse du resultat initialise a 0
+	ldi		REG_Z_MSB, high(G_RESULT_LAC_LAS)
+	ldi		REG_Z_LSB, low(G_RESULT_LAC_LAS)
+
+#if 1
+	;lac		Z, REG_TEMP_R16				; Execute (Z) <- ($FF - Rd) and (Z), Rd <- (Z)
+
+	; Simulation ecriture avec changement
+	inc		REG_TEMP_R16
+	st			Z, REG_TEMP_R16
+	
+#else
+	;.dw		0x0693			; 1001 001r rrrr 0110 -> 1001 0011 0000 110
+	.dw		0x9306			; 1001 001r rrrr 0110 -> 1001 0011 0000 110
+#endif
+
+	lds		REG_X_LSB, G_RESULT_LAC_LAS
+	call		uos_print_1_byte_hexa
+	call		uos_print_line_feed
+
+test_lac_rtn:
+	set											; Commande executee
+	ret
+; ---------
+
+; ---------
+monitor_command_l_maj:
+test_las:
+	call		uos_print_command_ok			; Commande reconnue
+
+	; Recuperation de la valeur a "seter"
+	lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB
+	push		REG_TEMP_R16
+	mov		REG_X_LSB, REG_TEMP_R16
+	call		uos_print_1_byte_hexa
+	pop		REG_TEMP_R16
+
+	; Adresse du resultat initialise a 0
+	ldi		REG_Z_MSB, high(G_RESULT_LAC_LAS)
+	ldi		REG_Z_LSB, low(G_RESULT_LAC_LAS)
+
+#if 1
+	;las		Z, REG_TEMP_R16				; Execute (Z) <- ($FF or Rd) & (Z), Rd <- (Z)
+
+	; Simulation ecriture avec changement
+	dec		REG_TEMP_R16
+	st			Z, REG_TEMP_R16
+#else
+	;.dw		0x0593			; 1001 001r rrrr 0101 -> 1001 0011 0000 0101
+	.dw		0x9305			; 1001 001r rrrr 0101 -> 1001 0011 0000 0101
+#endif
+
+	lds		REG_X_LSB, G_RESULT_LAC_LAS
+	call		uos_print_1_byte_hexa
+	call		uos_print_line_feed
+
+test_las_rtn:
+	set											; Commande executee
+	ret
+; ---------
+#endif
+
 ; Constantes et textes definis naturellement (MSB:LSB et ordre naturel du texte)
 ; => Remarque: Nombre pair de caracteres pour eviter le message:
 ;              "Warning : A .DB segment with an odd number..."
 ;
 ; Warning: Adresse multiple de 64 pour etre programme page par page par uOS
 
+.dw	CHAR_SEPARATOR		; Debut section datas	; NE PAS SUPPRIMER ;-)
+
 text_monitor_prompt:
-.db	"### Monitor $Revision: 1.17 $", CHAR_LF, CHAR_NULL, CHAR_NULL
+.db	"### Monitor $Revision: 1.19 $", CHAR_LF, CHAR_NULL, CHAR_NULL
 
 text_monitor_init:
 .db	"### Initialization...", CHAR_LF, CHAR_NULL, CHAR_NULL
@@ -1428,6 +1531,12 @@ text_monitor_desc:
 .db	"### - '<i[AddrFrom]'         Dump of I/O ", CHAR_LF
 .db	"### - '<IAddress+Value'      Write byte in I/O ", CHAR_LF
 .db	"### - '<JAddress+Value'      Write word MSB:LSB in I/O at [Address:(Address-1)]", CHAR_LF
+
+#if USE_TEST_LAC_LAS
+.db	"### - '<lValue'              Load and clear test ", CHAR_LF, 
+.db	"### - '<LValue'              Load and set test ", CHAR_LF
+#endif
+
 .db	"### - '<SAddress+Value'      Write in SRAM ", CHAR_LF
 .db	"### - '<tValue1-Value2'      Test compare", CHAR_LF
 .db	"### - '<xAddress'            Call to Address", CHAR_LF, CHAR_NULL
@@ -1455,6 +1564,14 @@ text_sreg:
 
 text_response_j_maj:
 .db   ">J [Ok]", CHAR_LF, CHAR_NULL, CHAR_NULL
+
+#if USE_TEST_LAC_LAS
+text_test_lac:
+.db	"Test LAC", CHAR_LF, CHAR_NULL
+
+text_test_las:
+.db	"Test LAS", CHAR_LF, CHAR_NULL
+#endif
 
 monitor_magic_const:
 .dw	0x1234

@@ -1,13 +1,37 @@
 #!/bin/bash
 
-#ident "@(#) micro-infos $Id: goGenerateProject.sh,v 1.3 2026/02/18 18:07:19 administrateur Exp $"
+#ident "@(#) micro-infos $Id: goGenerateProject4Simu.sh,v 1.2 2026/02/18 18:07:19 administrateur Exp $"
 
-# Script de production (clean et generation) d'un projet passe en argument
+# Script de production d'un projet passe en argument
 # Exemples:
-#   $ ./goGenerateProject.sh ATmega328P_monitor                  -> Production de l'extension "Moniteur" s'appuyant sur Micro OS
-#   $ ./goGenerateProject.sh clean                               -> Clean du Micro OS et de l'extension "Moniteur"
+#   $ ./goGenerate.sh ATmega328P_uOS_P1                       -> Production du Micro OS
+#   $ ./goGenerate.sh ATmega328P_monitor_P1                   -> Production de l'extension "Moniteur" s'appuyant sur Micro OS
+#   $ ./goGenerate.sh ATmega328P_uOS_P1 ATmega328P_monitor_P1 -> Production multiple
 
-# Remarque: L'ordre de la production doit respecter les dependances (ie. 'ATmega328P_uOS' avant 'ATmega328P_monitor')
+# Remarque: L'ordre de la production doit dependre des dependances (ie. 'ATmega328P_uOS_P1' avant 'ATmega328P_monitor_P1')
+
+# Abandon des programmes "addons" au profit de programmes "autonomes" s'appuyant ou non sur le Micro OS
+# avec l'inclusion du fichier 'ATmega328P_uOS_P1.pub' genere automatiquement ;-))
+
+# TODO: Tester les inclusions des fichiers qui doivent etre coherentes...
+# $ 2>/dev/null grep ATmega328P_uOS_P ATmega328P_uOS_P2* ATmega328P_monitor_P3* | grep include | cut -d'"' -f2 | cut -d'.' -f1
+# ATmega328P_uOS_P2
+# ATmega328P_uOS_P2
+# ATmega328P_uOS_P2
+# ATmega328P_uOS_P2
+# ATmega328P_uOS_P2
+# ATmega328P_uOS_P2
+# ATmega328P_uOS_P2
+# ATmega328P_uOS_P2
+# ATmega328P_uOS_P2
+# ATmega328P_uOS_P2
+
+# $ 2>/dev/null grep ATmega328P_monitor ATmega328P_uOS_P2* ATmega328P_monitor_P3* | grep include | cut -d'"' -f2 | cut -d'.' -f1
+# ATmega328P_monitor_P3
+# ATmega328P_monitor_P3
+
+# => Il ne doit y avoir d'autres patterns que ceux passer en argument de la commande
+#    => Ici: $ ./goGenerateProject.sh ATmega328P_uOS_P2 ATmega328P_monitor_P3
 
 #set -x
 set -e
@@ -25,19 +49,18 @@ if [ -z ${1} ]; then
 	echo "  - $0 ATmega328P_monitor"
 	exit 2
 elif [ "${1}" == "clean" ]; then
-	echo "Clean project..."
+        echo "Clean project..."
 
-	BASE_PROJECT=`basename $PWD`
-	echo "Remove files produced from [${BASE_PROJECT}]..."
+        BASE_PROJECT=`basename $PWD`
+        echo "Remove files produced from [${BASE_PROJECT}]..."
 
-	rm -f *.hex *.obj *.map *.lst *.tag *.pub *.eep.hex *_for_C.def *.opcodes *.disa
-	rm -f Products/*
+        rm -f *.hex *.obj *.map *.lst *.tag *.pub *.eep.hex *_for_C.def *.opcodes *.disa
 
-	exit 0
+        exit 0
+else
+	echo "List of project produced:"
+	echo $*
 fi
-
-echo "List of project produced:"
-echo $*
 
 for project in $*
 do
@@ -52,20 +75,28 @@ EXT_DEF="def"
 EXT_PUB="pub"
 EXT_OBJ="obj"
 EXT_HEX="hex"
+EXT_OPCODES="opcodes"
+EXT_DISA="disa"
+EXT_DECODE="decode"
+EXT_DECODE_HEX="decode.hex"
+EXT_DECODE_MAP="decode.map"
 EXT_TAG="tag"
 
-rm -f ${PROJECTS_FILE}.${EXT_LST} ${PROJECTS_FILE}.${EXT_MAP} ${PROJECTS_FILE}.${EXT_PUB} ${PROJECTS_FILE}.${EXT_OBJ} ${PROJECTS_FILE}.${EXT_HEX}
+rm -f ${PROJECTS_FILE}.${EXT_LST} ${PROJECTS_FILE}.${EXT_MAP} ${PROJECTS_FILE}.${EXT_PUB} ${PROJECTS_FILE}.${EXT_OBJ} ${PROJECTS_FILE}.${EXT_HEX} ${PROJECTS_FILE}.${EXT_OPCODES} ${PROJECTS_FILE}.${EXT_DISA} ${PROJECTS_FILE}.${EXT_DECODE} ${PROJECTS_FILE}.${EXT_DECODE_MAP} 
 
 echo
 echo "################## Production of '${PROJECTS_FILE}' ##################"
 
-# Warning: USE_AVRSIMU=1 pour la cible et USE_AVRSIMU=0 pour la simulation
-${AVRA_BIN} -D USE_AVRSIMU=0 -I ${PROJECTS} -I ../uOS -I ${AVRA_INC} -m ${PROJECTS_FILE}.${EXT_MAP} -l ${PROJECTS_FILE}.${EXT_LST} ${PROJECTS_FILE}.${EXT_ASM}
+# Warning: USE_AVRSIMU=0 pour la cible et USE_AVRSIMU=1 pour la simulation
+${AVRA_BIN} -D USE_AVRSIMU=1 -I ${PROJECTS} -I ../uOS -I ${AVRA_INC} -m ${PROJECTS_FILE}.${EXT_MAP} -l ${PROJECTS_FILE}.${EXT_LST} ${PROJECTS_FILE}.${EXT_ASM}
 
 if [ ! -f ${PROJECTS_FILE}.${EXT_LST} ]; then
 	echo "Error: No build ;-("	
 	exit 1
 fi
+
+echo "Generation du fichier de televersement '${PROJECTS_FILE}.opcodes' pour 'avrprog-flash"
+./extractOpcodes.sh ${PROJECTS_FILE}
 
 # Extraction des variables, flags et subroutines prefixees par "UOS_" ou "uos_"
 # => Definitions necessaires a la production correcte d'un programme s'appuyant sur uOS ;-)
@@ -128,16 +159,22 @@ echo "# End of file" >> ${FILE_NAME_TAG}
 echo >> ${FILE_NAME_TAG}
 # End: Build '.tag' file
 
+# Desassemblage...
+avrdisas ${PROJECTS_FILE}
+
 echo
 ls -ltr ${PROJECTS_FILE}*.*
 
-# Creation eventuelle de './Products'
-test -d Products || mkdir Products
-
-cp -p ${PROJECTS_FILE}.hex ${PROJECTS_FILE}.lst ${PROJECTS_FILE}.map Products
 echo
-echo "List of files under './Products'"
-ls -ltr Products
+ls -ltr ${PROJECTS_FILE}*.*
+
+# Creation eventuelle de './Products4Simu'
+test -d Products4Simu || mkdir Products4Simu
+
+cp -p ${PROJECTS_FILE}.hex ${PROJECTS_FILE}.lst ${PROJECTS_FILE}.map ${PROJECTS_FILE}.disa Products4Simu 
+echo
+echo "List of files under './Products4Simu'"
+ls -ltr Products4Simu
 
 echo
 echo "Build successful of project [${PROJECTS_FILE}] :-)"
