@@ -1,0 +1,66 @@
+; "$Id: ATmega328P_uOS.txt,v 1.1 2026/02/18 18:01:34 administrateur Exp $"
+
+; ---------
+; Constantes et textes definis naturellement (MSB:LSB et ordre naturel du texte)
+; => Remarque: Nombre pair de caracteres pour eviter le message:
+;              "Warning : A .DB segment with an odd number..."
+
+; Prompt lorsque le RESET est fait dans l'espace PROGRAMME
+_uos_text_program:
+.db	"### Hello World !..", CHAR_LF, CHAR_NULL, CHAR_NULL
+
+; Prompt lorsque le RESET est fait dans l'espace BOOTLOADER
+_uos_text_bootloader:
+.db	"### Micro OS !..", CHAR_LF, CHAR_NULL
+
+_uos_text_frequency_8_mhz:
+.db	"### 8 MHz", CHAR_LF, CHAR_NULL, CHAR_NULL
+
+_uos_text_frequency_16_mhz:
+.db	"### 16 MHz", CHAR_LF, CHAR_NULL
+
+_uos_text_prompt_eeprom_version:
+.db	"### EEPROM: ", CHAR_NULL, CHAR_NULL
+
+_uos_text_prompt_type:
+.db	"### Type: ", CHAR_NULL, CHAR_NULL
+
+_uos_text_prompt_id:
+.db	"### Id: ", CHAR_NULL, CHAR_NULL
+
+_uos_text_prompt_bauds_value:
+.db	"### Bauds: ", CHAR_NULL
+
+_uos_text_press_button_short:
+.db	"### Press button short ", CHAR_NULL
+
+_uos_text_press_button_long:
+.db	"### Press button long ", CHAR_NULL, CHAR_NULL
+
+_uos_text_convert_hex_to_min_ascii_table:
+.db	"0123456789abcdef"
+
+_uos_text_flash_error:
+.db	"Err: FLASH at ", CHAR_NULL, CHAR_NULL
+
+uos_text_eeprom_error:
+.db	"Err: EEPROM at ", CHAR_NULL
+
+_uos_text_it_error:
+.db	"Err: Invalid It ", CHAR_NULL, CHAR_NULL
+
+uos_text_hexa_value:
+.db	"[0x", CHAR_NULL
+
+_uos_text_hexa_value_end:
+.db	"]", CHAR_NULL
+
+uos_text_hexa_value_lf_end:
+.db	"]", CHAR_LF, CHAR_NULL, CHAR_NULL
+
+_uos_text_line_feed:
+.db	CHAR_LF, CHAR_NULL
+
+; Fin: Constantes et textes definis naturellement (MSB:LSB et ordre naturel du texte)
+
+; End of file

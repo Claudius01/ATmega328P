@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS_Buttons.h,v 1.1 2026/01/26 17:47:34 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Buttons.h,v 1.2 2026/02/18 18:01:34 administrateur Exp $"
 
 ; Definitions pour la gestion de 4 boutons...
 #define	UOS_BUTTON_1_NUM						1

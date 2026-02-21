@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS_Misc.asm,v 1.5 2026/02/05 13:21:05 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Misc.asm,v 1.6 2026/02/18 18:01:34 administrateur Exp $"
 
 ; ---------
 ; Initialisation de la SRAM
@@ -348,38 +348,5 @@ uos_set_error:
 	sts		G_TEST_ERROR, REG_TEMP_R24	; Update de l'erreur
 	ret
 ; ---------
-
-mask_for_test_leds:
-#define MASK_LEDS		(UOS_MSK_BIT_LED_BLUE | UOS_MSK_BIT_LED_RED | UOS_MSK_BIT_LED_GREEN | UOS_MSK_BIT_LED_YELLOw)
-
-; Allumage/Extinction 1/0
-; => Correspond aux masques d'allumage des Leds de 'UOS_G_PORTB_IMAGE'
-		; Allumage des 4 Leds BLUE, RED, GREEN et YELLOW suivi de ...
-		; Extinction de la Led BLUE et Allumage des 3 Leds RED, GREEN et YELLOW
-.db	FLG_GESTION_TEST_LEDS_MSK   | ~(MASK_LEDS) & MASK_LEDS, \
-		FLG_GESTION_TEST_LEDS_MSK   | ~(UOS_MSK_BIT_LED_RED | UOS_MSK_BIT_LED_GREEN | UOS_MSK_BIT_LED_YELLOW) & MASK_LEDS
-
-		; Extinction de la Led RED et Allumage des 2 Leds GREEN et YELLOW suivi de ...
-		; Extinction de la Led GREEN et Allumage de la Led YELLOW
-.db	FLG_GESTION_TEST_LEDS_MSK   | ~(UOS_MSK_BIT_LED_GREEN | UOS_MSK_BIT_LED_YELLOW) & MASK_LEDS, \
-		FLG_GESTION_TEST_LEDS_MSK   | ~(UOS_MSK_BIT_LED_YELLOW) & MASK_LEDS
-
-		; Extinction des 4 Leds BLUE, RED, GREEN et YELLOW suivi de ...
-		; Allumage de la Led BLUE et Extinction des 3 Leds RED, GREEN et YELLOW
-.db	FLG_GESTION_TEST_LEDS_MSK   | MASK_LEDS, \
-		FLG_GESTION_TEST_LEDS_MSK   | ~(UOS_MSK_BIT_LED_BLUE) & MASK_LEDS
-
-		; Allumage de la Led RED et Extinction des 3 Leds BLUE, GREEN et YELLOW		 suivi de ...
-		; Allumage de la Led GREEN et Extinction des 3 Leds BLUE, RED et YELLOW
-.db	FLG_GESTION_TEST_LEDS_MSK   | ~(UOS_MSK_BIT_LED_RED) & MASK_LEDS, \
-		FLG_GESTION_TEST_LEDS_MSK   | ~(UOS_MSK_BIT_LED_GREEN) & MASK_LEDS
-
-		; Allumage de la Led YELLOW et Extinction des 3 Leds BLUE, RED et GREEN suivi de ...
-		; Extinction des 4 Leds BLUE, RED, GREEN et YELLOW	
-.db	FLG_GESTION_TEST_LEDS_MSK   | ~(UOS_MSK_BIT_LED_YELLOW) & MASK_LEDS, \
-		FLG_GESTION_TEST_LEDS_MSK   | MASK_LEDS
-
-		; Fin du test et Etat des 4 Leds BLUE, RED, GREEN et YELLOW inchange
-.db	(~FLG_GESTION_TEST_LEDS_MSK | MASK_LEDS) & MASK_LEDS, 0
 
 ; End of file

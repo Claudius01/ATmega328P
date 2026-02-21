@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS.h,v 1.14 2026/02/03 09:14:46 administrateur Exp $"
+; "$Id: ATmega328P_uOS.h,v 1.17 2026/02/21 13:46:51 administrateur Exp $"
 
 #define	USE_END_ADDRESS		0		; Retour en 'forever_2' a la derniere adresse de la flash
 #define	USE_PRG_ALL_CODE		0		; Restriction du code pour un develeoppement progressif
@@ -30,10 +30,12 @@
 #define	CHAR_CR					0x0D		; Carriage Return ('\r')
 #define	CHAR_SPACE				0x20		; Space (' ')
 
+#define	CHAR_SEPARATOR			0xFFFF	; Separateur section datas (0xffff opcode invalide ;-)
+
 ; Definition des masques de bits [0x00, 0x01, ..., 0xff] pour les opcodes suivants:
 ; - ori  -> Logical OR with Immediate
 ; - andi -> Logical AND with Immediate (Faire le complement a 1 ou (0xFF - MSK_BITX))
-; - cbr  -> Clear Bits in Register (= andif avec constante complementee a (0xFF - K))
+; - cbr  -> Clear Bits in Register (= andi avec constante complementee a (0xFF - K))
 ; - sbr  -> Set Bits in Register (= ori)
 ;
 #define	MSK_BIT7				(1 << 7)
@@ -217,10 +219,10 @@
 ; Variables dediees au BOOTLOADER
 ; ---------
 ; Reservation pour la section '.bss' des programmes C et C++ avec par exemple
-; => Adresses SRAM [0x100...0x5FF] (5 * 256 bytes)
-;    Cette zone de [0x100...0x5FF] n'est pas initialisee par l'uOS
+; => Adresses SRAM [0x100...0x4FF] (4 * 256 bytes)
+;    Cette zone de [0x100...0x4FF] n'est pas initialisee par l'uOS
 ;    => Permet de connaitre son contenu au moyen de 'ATmega328P_monitor' ;-)
-G_BSS_SPARE:					.byte		(5 * 256)	; 1st adresse de la SRAM + reservation de 5 * 256 = 1280 bytes
+G_BSS_SPARE:					.byte		(4 * 256)	; 1st adresse de la SRAM + reservation de 4 * 256 = 1280 bytes
 
 G_STATES_AT_RESET:			.byte		1		; Etats au reset @ au fusible BOOTRST a l'adresse 0x600
 UOS_G_STATES_POST_MORTEM:	.byte		1		; Byte indiquant des etats pour l'analyse post mortem
@@ -338,9 +340,6 @@ UOS_G_FLAGS_EXTENSIONS:					.byte		1				; Progression de l'execution des extensi
 #define	UOS_IDX_BIT_LED_GREEN	IDX_BIT2
 #define	UOS_IDX_BIT_LED_BLUE		IDX_BIT4
 #define	UOS_IDX_BIT_LED_YELLOW	IDX_BIT5
-
-; Test du boutton par 'sbis/sbic'
-#define	BUTTON_TEST_BIT			IDX_BIT7
 
 ; --------
 ; Macros de pilotage du PORTB en sortie 

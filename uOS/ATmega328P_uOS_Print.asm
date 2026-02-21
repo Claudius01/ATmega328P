@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS_Print.asm,v 1.5 2026/02/04 16:21:42 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Print.asm,v 1.6 2026/02/18 18:01:34 administrateur Exp $"
 
 .cseg
 
@@ -56,7 +56,12 @@ uos_set_infos_from_eeprom:
 	
 	ldi		REG_X_MSB, high(EEPROM_ADDR_BAUDS_IDX);
 	ldi		REG_X_LSB, low(EEPROM_ADDR_BAUDS_IDX);
+
+#if USE_AVRSIMU
+	ldi		REG_TEMP_R16, 0xFF		; TODO: Attente de la simulation de l'EEPROM
+#else
 	rcall		uos_eeprom_read_byte
+#endif
 
 	cpi		REG_TEMP_R16, 0xFF
 	brne		uos_set_infos_from_eeprom_more
@@ -439,15 +444,5 @@ get_index_bauds_rate_value:
 
 	ret
 ; ---------
-
-; Textes d'affichage de la vitesse en Bauds @ 'UOS_G_HEADER_BAUDS_VALUE'
-const_for_bauds_rate_values:
-.db	"19200", CHAR_NULL	; #0: 19200 bauds
-.db	" 9600", CHAR_NULL	; #1:  9600 bauds
-.db	" 4800", CHAR_NULL	; #2:  4800 bauds
-.db	" 2400", CHAR_NULL	; #3:  2400 bauds
-.db	" 1200", CHAR_NULL	; #4:  1200 bauds
-.db	"  600", CHAR_NULL	; #5:   600 bauds
-.db	"  300", CHAR_NULL	; #6:   300 bauds
 
 ; End of file

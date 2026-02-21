@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS.asm,v 1.19 2026/02/04 16:21:42 administrateur Exp $"
+; "$Id: ATmega328P_uOS.asm,v 1.22 2026/02/21 13:46:51 administrateur Exp $"
 
 ; - Projet: ATmega328P_uOS
 ;
@@ -284,13 +284,6 @@ _uos_main_more:
 
 	; Forcage de l'emission...
 	rcall		uos_fifo_tx_to_send_sync
-
-#if 1
-	; Attente forfaitaire de plus de 100uS pour la maj des flags
-	; 'FLG_STATE_AT_IT_TIM1_COMPA_BOOTLOADER' eor 'FLG_STATE_AT_IT_TIM1_COMPA_PROGRAM'
-	ldi		REG_TEMP_R16, 80
-	rcall		_uos_delay_big_more		; TODO: _uos_delay_big_2 (REG_TEMP_R17 non initialise ;-)
-#endif
 
 	; ---------
 	; Prolongement de l'initialisation si le code est execute au RESET depuis
@@ -621,8 +614,8 @@ uos_delay_big_2:
 	ldi		REG_TEMP_R17, 125
 
 _uos_delay_big_more:
-#if USE_AVRSIMU
-	ret									; Bypass de la "longue" attente pour la simulation
+#if 0			; USE_AVRSIMU
+	ret
 #else
 	ldi		REG_TEMP_R18, 250
 #endif
@@ -687,6 +680,7 @@ exec_test_leds_more:
 	; Continue the test
 	; Reinitialisation timer 'TIMER_TEST_LEDS'
 	ldi		REG_TEMP_R17, TIMER_TEST_LEDS
+
 	ldi		REG_TEMP_R18, (DURATION_TIMER_TEST_LEDS % 256)
 	ldi		REG_TEMP_R19, (DURATION_TIMER_TEST_LEDS / 256)
 	call		uos_start_timer
@@ -1010,7 +1004,6 @@ _uos_pcint2_isr_end:
 	reti
 ; ---------
 
-#if 1
 ; [Padding jusqu'a l'adresse 0x37FF
 .include		"PaddingWith16Bytes.h"
 .include		"PaddingWith16Bytes.h"
@@ -1022,9 +1015,11 @@ _uos_pcint2_isr_end:
 	nop
 	nop
 	nop
+	nop
+	nop
+
 	rjmp		_uos_forever		; Mise sur voie de garage ;-)
 ; Fin: Padding jusqu'a l'adresse 0x37FF]
-#endif
 
 ; Adresses de base des vecteurs d'interruptions avec 'fuses_high' = bxxxxx000
 .org	0x3800 
@@ -1204,76 +1199,20 @@ UOS_G_SRAM_BOOTLOADER_END_OF_USE:	.byte		1		; Initialisee a 0xff pour reperage d
 .cseg
 
 ; ---------
-; Derniere adresse du programme
+; Derniere instruction du programme
 ; ---------
 	jmp		_uos_forever	; Ne sera jamais execute
 
-; ---------
-; Constantes et textes definis naturellement (MSB:LSB et ordre naturel du texte)
-; => Remarque: Nombre pair de caracteres pour eviter le message:
-;              "Warning : A .DB segment with an odd number..."
-
-; Prompt lorsque le RESET est fait dans l'espace PROGRAMME
-_uos_text_program:
-.db	"### Hello World !..", CHAR_LF, CHAR_NULL, CHAR_NULL
-
-; Prompt lorsque le RESET est fait dans l'espace BOOTLOADER
-_uos_text_bootloader:
-.db	"### Micro OS !..", CHAR_LF, CHAR_NULL
+.dw	CHAR_SEPARATOR			; Debut section datas		; NE PAS SUPPRIMER ;-)
 
 _uos_text_prompt:
 ; Warning: Passage de la Rev: sur x.yz
-.db	"### ATmega328p $Revision: 1.19 $", CHAR_LF, CHAR_NULL
+.db	"### ATmega328p $Revision: 1.22 $", CHAR_LF, CHAR_NULL
 
-_uos_text_frequency_8_mhz:
-.db	"### 8 MHz", CHAR_LF, CHAR_NULL, CHAR_NULL
-
-_uos_text_frequency_16_mhz:
-.db	"### 16 MHz", CHAR_LF, CHAR_NULL
-
-_uos_text_prompt_eeprom_version:
-.db	"### EEPROM: ", CHAR_NULL, CHAR_NULL
-
-_uos_text_prompt_type:
-.db	"### Type: ", CHAR_NULL, CHAR_NULL
-
-_uos_text_prompt_id:
-.db	"### Id: ", CHAR_NULL, CHAR_NULL
-
-_uos_text_prompt_bauds_value:
-.db	"### Bauds: ", CHAR_NULL
-
-_uos_text_press_button_short:
-.db	"### Press button short ", CHAR_NULL
-
-_uos_text_press_button_long:
-.db	"### Press button long ", CHAR_NULL, CHAR_NULL
-
-_uos_text_convert_hex_to_min_ascii_table:
-.db	"0123456789abcdef"
-
-_uos_text_flash_error:
-.db	"Err: FLASH at ", CHAR_NULL, CHAR_NULL
-
-uos_text_eeprom_error:
-.db	"Err: EEPROM at ", CHAR_NULL
-
-_uos_text_it_error:
-.db	"Err: Invalid It ", CHAR_NULL, CHAR_NULL
-
-uos_text_hexa_value:
-.db	"[0x", CHAR_NULL
-
-_uos_text_hexa_value_end:
-.db	"]", CHAR_NULL
-
-uos_text_hexa_value_lf_end:
-.db	"]", CHAR_LF, CHAR_NULL, CHAR_NULL
-
-_uos_text_line_feed:
-.db	CHAR_LF, CHAR_NULL
-
-; Fin: Constantes et textes definis naturellement (MSB:LSB et ordre naturel du texte)
+.include		"ATmega328P_uOS.txt"
+.include		"ATmega328P_uOS_Misc.txt"
+.include		"ATmega328P_uOS_Print.txt"
+.include		"ATmega328P_uOS_Commands.txt"
 
 _uos_magic_const:
 .dw	0x1234

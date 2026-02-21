@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS_Commands.asm,v 1.10 2026/02/04 16:21:42 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Commands.asm,v 1.12 2026/02/20 16:55:34 administrateur Exp $"
 
 #include "ATmega328P_uOS_Commands.h"
 
@@ -215,7 +215,7 @@ _uos_exec_command_unknown_here:
 
 	ldi		REG_Z_MSB, high(_uos_callback_command)	; Execution si possible de l'extension
 	ldi		REG_Z_LSB, low(_uos_callback_command)	; dans l'espace PROGRAM
-	call		_uos_exec_extension_into_program
+	rcall		_uos_exec_extension_into_program
 	; ---------
 
 	brts		_uos_exec_command_test_end	; Saut si commande reconnue dans l'espace PROGRAM
@@ -861,23 +861,5 @@ _uos_wait_ee:
 	out		SREG, REG_TEMP_R17	; Restore 'SREG' from 'REG_TEMP_R17'
 	ret
 ; ---------
-
-const_for_bauds_rate:
-; Durees en uS d'un bit a 16 MHz sur UART/Tx et UART/Rx
-; => Division par 2 pour 8 MHz dans le cas du RC Osc interne (cf. 'init_hard')
-.dw	  52				; #0: 19200 bauds
-.dw	 104				; #1:  9600 bauds
-.dw	 208				; #2:  4800 bauds
-.dw	 416				; #3:  2400 bauds
-.dw	 832				; #4:  1200 bauds
-.dw	1664				; #5:   600 bauds
-.dw	3328				; #6:   300 bauds
-const_for_bauds_rate_end:
-
-text_hexa_value:
-.db	"[0x", CHAR_NULL
-   
-text_hexa_value_lf_end:
-.db	"]", CHAR_LF, CHAR_NULL, CHAR_NULL
 
 ; End of file

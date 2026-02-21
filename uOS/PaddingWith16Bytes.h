@@ -1,4 +1,4 @@
-; "$Id: PaddingWith16Bytes.h,v 1.4 2026/01/28 18:18:45 administrateur Exp $"
+; "$Id: PaddingWith16Bytes.h,v 1.5 2026/02/18 18:01:34 administrateur Exp $"
 ; Padding avec 16 bytes...
 
 	nop
