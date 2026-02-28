@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#ident "@(#) micro-infos $Id: goGenerateProject.sh,v 1.3 2026/02/18 18:07:19 administrateur Exp $"
+#ident "@(#) micro-infos $Id: goGenerateProject.sh,v 1.4 2026/02/24 16:51:32 administrateur Exp $"
 
 # Script de production (clean et generation) d'un projet passe en argument
 # Exemples:
@@ -12,7 +12,7 @@
 #set -x
 set -e
 
-AVRA_DIR="/home/administrateur/Programmes/avra-master_1.4.2"
+AVRA_DIR="/home/administrateur/Programmes/avra-master_1.4.3"
 AVRA_BIN="${AVRA_DIR}/src/avra"
 AVRA_INC="${AVRA_DIR}/includes"
 

@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_monitor.asm,v 1.19 2026/02/18 18:01:31 administrateur Exp $"
+; "$Id: ATmega328P_monitor.asm,v 1.24 2026/02/28 16:08:12 administrateur Exp $"
 
 ; 2024/06/01 - Add description...
 ; 2024/06/07 - Test sections for CRC8-MAXIM calculataion...
@@ -27,7 +27,6 @@
 
 #define USE_TRACE_BUTTON					1
 #define USE_PRINT_BARGRAPH_COUNTER		0
-#define USE_TEST_LAC_LAS					1
 
 .cseg
 
@@ -237,7 +236,7 @@ callback_init:
 	; Print du passage dans l'initialisation 'text_monitor_init'
 	ldi		REG_Z_MSB, high(text_monitor_init << 1)
 	ldi		REG_Z_LSB, low(text_monitor_init << 1)
-	call		uos_push_text_in_fifo_tx
+	call		uos_push_text_flash_in_fifo_tx
 
 	; TODO: Si pas d'appel a 'uos_fifo_tx_to_send_sync'
 	;       => Emission differe suite a d'autres ecriture dans le FIFO/Tx ?!..
@@ -277,7 +276,7 @@ callback_1_ms:
 	; Test d'emission d'un message "court"
 	ldi		REG_Z_MSB, high(text_monitor_short_message << 1)
 	ldi		REG_Z_LSB, low(text_monitor_short_message << 1)
-	call		uos_push_text_in_fifo_tx
+	call		uos_push_text_flash_in_fifo_tx
 
 	lds		REG_X_LSB, G_BARGRAPH_COUNTER
 	inc		REG_X_LSB
@@ -404,6 +403,45 @@ callback_command:
 	; => Remarque: SREG (0x3F) ne permet pas l'utilisation de "sbic ..." ;-((
 	; => TODO: Evolution de l'assembleur 'avra' pour accueillir la syntaxe "breq  $+/-xx"
 
+	; Accueil des syntaxes "longues" comme  "lat", "lac", "las" et "xch"...
+	; => A tester avant les commandes "courtes " commme 'x', etc.
+
+#if USE_XMEGA_CORE_OPCODES
+	; Test de l'opcode 'LAT'...
+	ldi		REG_Z_MSB, high(text_command_test_lat << 1)
+	ldi		REG_Z_LSB, low(text_command_test_lat << 1)
+	rcall		monitor_test_long_command
+	in			REG_TEMP_R17, SREG	
+	sbrc		REG_TEMP_R17, SREG_Z
+	rjmp		monitor_command_lat
+
+	; Test de l'opcode 'LAC'...
+	ldi		REG_Z_MSB, high(text_command_test_lac << 1)
+	ldi		REG_Z_LSB, low(text_command_test_lac << 1)
+	rcall		monitor_test_long_command
+	in			REG_TEMP_R17, SREG	
+	sbrc		REG_TEMP_R17, SREG_Z
+	rjmp		monitor_command_lac
+
+	; Test de l'opcode 'LAS'...
+	ldi		REG_Z_MSB, high(text_command_test_las << 1)
+	ldi		REG_Z_LSB, low(text_command_test_las << 1)
+	rcall		monitor_test_long_command
+	in			REG_TEMP_R17, SREG	
+	sbrc		REG_TEMP_R17, SREG_Z
+	rjmp		monitor_command_las
+
+	; Test de l'opcode 'XCH'...
+	ldi		REG_Z_MSB, high(text_command_test_xch << 1)
+	ldi		REG_Z_LSB, low(text_command_test_xch << 1)
+	rcall		monitor_test_long_command
+	in			REG_TEMP_R17, SREG	
+	sbrc		REG_TEMP_R17, SREG_Z
+	rjmp		monitor_command_xch
+#endif
+
+	; Fin: Accueil des syntaxes "longues" comme  "lat", "lac", "las" et "xch"...
+
 	cpi		REG_TEMP_R16, '?'				; Print prompt
 	in			REG_TEMP_R17, SREG	
 	sbrc		REG_TEMP_R17, SREG_Z
@@ -443,18 +481,6 @@ callback_command:
 	in			REG_TEMP_R17, SREG	
 	sbrc		REG_TEMP_R17, SREG_Z
 	rjmp		monitor_command_i_min
-
-#if USE_TEST_LAC_LAS
-	cpi		REG_TEMP_R16, 'l'				; [l] (Load and clear with LAC instruction)
-	in			REG_TEMP_R17, SREG	
-	sbrc		REG_TEMP_R17, SREG_Z
-	rjmp		monitor_command_l_min
-
-	cpi		REG_TEMP_R16, 'L'				; [l] (Load and set with LAS instruction)
-	in			REG_TEMP_R17, SREG	
-	sbrc		REG_TEMP_R17, SREG_Z
-	rjmp		monitor_command_l_maj
-#endif
 
 	cpi		REG_TEMP_R16, 't'				; [t] (Test sequence)
 	in			REG_TEMP_R17, SREG	
@@ -525,12 +551,12 @@ monitor_command_prompt:
 	; Print de 'text_monitor_prompt' en mode non bloquant
 	ldi		REG_Z_MSB, high(text_monitor_prompt << 1)
 	ldi		REG_Z_LSB, low(text_monitor_prompt << 1)
-	call		uos_push_text_in_fifo_tx_skip
+	call		uos_push_text_flash_in_fifo_tx_skip
 
 	; Suite avec le detail des fonctionnalites supportees
 	ldi		REG_Z_MSB, high(text_monitor_desc << 1)
 	ldi		REG_Z_LSB, low(text_monitor_desc << 1)
-	call		uos_push_text_in_fifo_tx_skip
+	call		uos_push_text_flash_in_fifo_tx_skip
 
 	set													; Commande reconnue
 	ret
@@ -671,7 +697,7 @@ monitor_command_a_min_loop_0:
 	; => TODO: Si saut 'end_of_program' est de la forme 0xhhh0, pas de valeur apres [0x...]
 	ldi		REG_Z_MSB, ((text_hexa_value << 1) / 256)
 	ldi		REG_Z_LSB, ((text_hexa_value << 1) % 256)
-	call		uos_push_text_in_fifo_tx
+	call		uos_push_text_flash_in_fifo_tx
 
 	ldi		REG_TEMP_R18, 32
 
@@ -738,7 +764,7 @@ monitor_command_a_min_end:
 monitor_command_a_min_rtn:
 	ldi		REG_Z_MSB, ((text_crc8_maxim << 1) / 256)
 	ldi		REG_Z_LSB, ((text_crc8_maxim << 1) % 256)
-	call		uos_push_text_in_fifo_tx
+	call		uos_push_text_flash_in_fifo_tx
 
 	; Reprise et print de la 1st adresse testee
 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB			; Adresse du 1st byte a lire et calculer
@@ -848,7 +874,7 @@ monitor_command_e_min_loop_0:
 	; Impression du dump ("[0x....]")
 	ldi		REG_Z_MSB, ((text_hexa_value << 1) / 256)
 	ldi		REG_Z_LSB, ((text_hexa_value << 1) % 256)
-	call		uos_push_text_in_fifo_tx
+	call		uos_push_text_flash_in_fifo_tx
 
 	ldi		REG_TEMP_R18, 16
 
@@ -876,7 +902,7 @@ monitor_command_e_min_more2:
 
 	ldi		REG_Z_MSB, ((text_hexa_value_lf_end << 1) / 256)
 	ldi		REG_Z_LSB, ((text_hexa_value_lf_end << 1) % 256)
-	call		uos_push_text_in_fifo_tx
+	call		uos_push_text_flash_in_fifo_tx
 
 	dec		REG_TEMP_R17
 	brne		monitor_command_e_min_loop_0
@@ -949,7 +975,7 @@ monitor_command_e_maj_loop:
 monitor_command_e_maj_ko:
 	ldi      REG_Z_MSB, ((text_eeprom_error << 1) / 256)
 	ldi      REG_Z_LSB, ((text_eeprom_error << 1) % 256)
-	call		uos_push_text_in_fifo_tx
+	call		uos_push_text_flash_in_fifo_tx
 	call		uos_print_2_bytes_hexa
 	call		uos_print_line_feed
 
@@ -1009,7 +1035,7 @@ _uos_exec_command_type_i_read_loop_0:
 	; Impression du dump ("[0x....]")
 	ldi		REG_Z_MSB, ((text_hexa_value << 1) / 256)
 	ldi		REG_Z_LSB, ((text_hexa_value << 1) % 256)
-	call		uos_push_text_in_fifo_tx
+	call		uos_push_text_flash_in_fifo_tx
 
 	ldi		REG_TEMP_R18, 16
 
@@ -1035,7 +1061,7 @@ _uos_exec_command_type_i_read_more2:
 
 	ldi		REG_Z_MSB, ((text_hexa_value_lf_end << 1) / 256)
 	ldi		REG_Z_LSB, ((text_hexa_value_lf_end << 1) % 256)
-	call		uos_push_text_in_fifo_tx
+	call		uos_push_text_flash_in_fifo_tx
 
 	dec		REG_TEMP_R17
 	brne		_uos_exec_command_type_i_read_loop_0
@@ -1315,7 +1341,7 @@ extract_and_print_sreg:
 
 	ldi		REG_Z_MSB, high(text_sreg << 1)
 	ldi		REG_Z_LSB, low(text_sreg << 1)
-	call		uos_push_text_in_fifo_tx
+	call		uos_push_text_flash_in_fifo_tx
 
 	pop		REG_X_LSB
 	push		REG_X_LSB
@@ -1431,52 +1457,113 @@ eeprom_write_byte_wait:
 	ret
 ; ---------
 
-#if USE_TEST_LAC_LAS
+#if USE_XMEGA_CORE_OPCODES
 ; ---------
-; Test des 2 instructions 'LAC - Load and Clear' et 'LAS - Load and Set'
-; ---------
-monitor_command_l_min:
-test_lac:
-	call		uos_print_command_ok			; Commande reconnue
-
-	; Recuperation de la valeur a "clear"
-	lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB
+monitor_test_long_command:
 	push		REG_TEMP_R16
-	mov		REG_X_LSB, REG_TEMP_R16
-	call		uos_print_1_byte_hexa
+	push		REG_TEMP_R17
+	push		REG_TEMP_R18
+	push		REG_X_MSB
+	push		REG_X_LSB
+
+	ldi		REG_X_MSB, high(UOS_G_TEST_COMMAND)
+	ldi		REG_X_LSB, low(UOS_G_TEST_COMMAND)
+
+monitor_test_long_command_loop:
+	lpm      REG_TEMP_R17, Z+
+	tst		REG_TEMP_R17
+	breq		monitor_test_long_command_rtn		; Fin du pattern atteint -> Return avec SREG<Z> a 0
+
+	ld			REG_TEMP_R18, X+
+	cpse		REG_TEMP_R17, REG_TEMP_R18
+	rjmp		monitor_test_long_command_not_found
+
+	; Identite de la commande saisie et celle attendue -> Continue...
+	rjmp		monitor_test_long_command_loop
+
+monitor_test_long_command_not_found:
+	clz
+
+monitor_test_long_command_rtn:
+	pop		REG_X_LSB
+	pop		REG_X_MSB
+	pop		REG_TEMP_R18
+	pop		REG_TEMP_R17
 	pop		REG_TEMP_R16
-
-	; Adresse du resultat initialise a 0
-	ldi		REG_Z_MSB, high(G_RESULT_LAC_LAS)
-	ldi		REG_Z_LSB, low(G_RESULT_LAC_LAS)
-
-#if 1
-	;lac		Z, REG_TEMP_R16				; Execute (Z) <- ($FF - Rd) and (Z), Rd <- (Z)
-
-	; Simulation ecriture avec changement
-	inc		REG_TEMP_R16
-	st			Z, REG_TEMP_R16
-	
-#else
-	;.dw		0x0693			; 1001 001r rrrr 0110 -> 1001 0011 0000 110
-	.dw		0x9306			; 1001 001r rrrr 0110 -> 1001 0011 0000 110
-#endif
-
-	lds		REG_X_LSB, G_RESULT_LAC_LAS
-	call		uos_print_1_byte_hexa
-	call		uos_print_line_feed
-
-test_lac_rtn:
-	set											; Commande executee
 	ret
 ; ---------
 
 ; ---------
-monitor_command_l_maj:
+; Test des instructions 'lat', 'lac', 'las' et 'xch' (XMEGA core)
+; ---------
+monitor_command_lat:
+test_lat:
+	rcall		monitor_command_test_prologue_xmega_core_opcodes
+
+	lat		Z, REG_TEMP_R16				; Execute (Z) <- Rd ^ (Z), Rd <- (Z)
+
+	rcall		monitor_command_test_epilogue_xmega_core_opcodes
+
+test_lat_rtn:
+	ret
+; ---------
+
+; ---------
+monitor_command_lac:
+test_lac:
+	rcall		monitor_command_test_prologue_xmega_core_opcodes
+
+	lac		Z, REG_TEMP_R16				; Execute (Z) <- ($FF - Rd) and (Z), Rd <- (Z)
+
+	rcall		monitor_command_test_epilogue_xmega_core_opcodes
+
+test_lac_rtn:
+	ret
+; ---------
+
+; ---------
+monitor_command_las:
 test_las:
+	rcall		monitor_command_test_prologue_xmega_core_opcodes
+
+	las		Z, REG_TEMP_R16				; Execute (Z) <- Rd or (Z), Rd <- (Z)
+
+	rcall		monitor_command_test_epilogue_xmega_core_opcodes
+
+test_las_rtn:
+	ret
+; ---------
+
+; ---------
+monitor_command_xch:
+test_xch:
+	rcall		monitor_command_test_prologue_xmega_core_opcodes
+
+	xch		Z, REG_TEMP_R16				; Execute (Z) <- Rd, Rd <- (Z)
+
+	rcall		monitor_command_test_epilogue_xmega_core_opcodes
+
+test_xch_rtn:
+	ret
+; ---------
+
+; ---------
+monitor_command_test_prologue_xmega_core_opcodes:
 	call		uos_print_command_ok			; Commande reconnue
 
-	; Recuperation de la valeur a "seter"
+	; Conversion ASCII -> Hexa de la valeur sur 2 caracteres derriere la commande "xxx" de 3 caracteres
+	clr		REG_TEMP_R16
+	sts		UOS_G_TEST_VALUE_MSB, REG_TEMP_R16
+	sts		UOS_G_TEST_VALUE_LSB, REG_TEMP_R16
+
+	ldi		REG_Y_MSB, high(UOS_G_TEST_COMMAND + 3)
+	ldi		REG_Y_LSB, low(UOS_G_TEST_COMMAND + 3)
+	ld			r2, Y+
+	call		uos_char_to_hex_incremental
+	ld			r2, Y
+	call		uos_char_to_hex_incremental		; Resultat dans 'UOS_G_TEST_VALUE_LSB'
+	; Fin: Conversion ASCII -> Hexa de la valeur sur 2 caracteres derriere la commande "xxx" de 3 caracteres
+
 	lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB
 	push		REG_TEMP_R16
 	mov		REG_X_LSB, REG_TEMP_R16
@@ -1484,25 +1571,25 @@ test_las:
 	pop		REG_TEMP_R16
 
 	; Adresse du resultat initialise a 0
-	ldi		REG_Z_MSB, high(G_RESULT_LAC_LAS)
-	ldi		REG_Z_LSB, low(G_RESULT_LAC_LAS)
+	ldi		REG_Z_MSB, high(G_RESULT_XMEGA_OPCODE)
+	ldi		REG_Z_LSB, low(G_RESULT_XMEGA_OPCODE)
 
-#if 1
-	;las		Z, REG_TEMP_R16				; Execute (Z) <- ($FF or Rd) & (Z), Rd <- (Z)
+monitor_command_test_prologue_xmega_core_opcodes_rtn:
+	ret
+; ---------
 
-	; Simulation ecriture avec changement
-	dec		REG_TEMP_R16
-	st			Z, REG_TEMP_R16
-#else
-	;.dw		0x0593			; 1001 001r rrrr 0101 -> 1001 0011 0000 0101
-	.dw		0x9305			; 1001 001r rrrr 0101 -> 1001 0011 0000 0101
-#endif
+; ---------
+monitor_command_test_epilogue_xmega_core_opcodes:
+	push		REG_TEMP_R16
+	mov		REG_X_LSB, REG_TEMP_R16
+	call		uos_print_1_byte_hexa
+	pop		REG_TEMP_R16
 
-	lds		REG_X_LSB, G_RESULT_LAC_LAS
+	lds		REG_X_LSB, G_RESULT_XMEGA_OPCODE
 	call		uos_print_1_byte_hexa
 	call		uos_print_line_feed
 
-test_las_rtn:
+monitor_command_test_epilogue_xmega_core_opcodes_rtn:
 	set											; Commande executee
 	ret
 ; ---------
@@ -1517,7 +1604,7 @@ test_las_rtn:
 .dw	CHAR_SEPARATOR		; Debut section datas	; NE PAS SUPPRIMER ;-)
 
 text_monitor_prompt:
-.db	"### Monitor $Revision: 1.19 $", CHAR_LF, CHAR_NULL, CHAR_NULL
+.db	"### Monitor $Revision: 1.24 $", CHAR_LF, CHAR_NULL, CHAR_NULL
 
 text_monitor_init:
 .db	"### Initialization...", CHAR_LF, CHAR_NULL, CHAR_NULL
@@ -1532,14 +1619,16 @@ text_monitor_desc:
 .db	"### - '<IAddress+Value'      Write byte in I/O ", CHAR_LF
 .db	"### - '<JAddress+Value'      Write word MSB:LSB in I/O at [Address:(Address-1)]", CHAR_LF
 
-#if USE_TEST_LAC_LAS
-.db	"### - '<lValue'              Load and clear test ", CHAR_LF, 
-.db	"### - '<LValue'              Load and set test ", CHAR_LF
+#if USE_XMEGA_CORE_OPCODES
+.db	"### - '<latValue'            XMega Core: Load and Toggle ", CHAR_LF, 
+.db	"### - '<lacValue'            XMega Core: Load and Clear", CHAR_LF, 
+.db	"### - '<lasValue'            XMega Core: Load and Set", CHAR_LF, 
+.db	"### - '<xchValue'            XMega Core: Exchange", CHAR_LF, 
 #endif
 
 .db	"### - '<SAddress+Value'      Write in SRAM ", CHAR_LF
 .db	"### - '<tValue1-Value2'      Test compare", CHAR_LF
-.db	"### - '<xAddress'            Call to Address", CHAR_LF, CHAR_NULL
+.db	"### - '<xAddress'            Call to Address", CHAR_LF, CHAR_NULL	; Dernier texte avec '\0' terminal
 
 text_crc8_maxim:
 .db	"CRC8-MAXIM ", CHAR_NULL
@@ -1565,12 +1654,18 @@ text_sreg:
 text_response_j_maj:
 .db   ">J [Ok]", CHAR_LF, CHAR_NULL, CHAR_NULL
 
-#if USE_TEST_LAC_LAS
-text_test_lac:
-.db	"Test LAC", CHAR_LF, CHAR_NULL
+#if USE_XMEGA_CORE_OPCODES
+text_command_test_lat:
+.db	"lat", CHAR_NULL
 
-text_test_las:
-.db	"Test LAS", CHAR_LF, CHAR_NULL
+text_command_test_lac:
+.db	"lac", CHAR_NULL
+
+text_command_test_las:
+.db	"las", CHAR_NULL
+
+text_command_test_xch:
+.db	"xch", CHAR_NULL
 #endif
 
 monitor_magic_const:
