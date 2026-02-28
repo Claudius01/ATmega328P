@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS_Print.asm,v 1.6 2026/02/18 18:01:34 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Print.asm,v 1.9 2026/02/28 16:08:14 administrateur Exp $"
 
 .cseg
 
@@ -10,7 +10,7 @@ uos_set_infos_from_eeprom:
 	ldi		REG_TEMP_R18, 8
 	ldi		REG_Z_MSB, ((_uos_text_prompt_eeprom_version << 1) / 256)
 	ldi		REG_Z_LSB, ((_uos_text_prompt_eeprom_version << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	; Lecture de la version de l'EEPROM definie dans l'EEPROM
 	ldi		REG_X_MSB, high(EEPROM_ADDR_VERSION)
@@ -21,7 +21,7 @@ uos_set_infos_from_eeprom:
 	; => Prompt "### Type..."
 	ldi		REG_Z_MSB, ((_uos_text_prompt_type << 1) / 256)
 	ldi		REG_Z_LSB, ((_uos_text_prompt_type << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	; Lecture du type de platine defini dans l'EEPROM
 	ldi		REG_X_MSB, high(EEPROM_ADDR_TYPE);
@@ -36,7 +36,7 @@ uos_set_infos_from_eeprom:
 	; => Prompt "### Id..."
 	ldi		REG_Z_MSB, ((_uos_text_prompt_id << 1) / 256)
 	ldi		REG_Z_LSB, ((_uos_text_prompt_id << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 	
 	; Lecture de l'Id de la Platine defini dans l'EEPROM
 	ldi		REG_X_MSB, high(EEPROM_ADDR_ID);
@@ -52,12 +52,14 @@ uos_set_infos_from_eeprom:
 	; => Prompt "### Bauds..."
 	ldi		REG_Z_MSB, ((_uos_text_prompt_bauds_value << 1) / 256)
 	ldi		REG_Z_LSB, ((_uos_text_prompt_bauds_value << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 	
 	ldi		REG_X_MSB, high(EEPROM_ADDR_BAUDS_IDX);
 	ldi		REG_X_LSB, low(EEPROM_ADDR_BAUDS_IDX);
 
 #if USE_AVRSIMU
+	; TODO: Attente de la simulation de l'EEPROM
+	;       => Forcage de la valeur apres erase -> 9600 bauds
 	ldi		REG_TEMP_R16, 0xFF		; TODO: Attente de la simulation de l'EEPROM
 #else
 	rcall		uos_eeprom_read_byte
@@ -74,7 +76,7 @@ uos_set_infos_from_eeprom_more:
 	rcall		uos_convert_and_put_fifo_tx
 #else
 	rcall		get_index_bauds_rate_value
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 #endif
 
 	rcall		uos_print_line_feed
@@ -106,30 +108,63 @@ uos_set_skip_print:
 ; ---------
 
 ; ---------
-; Mise dans la FIFO/Tx d'un texte termine par '\0'
+; Mise dans la FIFO/Tx d'un texte defni dans la flash/sram et termine par '\0'
 ;
 ; Usage:
 ;      ldi		REG_Z_MSB, <address MSB>
 ;      ldi		REG_Z_LSB, <address LSB>
-;      rcall   uos_push_text_in_fifo_tx
+;      rcall   uos_push_text_flash_in_fifo_tx
 ;
 ; Registres utilises
 ;    REG_Z_LSB:REG_Z_LSB -> Pointeur sur le texte en memoire programme (preserve)
 ;    REG_TEMP_R16        -> Working register (preserve)
 ; ---------
-uos_push_text_in_fifo_tx_skip:
+; Methode propre a l'ecriture depuis la flash
+uos_push_text_flash_in_fifo_tx_skip:
 	lds		REG_TEMP_R23, UOS_G_FLAGS_0
 	sbrc		REG_TEMP_R23, UOS_FLG_0_PRINT_SKIP_IDX		; Pas de trace si 'FLG_0_PRINT_SKIP' affirme
+	rjmp		_uos_push_text_in_fifo_tx_rtn
 
-	ret
+uos_push_text_flash_in_fifo_tx:
+	lds		REG_TEMP_R23, UOS_G_FLAGS_0
+	sbr		REG_TEMP_R23, FLG_0_PRINT_FROM_FLASH_SRAM_MSK
+	sts		UOS_G_FLAGS_0, REG_TEMP_R23
+	rjmp		_uos_push_text_in_fifo_tx
+; Fin: Methode propre a l'ecriture depuis la flash
 
-uos_push_text_in_fifo_tx:
+; Methode propre a l'ecriture depuis la sram
+uos_push_text_sram_in_fifo_tx_skip:
+	lds		REG_TEMP_R23, UOS_G_FLAGS_0
+	sbrc		REG_TEMP_R23, UOS_FLG_0_PRINT_SKIP_IDX		; Pas de trace si 'FLG_0_PRINT_SKIP' affirme
+	rjmp		_uos_push_text_in_fifo_tx_rtn
+
+uos_push_text_sram_in_fifo_tx:
+	lds		REG_TEMP_R23, UOS_G_FLAGS_0
+	cbr		REG_TEMP_R23, FLG_0_PRINT_FROM_FLASH_SRAM_MSK
+	sts		UOS_G_FLAGS_0, REG_TEMP_R23
+	rjmp		_uos_push_text_in_fifo_tx
+; Fin: Methode propre a l'ecriture depuis la sram
+
+; Methode commune a l'ecriture depuis la flash/sram @ 'FLG_0_PRINT_FROM_FLASH_SRAM' (1/0)
+_uos_push_text_in_fifo_tx:
 	push		REG_Z_MSB
 	push		REG_Z_LSB
 	push		REG_TEMP_R16
 
 _uos_push_text_in_fifo_tx_loop:
+	lds		REG_TEMP_R23, UOS_G_FLAGS_0
+	sbrc		REG_TEMP_R23, FLG_0_PRINT_FROM_FLASH_SRAM_IDX
+	rjmp		_uos_push_text_in_fifo_tx_loop_flash
+	rjmp		_uos_push_text_in_fifo_tx_loop_sram
+
+_uos_push_text_in_fifo_tx_loop_flash:
 	lpm		REG_TEMP_R16, Z+
+	rjmp		_uos_push_text_in_fifo_tx_loop_cont_d
+
+_uos_push_text_in_fifo_tx_loop_sram:
+	ld			REG_TEMP_R16, Z+
+
+_uos_push_text_in_fifo_tx_loop_cont_d:
 	cpi		REG_TEMP_R16, CHAR_NULL		; '\0' terminal ?
 	breq		_uos_push_text_in_fifo_tx_end
 
@@ -142,6 +177,8 @@ _uos_push_text_in_fifo_tx_end:
 	pop		REG_TEMP_R16
 	pop		REG_Z_LSB
 	pop		REG_Z_MSB
+
+_uos_push_text_in_fifo_tx_rtn:
 	ret
 ; ---------
 
@@ -219,7 +256,7 @@ uos_print_line_feed:
 
 	ldi		REG_Z_MSB, ((_uos_text_line_feed << 1) / 256)
 	ldi		REG_Z_LSB, ((_uos_text_line_feed << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	lds		REG_TEMP_R23, UOS_G_FLAGS_1
 	sbr		REG_TEMP_R23, FLG_1_UART_FIFO_TX_TO_SEND_MSK	; Caracteres mis en FIFO a emettre ;-)
@@ -244,14 +281,14 @@ uos_print_1_byte_hexa:
 	; Emission en hexa du contenu de 'REG_X_LSB'
 	ldi		REG_Z_MSB, ((uos_text_hexa_value << 1) / 256)
 	ldi		REG_Z_LSB, ((uos_text_hexa_value << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	mov		REG_TEMP_R16, REG_X_LSB
 	rcall		uos_convert_and_put_fifo_tx
 
 	ldi		REG_Z_MSB, ((_uos_text_hexa_value_end << 1) / 256)
 	ldi		REG_Z_LSB, ((_uos_text_hexa_value_end << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	pop		REG_Z_LSB
 	pop		REG_Z_MSB
@@ -272,7 +309,7 @@ uos_print_2_bytes_hexa:
 	; Emission en hexa du contenu de 'REG_X_MSB:REG_X_LSB'
 	ldi		REG_Z_MSB, ((uos_text_hexa_value << 1) / 256)
 	ldi		REG_Z_LSB, ((uos_text_hexa_value << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	mov		REG_TEMP_R16, REG_X_MSB
 	rcall		uos_convert_and_put_fifo_tx
@@ -282,7 +319,7 @@ uos_print_2_bytes_hexa:
 
 	ldi		REG_Z_MSB, ((_uos_text_hexa_value_end << 1) / 256)
 	ldi		REG_Z_LSB, ((_uos_text_hexa_value_end << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	pop		REG_Z_LSB
 	pop		REG_Z_MSB
@@ -419,28 +456,6 @@ uos_puts_end:
 	lds		REG_TEMP_R23, UOS_G_FLAGS_1
 	sbr		REG_TEMP_R23, FLG_1_UART_FIFO_TX_TO_SEND_MSK	; Caracteres mis en FIFO a emettre ;-)
 	sts		UOS_G_FLAGS_1, REG_TEMP_R23
-
-	ret
-; ---------
-
-; ---------
-; Retourne dans 'REG_Z_MSB:REG_Z_LSB' l'index pour l'affichage de la vitesse en Bauds @ 'UOS_G_HEADER_BAUDS_VALUE'
-; ---------
-get_index_bauds_rate_value:
-; ---------
-	ldi		REG_Z_MSB, high(const_for_bauds_rate_values << 1)
-	ldi		REG_Z_LSB, low(const_for_bauds_rate_values << 1)
-
-	; Longueur du texte defini sur 6 caracteres
-	; +> Multiplication par 6 de l'adresse de base de la table 'const_for_bauds_rate_values'
-	lds		REG_TEMP_R16, UOS_G_HEADER_BAUDS_VALUE
-	mov		REG_TEMP_R17, REG_TEMP_R16
-	lsl		REG_TEMP_R16						; REG_TEMP_R16 = (2 * REG_TEMP_R16)
-	add		REG_TEMP_R16, REG_TEMP_R17		; REG_TEMP_R16 = (3 * REG_TEMP_R16)
-	lsl		REG_TEMP_R16						; REG_TEMP_R16 = (6 * UOS_G_HEADER_BAUDS_VALUE)
-	add		REG_Z_LSB, REG_TEMP_R16
-	clr		REG_TEMP_R16
-	adc		REG_Z_MSB, REG_TEMP_R16			; Z = (const_for_bauds_rate_values + 6 * UOS_G_HEADER_BAUDS_VALUE)
 
 	ret
 ; ---------

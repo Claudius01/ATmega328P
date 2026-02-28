@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS.asm,v 1.22 2026/02/21 13:46:51 administrateur Exp $"
+; "$Id: ATmega328P_uOS.asm,v 1.25 2026/02/27 18:29:27 administrateur Exp $"
 
 ; - Projet: ATmega328P_uOS
 ;
@@ -269,12 +269,12 @@ _uos_main_more:
 	sei
 
 	; Print du prompt "Bootloader" eor "Hello World"
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	; Print de '_uos_text_prompt'
 	ldi		REG_Z_MSB, high(_uos_text_prompt << 1)
 	ldi		REG_Z_LSB, low(_uos_text_prompt << 1)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	; Print de la frequence 8/16 MHz @ FLG_0_RC_OSC_8MHZ
 	rcall		uos_print_frequency
@@ -374,52 +374,6 @@ _uos_main_loop_more:
 	; ---------
 
 	rjmp		_uos_main_loop
-
-_uos_forever:
-	cli
-	setLedRedOn
-
-_uos_forever_loop:	
-	rjmp		_uos_forever_loop
-
-; ---------
-; Mise sur voie de garage avec clignotement "lent" ou "rapide" de la Led RED
-; ---------
-_uos_awaiting_prog:
-	cli
-	ldi		REG_TEMP_R16, 5
-	rjmp		_uos_invalid_it_leds_off
-
-_uos_invalid_it_speed:
-	cli
-	ldi		REG_TEMP_R16, 20
-	rjmp		_uos_invalid_it_more
-
-_uos_invalid_it_slow:
-	cli
-	ldi		REG_TEMP_R16, 80
-
-_uos_invalid_it_more:
-	; Memorisation du numero de l'It non attendue dans l'espace bootloader
-	sbr		REG_TEMP_R17, UOS_FLG_WRONG_IT_BOOLOADER_MSK
-	cbr		REG_TEMP_R17, UOS_FLG_WRONG_IT_PROGRAM_MSK
-	sts		UOS_G_STATES_POST_MORTEM, REG_TEMP_R17
-
-_uos_invalid_it_leds_off:
-	; Extinction de toutes les Leds
-	setLedsOff
-
-_uos_invalid_it_loop:
-	push		REG_TEMP_R16			; Save/Restore temporisation dans REG_TEMP_R16
-	setLedRedOn
-	rcall		uos_delay_big_2
-	pop		REG_TEMP_R16
-	push		REG_TEMP_R16
-	setLedRedOff
-	rcall		uos_delay_big_2
-	pop		REG_TEMP_R16
-	rjmp		_uos_invalid_it_loop
-; ---------
 
 ; ---------
 ; Execution du prolongement dans l'espace PROGRAM si
@@ -595,7 +549,7 @@ uos_print_frequency:
 	ldi		REG_Z_LSB, low(_uos_text_frequency_8_mhz << 1)
 
 uos_print_frequency_end:
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	ret
 ; ---------
@@ -614,11 +568,7 @@ uos_delay_big_2:
 	ldi		REG_TEMP_R17, 125
 
 _uos_delay_big_more:
-#if 0			; USE_AVRSIMU
-	ret
-#else
 	ldi		REG_TEMP_R18, 250
-#endif
 
 _uos_delay_big_more_1:
 	dec		REG_TEMP_R18
@@ -1004,13 +954,154 @@ _uos_pcint2_isr_end:
 	reti
 ; ---------
 
+; ---------
+_uos_forever:
+	cli
+	setLedRedOn
+
+_uos_forever_loop:	
+	rjmp		_uos_forever_loop
+; ---------
+
+; ---------
+; Mise sur voie de garage avec clignotement "lent" ou "rapide" de la Led RED
+; ---------
+_uos_awaiting_prog:
+	cli
+	ldi		REG_TEMP_R16, 5
+	rjmp		_uos_invalid_it_leds_off
+
+_uos_invalid_it_speed:
+	cli
+	ldi		REG_TEMP_R16, 20
+	rjmp		_uos_invalid_it_more
+
+_uos_invalid_it_slow:
+	cli
+	ldi		REG_TEMP_R16, 80
+
+_uos_invalid_it_more:
+	; Memorisation du numero de l'It non attendue dans l'espace bootloader
+	sbr		REG_TEMP_R17, UOS_FLG_WRONG_IT_BOOLOADER_MSK
+	cbr		REG_TEMP_R17, UOS_FLG_WRONG_IT_PROGRAM_MSK
+	sts		UOS_G_STATES_POST_MORTEM, REG_TEMP_R17
+
+_uos_invalid_it_leds_off:
+	; Extinction de toutes les Leds
+	setLedsOff
+
+_uos_invalid_it_loop:
+	push		REG_TEMP_R16			; Save/Restore temporisation dans REG_TEMP_R16
+	setLedRedOn
+	rcall		uos_delay_big_2
+	pop		REG_TEMP_R16
+	push		REG_TEMP_R16
+	setLedRedOff
+	rcall		uos_delay_big_2
+	pop		REG_TEMP_R16
+	rjmp		_uos_invalid_it_loop
+; ---------
+
+; ---------
+; Initialisation de la SRAM
+; - Pas d'initialisation des 2 derniers bytes (retour de la fonction)
+;
+; Registres utilises (non sauvegardes/restaures):
+;    REG_TEMP_R16 -> Valeur d'initialisation de la SRAM
+; ---------
+_uos_init_sram_fill:
+	ldi		REG_TEMP_R16, 0xff
+	ldi		REG_X_MSB, high(RAMEND - 2)
+	ldi		REG_X_LSB, low(RAMEND - 2)
+
+_uos_init_sram_fill_loop_a:
+	; Initialisation a 0xff de la STACK
+	; => Permet de connaitre la profondeur maximale de la pile d'appel
+	st			X, REG_TEMP_R16
+	sbiw		REG_X_LSB, 1
+	cpi		REG_X_MSB, high(UOS_G_SRAM_BOOTLOADER_END_OF_USE)
+	brne		_uos_init_sram_fill_loop_a
+	cpi		REG_X_LSB, low(UOS_G_SRAM_BOOTLOADER_END_OF_USE - 1)	
+	brne		_uos_init_sram_fill_loop_a
+
+	clr		REG_TEMP_R16
+
+	; Initialisation a 0x00 du reste de la SRAM
+	; => Permet de connaitre la profondeur de la pile d'appel
+_uos_init_sram_fill_loop_b:
+	st			X, REG_TEMP_R16
+	sbiw		REG_X_LSB, 1
+
+	; Non RAZ des positions 'G_STATES_AT_RESET' (0x100) et 'UOS_G_STATES_POST_MORTEM' (0x101)
+	; => Arret si la position ('UOS_G_STATES_POST_MORTEM' + 1) est atteinte
+	cpi		REG_X_MSB, high(UOS_G_STATES_POST_MORTEM + 1)
+	brne		_uos_init_sram_fill_loop_b
+	cpi		REG_X_LSB, low(UOS_G_STATES_POST_MORTEM + 1)
+	brne		_uos_init_sram_fill_loop_b
+
+	; Fin initialisation [SRAM_START, ..., (RAMEND - 2)]
+	ret
+; ---------
+
+; ---------
+; Initialisation de valeurs particulieres dans la SRAM
+;
+; Variables initialisees:
+; - G_TICK_1MS -> Periode pour 1mS du Cadencement It
+;
+; Registres utilises (non sauvegardes/restaures):
+;    REG_TEMP_R16
+; ---------
+_uos_init_sram_values:
+	; Raz des 2 bytes REG_FLAGS_0 et REG_FLAGS_1
+	clr      REG_TEMP_R23
+   sts      UOS_G_FLAGS_0, REG_TEMP_R23
+   sts      UOS_G_FLAGS_1, REG_TEMP_R23
+
+	; Initialisation periode de 1mS @ Cadencement It
+        ; Ajustement a 100 uS exactement (Prise en compte de la mS a l'It suivante ;-)
+        ; => Constate par simulation avec 'avrsimu' ;-))
+	ldi		REG_TEMP_R16, (PERIODE_1MS - 1)
+	sts		G_TICK_1MS_INIT, REG_TEMP_R16
+	sts		G_TICK_1MS, REG_TEMP_R16
+
+	ret
+; ---------
+
+; ---------
+; Retourne dans 'REG_Z_MSB:REG_Z_LSB' l'index pour l'affichage de la vitesse en Bauds @ 'UOS_G_HEADER_BAUDS_VALUE'
+; ---------
+get_index_bauds_rate_value:
+; ---------
+	ldi		REG_Z_MSB, high(const_for_bauds_rate_values << 1)
+	ldi		REG_Z_LSB, low(const_for_bauds_rate_values << 1)
+
+	; Longueur du texte defini sur 6 caracteres
+	; +> Multiplication par 6 de l'adresse de base de la table 'const_for_bauds_rate_values'
+	lds		REG_TEMP_R16, UOS_G_HEADER_BAUDS_VALUE
+	mov		REG_TEMP_R17, REG_TEMP_R16
+	lsl		REG_TEMP_R16						; REG_TEMP_R16 = (2 * REG_TEMP_R16)
+	add		REG_TEMP_R16, REG_TEMP_R17		; REG_TEMP_R16 = (3 * REG_TEMP_R16)
+	lsl		REG_TEMP_R16						; REG_TEMP_R16 = (6 * UOS_G_HEADER_BAUDS_VALUE)
+	add		REG_Z_LSB, REG_TEMP_R16
+	clr		REG_TEMP_R16
+	adc		REG_Z_MSB, REG_TEMP_R16			; Z = (const_for_bauds_rate_values + 6 * UOS_G_HEADER_BAUDS_VALUE)
+
+	ret
+; ---------
+
 ; [Padding jusqu'a l'adresse 0x37FF
-.include		"PaddingWith16Bytes.h"
-.include		"PaddingWith16Bytes.h"
-.include		"PaddingWith16Bytes.h"
 .include		"PaddingWith16Bytes.h"
 
 ; Complement...
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
 	nop
 	nop
 	nop
@@ -1207,7 +1298,7 @@ UOS_G_SRAM_BOOTLOADER_END_OF_USE:	.byte		1		; Initialisee a 0xff pour reperage d
 
 _uos_text_prompt:
 ; Warning: Passage de la Rev: sur x.yz
-.db	"### ATmega328p $Revision: 1.22 $", CHAR_LF, CHAR_NULL
+.db	"### ATmega328p $Revision: 1.25 $", CHAR_LF, CHAR_NULL
 
 .include		"ATmega328P_uOS.txt"
 .include		"ATmega328P_uOS_Misc.txt"

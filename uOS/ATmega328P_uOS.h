@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS.h,v 1.17 2026/02/21 13:46:51 administrateur Exp $"
+; "$Id: ATmega328P_uOS.h,v 1.18 2026/02/27 18:29:27 administrateur Exp $"
 
 #define	USE_END_ADDRESS		0		; Retour en 'forever_2' a la derniere adresse de la flash
 #define	USE_PRG_ALL_CODE		0		; Restriction du code pour un develeoppement progressif
@@ -117,7 +117,7 @@
 #define	FLG_0_SPARE_3_MSK						MSK_BIT3
 #define	FLG_0_UART_TX_TO_SEND_MSK			MSK_BIT4		; Donnees Data/Tx a emettre
 #define	UOS_FLG_0_PRINT_SKIP_MSK			MSK_BIT5		; Saut des methodes 'print_xxx' si affirme
-#define	FLG_0_SPARE_6_MSK						MSK_BIT6
+#define	FLG_0_PRINT_FROM_FLASH_SRAM_MSK	MSK_BIT6		; 1/0: Print 'uos_push_text_[flash/sram]_in_fifo_tx'
 
 ; Synthese du fusible 'LOW' (CKSEL3..0)
 ; - 1 pour CKSEL3..0 a 0010 (Oscillateur RC interne a 8 MHz)
@@ -130,7 +130,7 @@
 #define	FLG_0_SPARE_3_IDX							IDX_BIT3
 #define	FLG_0_UART_TX_TO_SEND_IDX				IDX_BIT4		; Donnees Data/Tx a emettre
 #define	UOS_FLG_0_PRINT_SKIP_IDX				IDX_BIT5		; Saut des methodes 'print_xxx' si affirme
-#define	FLG_0_SPARE_6_IDX							IDX_BIT6
+#define	FLG_0_PRINT_FROM_FLASH_SRAM_IDX		IDX_BIT6		; 1/0: Print 'uos_push_text_[flash/sram]_in_fifo_tx'
 #define	FLG_0_RC_OSC_8MHZ_IDX					IDX_BIT7
 
 ; Flags generaux FLG_1 (masques et index)

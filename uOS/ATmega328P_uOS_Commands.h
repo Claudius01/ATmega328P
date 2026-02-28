@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS_Commands.h,v 1.2 2026/02/18 18:01:34 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Commands.h,v 1.3 2026/02/25 16:40:59 administrateur Exp $"
 
 #define	CHAR_COMMAND_REC		'<'
 #define	CHAR_COMMAND_SEND		'>'
@@ -40,5 +40,8 @@ UOS_G_TEST_VALUE_DEC_LSB:	.byte		1
 UOS_G_TEST_VALUES_IDX_WRK:	.byte		1				; Index sur les valeurs de 'G_TEST_VALUES_ZONE' (travail)
 UOS_G_TEST_VALUES_IDX:		.byte		1				; Index sur les valeurs de 'G_TEST_VALUES_ZONE' (disponible)
 UOS_G_TEST_VALUES_ZONE:		.byte		(2 * 64)		; Page de 64 mots
+
+UOS_G_TEST_COMMAND_IDX:		.byte		1
+UOS_G_TEST_COMMAND:			.byte		16
 
 ; End of file

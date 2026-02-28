@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS_Commands.asm,v 1.12 2026/02/20 16:55:34 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Commands.asm,v 1.16 2026/02/28 16:08:14 administrateur Exp $"
 
 #include "ATmega328P_uOS_Commands.h"
 
@@ -21,21 +21,24 @@
 ; => Raz a la charge de l'interpretation de la valeur
 ; ---------
 _uos_interpret_command:
-	nop
-
 _uos_interpret_command_loop:
 	cli
-	rcall		_uos_uart_fifo_rx_read			; Lecture atomique
+	rcall		_uos_uart_fifo_rx_read				; Lecture atomique
 	sei
 
-	brtc		_uos_interpret_command_rtn	; Nouvelle donnee disponible ?
+	brts		_uos_interpret_command_cont_d		; Nouvelle donnee disponible ?
+	rjmp		_uos_interpret_command_rtn			; Non -> Fin de l'interpretation
 
-	lds		REG_TEMP_R17, UOS_G_TEST_FLAGS
+_uos_interpret_command_cont_d:
+	lds		REG_TEMP_R17, UOS_G_TEST_FLAGS	; Oui
 
 	; Oui. -> Caractere dans 'REG_R2'
 	mov		REG_TEMP_R16, REG_R2
 	cpi		REG_TEMP_R16, CHAR_COMMAND_REC
 	brne		_uos_interpret_command_loop_more
+
+	clr		REG_TEMP_R16	
+	sts		UOS_G_TEST_COMMAND_IDX, REG_TEMP_R16
 
 	; Le prochain caractere sera le type de la commande
 	sbr		REG_TEMP_R17, FLG_TEST_COMMAND_TYPE_MSK
@@ -43,6 +46,39 @@ _uos_interpret_command_loop:
 	rjmp		_uos_interpret_command_loop
 
 _uos_interpret_command_loop_more:
+_uos_interpret_command_save_command:
+	; Recopie des caracteres pour le support des commandes longues (ie. <XCH...)
+	push		REG_TEMP_R16										; Sauvegarde du caractere a traiter
+	ldi		REG_Y_MSB, high(UOS_G_TEST_COMMAND - 1)	; -1 car incrmement index avant maj
+	ldi		REG_Y_LSB, low(UOS_G_TEST_COMMAND - 1)		; -1 car incrmement index avant maj
+	lds		REG_TEMP_R16, UOS_G_TEST_COMMAND_IDX
+	inc		REG_TEMP_R16
+	cpi		REG_TEMP_R16, 16									; Limitation a 15 caracteres (16 bytes reserves pour 'UOS_G_TEST_COMMAND')
+	brmi		_uos_interpret_command_save_command_ok
+
+	pop		REG_TEMP_R16
+	rjmp		_uos_interpret_command_save_command_end
+
+_uos_interpret_command_save_command_ok:
+	sts		UOS_G_TEST_COMMAND_IDX, REG_TEMP_R16
+	add		REG_Y_LSB, REG_TEMP_R16
+	clr		REG_TEMP_R16
+	adc		REG_Y_MSB, REG_TEMP_R16
+
+	pop		REG_TEMP_R16										; Restauration du caractere a traiter
+
+	mov		REG_TEMP_R18, REG_TEMP_R16
+	cpi		REG_TEMP_R18, CHAR_LF
+	brne		_uos_interpret_command_save_command_more
+
+	clr		REG_TEMP_R18										; Remplacement du '\n' par '\0'
+
+_uos_interpret_command_save_command_more:
+	st			Y, REG_TEMP_R18
+
+_uos_interpret_command_save_command_end:
+	; Fin: Recopie des caracteres pour le support des commandes longues (ie. <XCH...)
+
 	cpi		REG_TEMP_R16, CHAR_COMMAND_MORE
 	brne		_uos_interpret_command_loop_more_2
 
@@ -137,10 +173,12 @@ uos_print_command_ko:
 	ldi		REG_TEMP_R16, CHAR_COMMAND_UNKNOWN
 
 uos_print_command:
-	sts		UOS_G_TEST_FLAGS, REG_TEMP_R17				; Maj Flag 'FLG_TEST_COMMAND_ERROR'
+	sts		UOS_G_TEST_FLAGS, REG_TEMP_R17		; Maj Flag 'FLG_TEST_COMMAND_ERROR'
 
 	rcall		uos_push_1_char_in_fifo_tx				; '>' eor '?'
 
+	; TODO: Impression des commandes et de leurs arguments a partir du buffer 'UOS_G_TEST_COMMAND'
+#if 0
 	lds		REG_TEMP_R16, UOS_G_TEST_COMMAND_TYPE
 	rcall		uos_push_1_char_in_fifo_tx
 
@@ -150,11 +188,16 @@ uos_print_command:
 
 	lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB
 	rcall		uos_convert_and_put_fifo_tx
-	; Fin: Echo de la commande avec uniquement l'adresse
+	; Fin: Impression des commandes et de leurs arguments a partir du buffer 'UOS_G_TEST_COMMAND'
+#else
+	ldi		REG_Z_MSB, high(UOS_G_TEST_COMMAND)
+	ldi		REG_Z_LSB, low(UOS_G_TEST_COMMAND)
+	rcall		uos_push_text_sram_in_fifo_tx
+#endif
 
 	ldi		REG_Z_MSB, ((uos_text_hexa_value_lf_end << 1) / 256)
 	ldi		REG_Z_LSB, ((uos_text_hexa_value_lf_end << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	ret
 ; ---------
@@ -174,7 +217,6 @@ _uos_exec_command:
 	; Compteur d'execution commande sur 8 bits
 	lds		REG_TEMP_R16, G_NBR_VALUE_TRACE
 	rcall		uos_convert_and_put_fifo_tx
-
 	; Fin: Comptabilisation et print des executions
 
 	; Liste des commandes supportees
@@ -215,7 +257,7 @@ _uos_exec_command_unknown_here:
 
 	ldi		REG_Z_MSB, high(_uos_callback_command)	; Execution si possible de l'extension
 	ldi		REG_Z_LSB, low(_uos_callback_command)	; dans l'espace PROGRAM
-	rcall		_uos_exec_extension_into_program
+	call		_uos_exec_extension_into_program
 	; ---------
 
 	brts		_uos_exec_command_test_end	; Saut si commande reconnue dans l'espace PROGRAM
@@ -274,7 +316,7 @@ _uos_exec_command_type_p_read_loop_0:
 	; Impression du dump ("[0x....]")
 	ldi		REG_Z_MSB, ((uos_text_hexa_value << 1) / 256)
 	ldi		REG_Z_LSB, ((uos_text_hexa_value << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	ldi		REG_TEMP_R18, 16
 
@@ -291,7 +333,7 @@ _uos_exec_command_type_p_read_loop_1:
 
 	ldi		REG_Z_MSB, ((uos_text_hexa_value_lf_end << 1) / 256)
 	ldi		REG_Z_LSB, ((uos_text_hexa_value_lf_end << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	dec		REG_TEMP_R17
 	brne		_uos_exec_command_type_p_read_loop_0
@@ -464,7 +506,7 @@ _uos_exec_command_type_p_write_out_of_range:
 _uos_exec_command_type_p_write_error:
 	ldi      REG_Z_MSB, ((_uos_text_flash_error << 1) / 256)
 	ldi      REG_Z_LSB, ((_uos_text_flash_error << 1) % 256)
-	rcall    uos_push_text_in_fifo_tx
+	rcall    uos_push_text_flash_in_fifo_tx
 
 	movw		REG_X_LSB, REG_Z_LSB
 	rcall		uos_print_2_bytes_hexa
@@ -615,7 +657,7 @@ _uos_exec_command_type_s_read_loop_0:
 	; Impression du dump ("[0x....]")
 	ldi		REG_Z_MSB, ((text_hexa_value << 1) / 256)
 	ldi		REG_Z_LSB, ((text_hexa_value << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	ldi		REG_TEMP_R18, 16
 
@@ -641,7 +683,7 @@ _uos_exec_command_type_s_read_more2:
 
 	ldi		REG_Z_MSB, ((text_hexa_value_lf_end << 1) / 256)
 	ldi		REG_Z_LSB, ((text_hexa_value_lf_end << 1) % 256)
-	rcall		uos_push_text_in_fifo_tx
+	rcall		uos_push_text_flash_in_fifo_tx
 
 	dec		REG_TEMP_R17
 	brne		_uos_exec_command_type_s_read_loop_0
@@ -664,6 +706,7 @@ _uos_exec_command_type_s_read_more2:
 ;
 ; Retour ajoute a 'UOS_G_TEST_VALUE_MSB:UOS_G_TEST_VALUE_LSB'
 ; ---------
+uos_char_to_hex_incremental:
 _uos_char_to_hex_incremental:
 	push		REG_TEMP_R16
 	push		REG_TEMP_R17

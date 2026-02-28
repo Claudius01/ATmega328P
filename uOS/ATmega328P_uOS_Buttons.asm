@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS_Buttons.asm,v 1.3 2026/02/18 18:01:34 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Buttons.asm,v 1.4 2026/02/26 17:31:39 administrateur Exp $"
 
 #include "ATmega328P_uOS_Buttons.h"
 
@@ -84,10 +84,10 @@ _uos_gest_buttons_long:
 	ldi		REG_Z_LSB, low(_uos_text_press_button_long << 1)
 
 _uos_gest_buttons_print_text:
-	rcall		uos_push_text_in_fifo_tx_skip						; Print message "### Press button..."
+	rcall		uos_push_text_flash_in_fifo_tx_skip					; Print message "### Press button..."
 
-	lds		REG_TEMP_R17, UOS_G_FLAGS_2						; Reset 'FLG_2_ENABLE_DERIVATION'
-	cbr		REG_TEMP_R17, UOS_FLG_2_ENABLE_DERIVATION_MSK		; a chaque appui bouton
+	lds		REG_TEMP_R17, UOS_G_FLAGS_2							; Reset 'FLG_2_ENABLE_DERIVATION'
+	cbr		REG_TEMP_R17, UOS_FLG_2_ENABLE_DERIVATION_MSK	; a chaque appui bouton
 	sts		UOS_G_FLAGS_2, REG_TEMP_R17
 
 	; Determination du bouton #N [1, 2, 3, 4]
