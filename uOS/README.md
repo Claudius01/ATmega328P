@@ -25,7 +25,7 @@ Micro-OS est écrit entièrement en assembleur avec les fonctionnalités suivant
     * La lecture et l'écriture dans la SRAM
     * La lecture et l'écriture dans l'EEPROM
     * La lecture de la signature et des fusibles
-    * La reconfiguration de 7 vitesses de l'UART de 300 bauds à 19200 bauds 
+    * La reconfiguration de 7 vitesses de l'UART de 300 bauds à 19200 bauds sauvegardée dans l'EEPROM pour une prise en compte au prochain démarrage à chaud ou à froid
     * Cf. le fichier [Commandes/Réponses](Tests/Commands+Responses.txt) pour la liste exhaustive avec des exemples
 
 ## 📎 Applications
