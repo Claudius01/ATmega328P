@@ -1,6 +1,8 @@
 # ⭕ uOS
 Micro-OS est écrit entièrement en assembleur avec les fonctionnalités suivantes:
-* Cadencement matériel fixé à 100 µS
+* Cadencement matériel fixé à 100 µS indiquant à l'état bas le temps d'occupation des traitements sous It
+    * Cela permet à la fois de vérifier que le µC déroule bien le programme pour lequel les temporisations et cadencements internes sont conformes à la vitesse du processeur (8 MHz, 16 MHz ou 20 MHz supportés)
+    * De plus, cela indique que le temps passé dans les traitements des Its s'effectuent dans un temps très inférieur à ces 100 µS (typiquement le temps d'occupation n'exède pas 15 µS dans la version publiée de uOS) 
 * Gestion de 4 Leds:
     * Led verte allumée fugitivement pour l'activité en fond de tâche
     * Led jaune allumée fugitivement pour la détection des appuis boutons
