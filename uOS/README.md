@@ -1,15 +1,16 @@
 # ⭕ uOS
 Micro-OS est écrit entièrement en assembleur avec les fonctionnalités suivantes:
-* Cadencement matériel fixé à 100 µS indiquant à l'état bas le temps d'occupation des traitements sous It
-    * Cela permet à la fois de vérifier que le µC déroule bien le programme pour lequel les temporisations et cadencements internes sont conformes à la vitesse du processeur (8 MHz, 16 MHz ou 20 MHz supportés)
-    * De plus, cela indique que le temps passé dans les traitements des Its s'effectuent dans un temps très inférieur à ces 100 µS (typiquement le temps d'occupation n'exède pas 15 µS dans la version publiée de uOS) 
+* Cadencement matériel fixé à 100 µS quel que soit la vitesse du µC indiquant à l'état bas le temps d'occupation des traitements sous It
+    * Cela permet à la fois de vérifier que le µC déroule bien le programme pour lequel les temporisations et les cadencements internes sont conformes cette vitesse du processeur (8 MHz, 16 MHz ou 20 MHz supportés)
+    * De plus, cela indique que le temps passé dans les traitements des Its s'effectuent dans un temps très inférieur à ces 100 µS (typiquement le temps d'occupation n'excède pas 15 µS dans la version publiée ici de uOS) 
 * Gestion de 4 Leds:
-    * Led verte allumée fugitivement pour l'activité en fond de tâche et la prise compte des commande émise par UsbMonitor
-    * Led jaune allumée fugitivement pour la détection des appuis boutons ou lors des émissions de caractères vers UsbMonitor
-    * Led rouge allumée fugitivement ou en permanence suivant la source de l'erreur (commande reçue non supportée, appui simultané sur 2 boutons, erreur interne à acquiter par un appui bouton ou un Reset du µC)
+    * Led verte allumée fugitivement pour l'activité en fond de tâche et la prise compte des commandes émises par UsbMonitor
+    * Led jaune allumée fugitivement pour la détection des appuis boutons ou lors de l'émission de caractères vers UsbMonitor
+    * Led rouge allumée fugitivement ou en permanence suivant la source de l'erreur (commande reçue non supportée, appui simultané sur 2 boutons, erreur interne à acquitter par un appui bouton ou un RESET dans d'une erreur irrécupérable du µC)
     * Led bleue en réserve (non utilisée par uOS)
 * Gestion de 4 boutons avec le support des anti-rebonds, de l'appui court ou long sur un unique bouton
-    * 📔 L'appui simultané sur 2 boutons n'est pas supporté et produira un allumage de la led rougeÁ noter que uOS utilise 6 *timers* pour:
+    * 📔 L'appui simultané sur 2 boutons n'est pas supporté et produira un allumage de la led rouge
+    * Á noter que uOS utilise dans la version publiée ici 6 *timers* pour:
 * Gestion de 16 *timers* logiciel sur 16 bits du type *callback* avec une résolution de 1 mS
     * 📔 Á noter que uOS utilise 6 *timers* pour:
          * L'activité en fond de tâche
