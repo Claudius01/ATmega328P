@@ -10,13 +10,12 @@ Micro-OS est écrit entièrement en assembleur avec les fonctionnalités suivant
     * Led bleue en réserve (non utilisée par uOS)
 * Gestion de 4 boutons avec le support des anti-rebonds, de l'appui court ou long sur un unique bouton
     * 📔 L'appui simultané sur 2 boutons n'est pas supporté et produira un allumage de la led rouge
-    * Á noter que uOS utilise dans la version publiée ici 6 *timers* pour:
 * Gestion de 16 *timers* logiciel sur 16 bits du type *callback* avec une résolution de 1 mS
     * 📔 Á noter que uOS utilise 6 *timers* pour:
          * L'activité en fond de tâche
          * L'allumage fugitf de la Led rouge en cas d'erreurs
          * L'allumage fugitif de la Led jaune suite à l'appui sur un bouton
-         * La détection des appuis bouton
+         * La détection des appuis courts et longs sur un des 4 boutons
          * L'allumage fugitif de la Led verte 
 * Gestion d'une liaison UART *full duplex* de 300 bauds à 19200 bauds définis dans l'EEPROM (9600 bauds par defaut) et reconfigurable à chaud
 * Gestion des 2 interruptions *TIMER1_COMPA* et *PCINT0*
