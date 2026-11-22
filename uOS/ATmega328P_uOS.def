@@ -1,6 +1,11 @@
-; "$Id: ATmega328P_uOS.def,v 1.3 2026/01/21 16:06:50 administrateur Exp $"
+; "$Id: ATmega328P_uOS.def,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
+#ifdef USE_ATMEGA328P
 .include		"ATmega328P_uOS.pub"	; Definitions publiques de Micro OS generees automatiquement
+#endif
+#ifdef USE_ATMEGA328PB
+.include		"ATmega328PB_uOS.pub"	; Definitions publiques de Micro OS generees automatiquement
+#endif
 
 ; Definition des masques de bits [0x00, 0x01, ..., 0xff] pour les opcodes suivants:
 ; - ori  -> Logical OR with Immediate
@@ -35,8 +40,8 @@
 #define	IDX_BIT1				1
 #define	IDX_BIT0				0
 
-;.def		REG_R0				= r0		; Warning: Used by program C
-;.def		REG_R1				= r1		; Warning: Used by program C
+.def		REG_R0				= r0		; Warning: Used by program C
+.def		REG_R1				= r1		; Warning: Used by program C
 .def		REG_R2				= r2
 .def		REG_R3				= r3
 .def		REG_R4				= r4
@@ -50,6 +55,11 @@
 .def		REG_R12				= r12
 .def		REG_R13				= r13
 .def		REG_R14				= r14
+
+; TODO: Suppress "Warning : r15 is already assigned to 'REG_R15'!"
+#undef		REG_R15
+.def		REG_R15				= r15
+
 .def		REG_SAVE_SREG		= r15		; Sauvegarde temporaire de SREG dans les methodes ISR
 
 .def		REG_TEMP_R16		= r16

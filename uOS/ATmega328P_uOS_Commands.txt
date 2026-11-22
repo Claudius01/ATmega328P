@@ -1,8 +1,9 @@
-; "$Id: ATmega328P_uOS_Commands.txt,v 1.1 2026/02/18 18:01:34 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Commands.txt,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
-const_for_bauds_rate:
+const_for_bauds_rate_16_mhz:
 ; Durees en uS d'un bit a 16 MHz sur UART/Tx et UART/Rx
 ; => Division par 2 pour 8 MHz dans le cas du RC Osc interne (cf. 'init_hard')
+; ATmega328P 16/8 MHz
 .dw	  52				; #0: 19200 bauds
 .dw	 104				; #1:  9600 bauds
 .dw	 208				; #2:  4800 bauds
@@ -10,7 +11,18 @@ const_for_bauds_rate:
 .dw	 832				; #4:  1200 bauds
 .dw	1664				; #5:   600 bauds
 .dw	3328				; #6:   300 bauds
-const_for_bauds_rate_end:
+const_for_bauds_rate_16_mhz_end:
+
+const_for_bauds_rate_20_mhz:
+; ATmega328PB 20 MHz
+.dw	  65				; #0: 19200 bauds
+.dw	 130				; #1:  9600 bauds
+.dw	 260				; #2:  4800 bauds
+.dw	 520				; #3:  2400 bauds
+.dw	1040				; #4:  1200 bauds
+.dw	2080				; #5:   600 bauds
+.dw	4160				; #6:   300 bauds
+const_for_bauds_rate_20_mhz_end:
 
 text_hexa_value:
 .db	"[0x", CHAR_NULL

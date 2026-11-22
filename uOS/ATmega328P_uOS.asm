@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS.asm,v 1.25 2026/02/27 18:29:27 administrateur Exp $"
+; "$Id: ATmega328P_uOS.asm,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
 ; - Projet: ATmega328P_uOS
 ;
@@ -31,7 +31,13 @@
 ;                       entrainant des erreurs d'ecriture ;-((
 
 .include		"m328Pdef.inc"              ; Labels and identifiers for ATmega328p
+
+#ifdef USE_ATMEGA328P
 .include		"ATmega328P_uOS.h"
+#endif
+#ifdef USE_ATMEGA328PB
+.include		"ATmega328PB_uOS.h"
+#endif
 
 .cseg
 
@@ -162,7 +168,7 @@ _uos_vector_timer_0_bootloader:
 	nop
 	nop
 
-.org	0x3580 
+.org	0x3000 
 
 ; ---------
 ; Adresse de programmation possible d'une page de 64 instructions
@@ -177,6 +183,17 @@ _uos_vector_timer_0_bootloader:
 
 ; ---------
 uos_main_program:
+	; Ajout code d'initialisation suite a l'accueil depuis 'Optiboot'
+	clr		REG_TEMP_R16
+	out	   SREG, REG_TEMP_R16
+	ldi		REG_TEMP_R17, high(RAMEND)
+	ldi	   REG_TEMP_R16, low(RAMEND)
+	out	   SPH, REG_TEMP_R17
+	out	   SPL, REG_TEMP_R16
+
+	call		_uos_reset_watchdog
+	; Fin: Ajout code d'initialisation suite a l'accueil depuis 'Optiboot'
+
 	; Marquage de l'origine du RESET (Espace PROGRAM)
 	clr		REG_TEMP_R16
 	sbr		REG_TEMP_R16, FLG_STATE_AT_RESET_PROGRAM_MSK		
@@ -194,7 +211,19 @@ uos_main_program:
 
 	rjmp		_uos_main
 
+uos_main_bootloader:
 _uos_main_bootloader:
+	; Ajout code d'initialisation suite a l'accueil depuis 'Optiboot'
+	clr		REG_TEMP_R16
+	out	   SREG, REG_TEMP_R16
+	ldi		REG_TEMP_R17, high(RAMEND)
+	ldi	   REG_TEMP_R16, low(RAMEND)
+	out	   SPH, REG_TEMP_R17
+	out	   SPL, REG_TEMP_R16
+
+	call		_uos_reset_watchdog
+	; Fin: Ajout code d'initialisation suite a l'accueil depuis 'Optiboot'
+
 	; Marquage de l'origine du RESET (Espace BOOTLOADER)
 	clr		REG_TEMP_R16
 	sbr		REG_TEMP_R16, FLG_STATE_AT_RESET_BOOTLOADER_MSK		
@@ -220,7 +249,12 @@ _uos_main:
 	; Sortie Leds et de la Pulse IT
 	; => Warning: La Led BLUE est partagee avec le TX
 	;             => Le port correspondant sera remis en Input pour ne pas "ecrase" la signal d'emission ;-)
+
+#if !USE_SCOPE_ON_PORTD_BIT2
 	ldi		REG_TEMP_R16, (1 << UOS_IDX_BIT_LED_RED) | (1 << UOS_IDX_BIT_LED_GREEN) | (1 << UOS_IDX_BIT_LED_YELLOW) | (1 << UOS_IDX_BIT_LED_BLUE) | (1 << IDX_BIT_PULSE_IT)
+#else
+	ldi		REG_TEMP_R16, (1 << UOS_IDX_BIT_LED_RED) | (1 << UOS_IDX_BIT_LED_GREEN) | (1 << UOS_IDX_BIT_LED_YELLOW) | (1 << UOS_IDX_BIT_LED_BLUE)
+#endif
 	out		DDRB, REG_TEMP_R16
 
 	; Extinction des 4 Leds BLUE, RED, GREEN et YELLOW et de leur image
@@ -229,7 +263,9 @@ _uos_main:
 	out		PORTB, REG_TEMP_R23					; Raffraichissement du PORTB
 
 	rcall		_uos_init_hard			; Initialisation du materiel
+
 	rcall		read_and_test_magic_const
+
 	rcall		init_test_leds			; Lancement du test led en fond de tache
 
 	; Initialisation timer 'TIMER_LED_GREEN' pour le chenillard Led GREEN 
@@ -350,7 +386,7 @@ _uos_main_loop_cont_d:
 	; ---------
 
 	; Interpretation de la commande recue
-	rcall		_uos_interpret_command
+	call		_uos_interpret_command
 
 	; Fin: --- Traitements toutes les 1mS
 
@@ -536,9 +572,9 @@ uos_restore_reg_r0_r31:
 ; Print de la frequence 8/16 MHz @ FLG_0_RC_OSC_8MHZ
 ; ---------
 uos_print_frequency:
-	; A priori 16 MHz
-	ldi		REG_Z_MSB, high(_uos_text_frequency_16_mhz << 1)
-	ldi		REG_Z_LSB, low(_uos_text_frequency_16_mhz << 1)
+	; A priori 16 MHz ou 20 MHz
+	ldi		REG_Z_MSB, high(_uos_text_frequency_high_mhz << 1)
+	ldi		REG_Z_LSB, low(_uos_text_frequency_high_mhz << 1)
 
 	lds		REG_TEMP_R23, UOS_G_FLAGS_0
 	sbrs		REG_TEMP_R23, FLG_0_RC_OSC_8MHZ_IDX
@@ -633,7 +669,7 @@ exec_test_leds_more:
 
 	ldi		REG_TEMP_R18, (DURATION_TIMER_TEST_LEDS % 256)
 	ldi		REG_TEMP_R19, (DURATION_TIMER_TEST_LEDS / 256)
-	call		uos_start_timer
+	rcall		uos_start_timer
 
 exec_test_leds_rtn:
 	ret
@@ -650,13 +686,13 @@ read_and_test_magic_const:
 	lpm		REG_TEMP_R16, Z+
 	cpi		REG_TEMP_R16, 0xFF
 	brne		read_and_test_magic_const_more
-	jmp		_uos_awaiting_prog
+	rjmp		_uos_awaiting_prog
 
 read_and_test_magic_const_more:
 	lpm		REG_TEMP_R16, Z
 	cpi		REG_TEMP_R16, 0xFF
 	brne		read_and_test_magic_const_rtn
-	jmp		_uos_awaiting_prog
+	rjmp		_uos_awaiting_prog
 
 read_and_test_magic_const_rtn:
 	ret
@@ -743,10 +779,13 @@ _uos_tim1_compa_isr:
 	push		REG_TEMP_R23
 
 #if USE_MARK_IN_TIM1_COMPA
-	; Creneau --\_/--- pour indiquer la charge de travail dans l'It
+#if USE_SCOPE_ON_PORTD_BIT2
+	cbi		PORTD, PD2
+#else
 	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
 	cbr		REG_TEMP_R23, MSK_BIT_PULSE_IT
 	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
+#endif
 #endif
 
 	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
@@ -832,10 +871,14 @@ _uos_tim1_compa_isr_end:
 
 #if USE_MARK_IN_TIM1_COMPA
 	; Fin: Creneau --\_/---
+#if USE_SCOPE_ON_PORTD_BIT2
+	sbi		PORTD, PD2
+#else
 	lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE 
 	sbr		REG_TEMP_R23, MSK_BIT_PULSE_IT
 	sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
 	out		PORTB, REG_TEMP_R23
+#endif
 #endif
 
 	pop		REG_TEMP_R23
@@ -955,54 +998,6 @@ _uos_pcint2_isr_end:
 ; ---------
 
 ; ---------
-_uos_forever:
-	cli
-	setLedRedOn
-
-_uos_forever_loop:	
-	rjmp		_uos_forever_loop
-; ---------
-
-; ---------
-; Mise sur voie de garage avec clignotement "lent" ou "rapide" de la Led RED
-; ---------
-_uos_awaiting_prog:
-	cli
-	ldi		REG_TEMP_R16, 5
-	rjmp		_uos_invalid_it_leds_off
-
-_uos_invalid_it_speed:
-	cli
-	ldi		REG_TEMP_R16, 20
-	rjmp		_uos_invalid_it_more
-
-_uos_invalid_it_slow:
-	cli
-	ldi		REG_TEMP_R16, 80
-
-_uos_invalid_it_more:
-	; Memorisation du numero de l'It non attendue dans l'espace bootloader
-	sbr		REG_TEMP_R17, UOS_FLG_WRONG_IT_BOOLOADER_MSK
-	cbr		REG_TEMP_R17, UOS_FLG_WRONG_IT_PROGRAM_MSK
-	sts		UOS_G_STATES_POST_MORTEM, REG_TEMP_R17
-
-_uos_invalid_it_leds_off:
-	; Extinction de toutes les Leds
-	setLedsOff
-
-_uos_invalid_it_loop:
-	push		REG_TEMP_R16			; Save/Restore temporisation dans REG_TEMP_R16
-	setLedRedOn
-	rcall		uos_delay_big_2
-	pop		REG_TEMP_R16
-	push		REG_TEMP_R16
-	setLedRedOff
-	rcall		uos_delay_big_2
-	pop		REG_TEMP_R16
-	rjmp		_uos_invalid_it_loop
-; ---------
-
-; ---------
 ; Initialisation de la SRAM
 ; - Pas d'initialisation des 2 derniers bytes (retour de la fonction)
 ;
@@ -1090,26 +1085,87 @@ get_index_bauds_rate_value:
 	ret
 ; ---------
 
+; ---------
+; Mise dans la FIFO/Tx d'un texte lu de l'EEPROM et termine par '\0'
+; => Si un 0xff est lu (EEPROM non initialisee), abandon de la lecture
+; => Limitation a 8 caracteres lus pour eviter un bouclage ;-)
+;
+; Usage:
+;      ldi		REG_TEMP_R18, 8
+;      ldi		REG_X_MSB, <address MSB>
+;      ldi		REG_X_LSB, <address LSB>
+;      rcall   uos_push_text_in_fifo_tx_from_eeprom
+;
+; ---------
+uos_push_text_in_fifo_tx_from_eeprom_skip:
+	lds		REG_TEMP_R23, UOS_G_FLAGS_0
+	sbrc		REG_TEMP_R23, UOS_FLG_0_PRINT_SKIP_IDX		; Pas de trace si 'FLG_0_PRINT_SKIP' affirme
+
+	ret
+
+uos_push_text_in_fifo_tx_from_eeprom:
+uos_push_text_in_fifo_tx_from_eeprom_loop:
+	call		uos_eeprom_read_byte
+
+	cpi		REG_TEMP_R16, 0xff
+	breq		uos_push_text_in_fifo_tx_from_eeprom_end
+
+	tst		REG_TEMP_R16
+	breq		uos_push_text_in_fifo_tx_from_eeprom_end
+
+	rcall		uos_push_1_char_in_fifo_tx
+
+	adiw		REG_X_LSB, 1
+	dec		REG_TEMP_R18
+	brne		uos_push_text_in_fifo_tx_from_eeprom_loop
+
+uos_push_text_in_fifo_tx_from_eeprom_end:
+	ret
+; ---------
+
+; ---------
+; List des fichiers '.asm'
+; ---------
+; Fonctionnalites dans un fichier a part
+; => Aucune contrainte sur l'ordre d'inclusion
+;    => Si ordre different ou ajout de fonctionnalites,  certains branchements (rjump/jump) ou
+;       appel aux subroutines (rcall/call) devront etre adaptes (suppression erreur ou warning)
+;    => A noter que le fichier 'ATmega328P_uOS_Commands.asm' implemente les routines d'ecriture
+;       dans la FLASH qui doivent etre definies dans l'espace de demarrage de uOS (0x3800-0x3FFF)
+;       => En particulier la routine '_uos_do_spm' doit etre dans l'espace de demarrage
+#ifdef USE_ATMEGA328P
+.include		"ATmega328P_uOS_Misc.asm"
+.include		"ATmega328P_uOS_Timers.asm"
+.include		"ATmega328P_uOS_Uart.asm"
+.include		"ATmega328P_uOS_Buttons.asm"
+.include		"ATmega328P_uOS_Print.asm"
+#endif
+#ifdef USE_ATMEGA328PB
+.include		"ATmega328PB_uOS_Misc.asm"
+.include		"ATmega328PB_uOS_Timers.asm"
+.include		"ATmega328PB_uOS_Uart.asm"
+.include		"ATmega328PB_uOS_Buttons.asm"
+.include		"ATmega328PB_uOS_Print.asm"
+#endif
+; Fin: Fonctionnalites dans un fichier a part
+
+; ---------
+
 ; [Padding jusqu'a l'adresse 0x37FF
 .include		"PaddingWith16Bytes.h"
+.include		"PaddingWith16Bytes.h"
+.include		"PaddingWith16Bytes.h"
+.include		"PaddingWith16Bytes.h"
+.include		"PaddingWith16Bytes.h"
+.include		"PaddingWith16Bytes.h"
+.include		"PaddingWith16Bytes.h"
+.include		"PaddingWith16Bytes.h"
+.include		"PaddingWith16Bytes.h"
+.include		"PaddingWith16Bytes.h"
+.include		"PaddingWith16Bytes.h"
 
-; Complement...
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-
-	rjmp		_uos_forever		; Mise sur voie de garage ;-)
+; Complement ...
+	jmp		_uos_forever		; Mise sur voie de garage ;-)
 ; Fin: Padding jusqu'a l'adresse 0x37FF]
 
 ; Adresses de base des vecteurs d'interruptions avec 'fuses_high' = bxxxxx000
@@ -1121,8 +1177,7 @@ _uos_reset_bootloader:
 	;    la lecture de 'UOS_G_STATES_POST_MORTEM'
 	;    => Origine: 'FLG_WRONG_IT_BOOTLOADER' (Bit<7>)
 	;       Num It:  Bits<0-5>
-	nop
-	rjmp		_uos_main_bootloader								; # 1 RESET
+	jmp		_uos_main_bootloader								; # 1 RESET
 
 	ldi		REG_TEMP_R17, 0x02
 	rjmp		_uos_invalid_it_speed							; # 2 INT0
@@ -1136,8 +1191,7 @@ _uos_reset_bootloader:
 	ldi		REG_TEMP_R17, 0x05
 	rjmp		_uos_invalid_it_speed							; # 5 PCINT1
 
-	nop
-	rjmp		_uos_pcint2_isr_bootloader						; # 6 PCINT2
+	jmp		_uos_pcint2_isr_bootloader						; # 6 PCINT2
 
 	ldi		REG_TEMP_R17, 0x07
 	rjmp		_uos_invalid_it_speed							; # 7 WDT
@@ -1154,8 +1208,7 @@ _uos_reset_bootloader:
 	ldi		REG_TEMP_R17, 0x11
 	rjmp		_uos_invalid_it_speed							; #11 TIMER1 CAPT
 
-	nop
-	rjmp		_uos_tim1_compa_isr_bootloader				; #12 TIMER1 COMPA
+	jmp		_uos_tim1_compa_isr_bootloader				; #12 TIMER1 COMPA
 
 	ldi		REG_TEMP_R17, 0x13
 	rjmp		_uos_invalid_it_speed							; #13 TIMER1 COMPB
@@ -1175,8 +1228,7 @@ _uos_reset_bootloader:
 	ldi		REG_TEMP_R17, 0x18
 	rjmp		_uos_invalid_it_speed							; #18 SPI, SPC
 
-	nop
-	rjmp		_uos_usart_rx_complete_isr_bootloader		; #19 USART, RX
+	jmp		_uos_usart_rx_complete_isr_bootloader		; #19 USART, RX
 
 	ldi		REG_TEMP_R17, 0x20
 	rjmp		_uos_invalid_it_speed							; #20 USART, UDRE
@@ -1261,20 +1313,111 @@ _uos_callback_command:
 ; ---------
 
 ; ---------
-; Fonctionnalites dans un fichier a part
-; => Aucune contrainte sur l'ordre d'inclusion
-;    => Si ordre different ou ajout de fonctionnalites,  certains branchements (rjump/jump) ou
-;       appel aux subroutines (rcall/call) devront etre adaptes (suppression erreur ou warning)
-;    => A noter que le fichier 'ATmega328P_uOS_Commands.asm' implemente les routines d'ecriture
-;       dans la FLASH qui doivent etre definies dans l'espace de demarrage de uOS (0x3800-0x3FFF)
-;       => En particulier la routine '_uos_do_spm' doit etre dans l'espace de demarrage
-.include		"ATmega328P_uOS_Misc.asm"
-.include		"ATmega328P_uOS_Timers.asm"
-.include		"ATmega328P_uOS_Uart.asm"
-.include		"ATmega328P_uOS_Buttons.asm"
-.include		"ATmega328P_uOS_Print.asm"
+; Mise sur voie de garage avec clignotement "lent" ou "rapide" de la Led RED
+; ---------
+_uos_awaiting_prog:
+	cli
+	ldi		REG_TEMP_R16, 5
+	rjmp		_uos_invalid_it_leds_off
+
+_uos_invalid_it_speed:
+	cli
+	ldi		REG_TEMP_R16, 20
+	rjmp		_uos_invalid_it_more
+
+_uos_invalid_it_slow:
+	cli
+	ldi		REG_TEMP_R16, 80
+
+_uos_invalid_it_more:
+	; Memorisation du numero de l'It non attendue dans l'espace bootloader
+	sbr		REG_TEMP_R17, UOS_FLG_WRONG_IT_BOOLOADER_MSK
+	cbr		REG_TEMP_R17, UOS_FLG_WRONG_IT_PROGRAM_MSK
+	sts		UOS_G_STATES_POST_MORTEM, REG_TEMP_R17
+
+_uos_invalid_it_leds_off:
+	; Extinction de toutes les Leds
+	setLedsOff
+
+_uos_invalid_it_loop:
+	push		REG_TEMP_R16			; Save/Restore temporisation dans REG_TEMP_R16
+	setLedRedOn
+	rcall		uos_delay_big_2
+	pop		REG_TEMP_R16
+	push		REG_TEMP_R16
+	setLedRedOff
+	rcall		uos_delay_big_2
+	pop		REG_TEMP_R16
+	rjmp		_uos_invalid_it_loop
+; ---------
+
+; ---------
+_uos_forever:
+	cli
+	setLedRedOn
+
+_uos_forever_loop:	
+	rjmp		_uos_forever_loop
+; ---------
+
+#ifdef USE_ATMEGA328P
 .include		"ATmega328P_uOS_Commands.asm"
-; Fin: Fonctionnalites dans un fichier a part
+#endif
+#ifdef USE_ATMEGA328PB
+.include		"ATmega328P_uOS_Commands.asm"
+#endif
+
+; ---------
+_uos_do_spm:
+
+	; Awaiting the previous SPM complete
+_uos_wait_spm:
+	in			REG_TEMP_R16, SPMCSR
+	sbrc		REG_TEMP_R16, SELFPRGEN
+	rjmp		_uos_wait_spm
+	; End: Awaiting the previous SPM complete
+
+	; Input: REG_TEMP_R20 determines SPM action
+	;        => Disable interrupts if enabled, save status in 'REG_TEMP_R17'
+	in			REG_TEMP_R17, SREG
+	cli
+
+_uos_wait_ee:
+	sbic		EECR, EEPE
+	rjmp		_uos_wait_ee
+
+	; SPM timed sequence
+	out		SPMCSR, REG_TEMP_R20
+	spm
+
+	; Restore SREG (to enable interrupts if originally enabled)
+	out		SREG, REG_TEMP_R17	; Restore 'SREG' from 'REG_TEMP_R17'
+	ret
+; ---------
+
+; ---------
+; Reset Watchdog Timer
+; ---------
+_uos_reset_watchdog:
+	wdr
+
+	; Clear WDRF in MCUSR
+	in			REG_TEMP_R16, MCUSR
+	andi		REG_TEMP_R16, (0xff & (0 << WDRF))
+	out		MCUSR, REG_TEMP_R16
+
+	; Write logical one to WDCE and WDE
+	; Keep old prescaler setting to prevent unintentional time-out
+	lds		REG_TEMP_R16, WDTCSR
+	ori		REG_TEMP_R16, (1 << WDCE) | (1 << WDE)
+	sts		WDTCSR, REG_TEMP_R16
+
+	; Turn off WDT
+	ldi		REG_TEMP_R16, (0 << WDE)
+	sts		WDTCSR, REG_TEMP_R16
+
+	ret
+; ---------
 
 ; ---------
 .dseg
@@ -1292,18 +1435,26 @@ UOS_G_SRAM_BOOTLOADER_END_OF_USE:	.byte		1		; Initialisee a 0xff pour reperage d
 ; ---------
 ; Derniere instruction du programme
 ; ---------
-	jmp		_uos_forever	; Ne sera jamais execute
+	rjmp		_uos_forever	; Ne sera jamais execute
 
 .dw	CHAR_SEPARATOR			; Debut section datas		; NE PAS SUPPRIMER ;-)
 
 _uos_text_prompt:
 ; Warning: Passage de la Rev: sur x.yz
-.db	"### ATmega328p $Revision: 1.25 $", CHAR_LF, CHAR_NULL
+.db	"### ATmega328P (Optiboot) $Revision: 1.1.1.1 $", CHAR_LF, CHAR_NULL
 
+#ifdef USE_ATMEGA328P
 .include		"ATmega328P_uOS.txt"
 .include		"ATmega328P_uOS_Misc.txt"
 .include		"ATmega328P_uOS_Print.txt"
 .include		"ATmega328P_uOS_Commands.txt"
+#endif
+#ifdef USE_ATMEGA328PB
+.include		"ATmega328PB_uOS.txt"
+.include		"ATmega328PB_uOS_Misc.txt"
+.include		"ATmega328PB_uOS_Print.txt"
+.include		"ATmega328PB_uOS_Commands.txt"
+#endif
 
 _uos_magic_const:
 .dw	0x1234

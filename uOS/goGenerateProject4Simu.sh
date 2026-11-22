@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#ident "@(#) micro-infos $Id: goGenerateProject4Simu.sh,v 1.3 2026/02/25 13:31:32 administrateur Exp $"
+#ident "@(#) micro-infos $Id: goGenerateProject4Simu.sh,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
 # Script de production d'un projet passe en argument
 # Exemples:
@@ -37,6 +37,7 @@
 set -e
 
 AVRA_DIR="/home/administrateur/Programmes/avra-master_1.4.3"
+#AVRA_DIR="/home/crudel/Programmes/avra-master_1.4.3"
 AVRA_BIN="${AVRA_DIR}/src/avra"
 AVRA_INC="${AVRA_DIR}/includes"
 
@@ -46,7 +47,7 @@ if [ -z ${1} ]; then
 	echo "Usage: $0 clean|name_project"
 	echo "Examples:"
 	echo "  - $0 clean"
-	echo "  - $0 ATmega328P"
+	echo "  - $0 Pololu-20MHz-B"
 	exit 2
 elif [ "${1}" == "clean" ]; then
         echo "Clean project..."
@@ -88,7 +89,7 @@ echo
 echo "################## Production of '${PROJECTS_FILE}' ##################"
 
 # Warning: USE_AVRSIMU=0 pour la cible et USE_AVRSIMU=1 pour la simulation
-${AVRA_BIN} -D USE_AVRSIMU=1 -I ${PROJECTS} -I ${AVRA_INC} -m ${PROJECTS_FILE}.${EXT_MAP} -l ${PROJECTS_FILE}.${EXT_LST} ${PROJECTS_FILE}.${EXT_ASM}
+${AVRA_BIN} -D USE_ATMEGA328 -D USE_AVRSIMU=1 -D USE_20MHZ=0 -I ${PROJECTS} -I ${AVRA_INC} -m ${PROJECTS_FILE}.${EXT_MAP} -l ${PROJECTS_FILE}.${EXT_LST} ${PROJECTS_FILE}.${EXT_ASM}
 
 if [ ! -f ${PROJECTS_FILE}.${EXT_LST} ]; then
 	echo "Error: No build ;-("	

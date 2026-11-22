@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS_Uart.h,v 1.2 2026/02/18 18:01:34 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Uart.h,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
 ; Gestion de l'UART
 ; -----------------
@@ -41,7 +41,7 @@ G_UART_FIFO_RX_DATA:			.byte		(SIZE_UART_FIFO_RX - 1)		; 1st byte de la FIFO/Rx
 G_UART_FIFO_RX_DATA_END:	.byte		1									; Last byte de la FIFO/Rx
 
 ; FIFO UART/Tx
-#define	SIZE_UART_FIFO_TX			256		; Puissance de 2 pour un modulo SIZE_UART_FIFO_TX
+#define	SIZE_UART_FIFO_TX			64		; Puissance de 2 pour un modulo SIZE_UART_FIFO_TX
 
 G_UART_FIFO_TX_WRITE:		.byte		1
 G_UART_FIFO_TX_READ:			.byte		1

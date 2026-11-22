@@ -1,6 +1,11 @@
-; "$Id: ATmega328P_uOS_Timers.asm,v 1.5 2026/02/18 18:01:34 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Timers.asm,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
+#ifdef USE_ATMEGA328P
 #include "ATmega328P_uOS_Timers.h"
+#endif
+#ifdef USE_ATMEGA328PB
+#include "ATmega328PB_uOS_Timers.h"
+#endif
 
 .cseg
 

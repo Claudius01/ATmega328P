@@ -1,6 +1,11 @@
-; "$Id: ATmega328P_uOS_Buttons.asm,v 1.4 2026/02/26 17:31:39 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Buttons.asm,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
+#ifdef USE_ATMEGA328P
 #include "ATmega328P_uOS_Buttons.h"
+#endif
+#ifdef USE_ATMEGA328PB
+#include "ATmega328PB_uOS_Buttons.h"
+#endif
 
 .cseg
 
@@ -86,6 +91,7 @@ _uos_gest_buttons_long:
 _uos_gest_buttons_print_text:
 	rcall		uos_push_text_flash_in_fifo_tx_skip					; Print message "### Press button..."
 
+uos_disable_programmation:
 	lds		REG_TEMP_R17, UOS_G_FLAGS_2							; Reset 'FLG_2_ENABLE_DERIVATION'
 	cbr		REG_TEMP_R17, UOS_FLG_2_ENABLE_DERIVATION_MSK	; a chaque appui bouton
 	sts		UOS_G_FLAGS_2, REG_TEMP_R17
@@ -163,6 +169,7 @@ _uos_gest_buttons_1_long:
 	breq		_uos_gest_buttons_more
 
 	; Autorisation d'ecriture dans le programme si appui long bouton #1 dans BOOTLOADER
+uos_enable_programmation:
 	lds		REG_TEMP_R17, UOS_G_FLAGS_2
 	sbr		REG_TEMP_R17, UOS_FLG_2_ENABLE_DERIVATION_MSK
 	sts		UOS_G_FLAGS_2, REG_TEMP_R17

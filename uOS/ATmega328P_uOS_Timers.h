@@ -1,10 +1,10 @@
-; "$Id: ATmega328P_uOS_Timers.h,v 1.3 2026/02/18 18:01:34 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Timers.h,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
 ; Attribution des 'NBR_TIMER' timers #0, #1, ..., #7
 ; => Le traitement associe a chaque timer est effectue dans l'ordre de son index
 #define	NBR_TIMER							16
 
-; 10 Timers destines au PROGRAM
+; 9 Timers destines au PROGRAM
 #define	TIMER_SPARE_0						0		; Reserve
 #define	TIMER_SPARE_1						1		; Reserve
 #define	TIMER_SPARE_2						2		; Reserve

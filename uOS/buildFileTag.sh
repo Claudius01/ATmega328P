@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#ident "$Id: buildFileTag.sh,v 1.2 2026/02/18 18:01:34 administrateur Exp $"
+#ident "$Id: buildFileTag.sh,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
 #set -x
 #set -e

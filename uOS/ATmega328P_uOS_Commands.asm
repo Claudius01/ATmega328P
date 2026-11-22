@@ -1,6 +1,11 @@
-; "$Id: ATmega328P_uOS_Commands.asm,v 1.16 2026/02/28 16:08:14 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Commands.asm,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
+#ifdef USE_ATMEGA328P
 #include "ATmega328P_uOS_Commands.h"
+#endif
+#ifdef USE_ATMEGA328PB
+#include "ATmega328PB_uOS_Commands.h"
+#endif
 
 .cseg
 
@@ -542,27 +547,72 @@ _uos_exec_command_type_b_maj:
 	ldi		REG_X_MSB, (EEPROM_ADDR_BAUDS_IDX / 256)
 	ldi		REG_X_LSB, (EEPROM_ADDR_BAUDS_IDX % 256)
 	lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB
-	rcall		uos_eeprom_write_byte
+	call		uos_eeprom_write_byte
 	; End: Update EEPROM
 
 	clr		REG_X_MSB
 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
 
 _uos_set_bauds_rate:
+	; TODO: Mode RC_OSC_8MHZ non supporte en 20 MHz car la division ne peut s'appliquer
+	; => Discrimination @ 'FLG_0_RC_OSC_8MHZ' pour reprendre la table 'const_for_bauds_rate_16_mhz'
+	;    mais depassement memoire en attendant d'ajuster le programme entre [0x3580-0x3FFF]
+
 	; Multiplication par 2 pour acceder a chaque doublets de la table 'const_for_bauds_rate'
 	; => Pas de report dans 'REG_X_MSB' car 7 resultats dans la plage [0, 2, 4, 6, 8, 10 et 12]
 	lsl		REG_X_LSB
 
-	ldi		REG_Z_MSB, high(const_for_bauds_rate << 1)
-	ldi		REG_Z_LSB, low(const_for_bauds_rate << 1)
+#if !USE_20MHZ
+	ldi		REG_Z_MSB, high(const_for_bauds_rate_16_mhz << 1)
+	ldi		REG_Z_LSB, low(const_for_bauds_rate_16_mhz << 1)
+#else
+	; Ajustement a 8 MHz @ 'FLG_0_RC_OSC4yy_8MHZ'
+	; => Prise a priori des valeurs en vue de les diviser par 2...
+	ldi		REG_Z_MSB, high(const_for_bauds_rate_16_mhz << 1)
+	ldi		REG_Z_LSB, low(const_for_bauds_rate_16_mhz << 1)
+
+	lds		REG_TEMP_R23, UOS_G_FLAGS_0
+	sbrc		REG_TEMP_R23, FLG_0_RC_OSC_8MHZ_IDX
+
+	rjmp		_uos_set_bauds_rate_20mhz_more
+
+	; Prise des valeurs pour un 20 MHz
+	ldi		REG_Z_MSB, high(const_for_bauds_rate_20_mhz << 1)
+	ldi		REG_Z_LSB, low(const_for_bauds_rate_20_mhz << 1)
+
+_uos_set_bauds_rate_20mhz_more:
+#endif
+
 	add		REG_Z_LSB, REG_X_LSB	
 	adc		REG_Z_MSB, REG_X_MSB	
 
 	; Adresse du dernier doublet cadree sur un mot
-	ldi		REG_TEMP_R17, low((const_for_bauds_rate_end - 1) << 1)
+#if !USE_20MHZ
+	ldi		REG_TEMP_R17, low((const_for_bauds_rate_16_mhz_end - 1) << 1)
 	cp			REG_TEMP_R17, REG_Z_LSB
-	ldi		REG_TEMP_R17, high((const_for_bauds_rate_end - 1) << 1)
+	ldi		REG_TEMP_R17, high((const_for_bauds_rate_16_mhz_end - 1) << 1)
 	cpc		REG_TEMP_R17, REG_Z_MSB
+#else
+	lds		REG_TEMP_R23, UOS_G_FLAGS_0
+	sbrs		REG_TEMP_R23, FLG_0_RC_OSC_8MHZ_IDX
+
+	rjmp		_uos_set_bauds_rate_20mhz_more2
+
+	ldi		REG_TEMP_R17, low((const_for_bauds_rate_16_mhz_end - 1) << 1)
+	cp			REG_TEMP_R17, REG_Z_LSB
+	ldi		REG_TEMP_R17, high((const_for_bauds_rate_16_mhz_end - 1) << 1)
+	cpc		REG_TEMP_R17, REG_Z_MSB
+	rjmp		_uos_set_bauds_rate_20mhz_more3
+
+_uos_set_bauds_rate_20mhz_more2:
+	ldi		REG_TEMP_R17, low((const_for_bauds_rate_20_mhz_end - 1) << 1)
+	cp			REG_TEMP_R17, REG_Z_LSB
+	ldi		REG_TEMP_R17, high((const_for_bauds_rate_20_mhz_end - 1) << 1)
+	cpc		REG_TEMP_R17, REG_Z_MSB
+
+_uos_set_bauds_rate_20mhz_more3:
+#endif
+
 	brmi		_uos_exec_command_type_b_maj_ko	; Z <= 'Adresse du dernier doublet' ?
 
 _uos_exec_command_type_b_maj_ok:					; -> Yes (adresse de copie dans la plage ;-)
@@ -571,17 +621,17 @@ _uos_exec_command_type_b_maj_ok:					; -> Yes (adresse de copie dans la plage ;-
 	lpm		REG_TEMP_R16, Z+				; LSB value
 	lpm		REG_TEMP_R17, Z				; MSB value
 
-	; Ajustement 8/16 MHz @ 'FLG_0_RC_OSC_8MHZ'
+	; Ajustement 8/16/20 MHz @ 'FLG_0_RC_OSC4yy_8MHZ'
 	lds		REG_TEMP_R23, UOS_G_FLAGS_0
 	sbrs		REG_TEMP_R23, FLG_0_RC_OSC_8MHZ_IDX
 
 	rjmp		_uos_exec_command_type_b_maj_no_rc_osc_8mhz
 
-	; Division par 2 de la valeur a configurer ;-)
+	; Division par 2 de la valeur a configurer dans le cas 16 MHz ;-)
 	lsr		REG_TEMP_R17
 	ror		REG_TEMP_R16
 
-	; Fin: Ajustement 8/16 MHz @ 'FLG_0_RC_OSC_8MHZ'
+	; Fin: Ajustement 8/16/20 MHz @ 'FLG_0_RC_OSC_8MHZ'
 
 _uos_exec_command_type_b_maj_no_rc_osc_8mhz:
 	sts		UBRR0H, REG_TEMP_R17
@@ -874,34 +924,6 @@ _uos_eeprom_read_byte_wait:
 	in			REG_TEMP_R16, EEDR
 	; Fin: Lecture a l'adresse 'REG_X_MSB:REG_X_LSB'
 
-	ret
-; ---------
-
-; ---------
-_uos_do_spm:
-
-	; Awaiting the previous SPM complete
-_uos_wait_spm:
-	in			REG_TEMP_R16, SPMCSR
-	sbrc		REG_TEMP_R16, SELFPRGEN
-	rjmp		_uos_wait_spm
-	; End: Awaiting the previous SPM complete
-
-	; Input: REG_TEMP_R20 determines SPM action
-	;        => Disable interrupts if enabled, save status in 'REG_TEMP_R17'
-	in			REG_TEMP_R17, SREG
-	cli
-
-_uos_wait_ee:
-	sbic		EECR, EEPE
-	rjmp		_uos_wait_ee
-
-	; SPM timed sequence
-	out		SPMCSR, REG_TEMP_R20
-	spm
-
-	; Restore SREG (to enable interrupts if originally enabled)
-	out		SREG, REG_TEMP_R17	; Restore 'SREG' from 'REG_TEMP_R17'
 	ret
 ; ---------
 

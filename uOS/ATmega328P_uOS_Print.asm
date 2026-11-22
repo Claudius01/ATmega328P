@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS_Print.asm,v 1.9 2026/02/28 16:08:14 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Print.asm,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
 .cseg
 
@@ -142,7 +142,7 @@ uos_push_text_sram_in_fifo_tx:
 	lds		REG_TEMP_R23, UOS_G_FLAGS_0
 	cbr		REG_TEMP_R23, FLG_0_PRINT_FROM_FLASH_SRAM_MSK
 	sts		UOS_G_FLAGS_0, REG_TEMP_R23
-	rjmp		_uos_push_text_in_fifo_tx
+	;rjmp		_uos_push_text_in_fifo_tx
 ; Fin: Methode propre a l'ecriture depuis la sram
 
 ; Methode commune a l'ecriture depuis la flash/sram @ 'FLG_0_PRINT_FROM_FLASH_SRAM' (1/0)
@@ -385,44 +385,6 @@ uos_print_mark_3_char:
 
 	pop		REG_TEMP_R16
 
-	ret
-; ---------
-
-; ---------
-; Mise dans la FIFO/Tx d'un texte lu de l'EEPROM et termine par '\0'
-; => Si un 0xff est lu (EEPROM non initialisee), abandon de la lecture
-; => Limitation a 8 caracteres lus pour eviter un bouclage ;-)
-;
-; Usage:
-;      ldi		REG_TEMP_R18, 8
-;      ldi		REG_X_MSB, <address MSB>
-;      ldi		REG_X_LSB, <address LSB>
-;      rcall   uos_push_text_in_fifo_tx_from_eeprom
-;
-; ---------
-uos_push_text_in_fifo_tx_from_eeprom_skip:
-	lds		REG_TEMP_R23, UOS_G_FLAGS_0
-	sbrc		REG_TEMP_R23, UOS_FLG_0_PRINT_SKIP_IDX		; Pas de trace si 'FLG_0_PRINT_SKIP' affirme
-
-	ret
-
-uos_push_text_in_fifo_tx_from_eeprom:
-uos_push_text_in_fifo_tx_from_eeprom_loop:
-	rcall		uos_eeprom_read_byte
-
-	cpi		REG_TEMP_R16, 0xff
-	breq		uos_push_text_in_fifo_tx_from_eeprom_end
-
-	tst		REG_TEMP_R16
-	breq		uos_push_text_in_fifo_tx_from_eeprom_end
-
-	rcall		uos_push_1_char_in_fifo_tx
-
-	adiw		REG_X_LSB, 1
-	dec		REG_TEMP_R18
-	brne		uos_push_text_in_fifo_tx_from_eeprom_loop
-
-uos_push_text_in_fifo_tx_from_eeprom_end:
 	ret
 ; ---------
 

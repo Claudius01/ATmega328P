@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_uOS.h,v 1.18 2026/02/27 18:29:27 administrateur Exp $"
+; "$Id: ATmega328P_uOS.h,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
 #define	USE_END_ADDRESS		0		; Retour en 'forever_2' a la derniere adresse de la flash
 #define	USE_PRG_ALL_CODE		0		; Restriction du code pour un develeoppement progressif
@@ -9,6 +9,12 @@
 #define	USE_COMMAND_B_MAJ				1
 
 #define	USE_MARK_IN_TIM1_COMPA		1
+
+; Nouvelles utilisations suite au support de l'ATmega328PB avec:
+; - Liberation des 2 PB3 et PB4
+;   => TXD1 et RXD1 implementes respectivement sur PB3 et PB4
+#define	USE_SCOPE_ON_PORTD_BIT2		1
+#define	USE_LED_BLUE_ON_PB0			1
 
 #define	PAGESIZE_BYTES			(2 * PAGESIZE)
 
@@ -327,18 +333,34 @@ UOS_G_FLAGS_EXTENSIONS:					.byte		1				; Progression de l'execution des extensi
 ; - PORTB<4>: Led BUE				0/1: Eteinte/Allumee
 ; - PORTB<5>: Led YELLOW			0/1: Eteinte/Allumee
 
+#if !USE_SCOPE_ON_PORTD_BIT2
 #define	MSK_BIT_PULSE_IT			MSK_BIT3
+#endif
 
 #define	UOS_MSK_BIT_LED_RED		MSK_BIT1
 #define	UOS_MSK_BIT_LED_GREEN	MSK_BIT2
+
+#if USE_LED_BLUE_ON_PB0
+#define	UOS_MSK_BIT_LED_BLUE		MSK_BIT0
+#else
 #define	UOS_MSK_BIT_LED_BLUE		MSK_BIT4
+#endif
+
 #define	UOS_MSK_BIT_LED_YELLOW	MSK_BIT5
 
+#if !USE_SCOPE_ON_PORTD_BIT2
 #define	IDX_BIT_PULSE_IT			IDX_BIT3
+#endif
 
 #define	UOS_IDX_BIT_LED_RED		IDX_BIT1
 #define	UOS_IDX_BIT_LED_GREEN	IDX_BIT2
+
+#if USE_LED_BLUE_ON_PB0
+#define	UOS_IDX_BIT_LED_BLUE		IDX_BIT0
+#else
 #define	UOS_IDX_BIT_LED_BLUE		IDX_BIT4
+#endif
+
 #define	UOS_IDX_BIT_LED_YELLOW	IDX_BIT5
 
 ; --------

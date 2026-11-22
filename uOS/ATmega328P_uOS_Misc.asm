@@ -1,6 +1,7 @@
-; "$Id: ATmega328P_uOS_Misc.asm,v 1.7 2026/02/25 16:40:59 administrateur Exp $"
+; "$Id: ATmega328P_uOS_Misc.asm,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
 ; ---------
+uos_init_hard:
 _uos_init_hard:
    ; Lecture du fusible 'LOW' pour determiner 8/16 MHz
    ldi      REG_TEMP_R16, (1 << BLBSET) | (1 << SELFPRGEN)
@@ -37,6 +38,7 @@ _uos_init_hard_no_rc_osc_8mhz:
 	; o 16000 and (CLK_IO / 1):  (16000000 / 16000)      =  1000 ( 1 kHz) =>   1 mS
 	; o 31250 and (CLK_IO / 64): (16000000 / 31250 / 64) =     8 ( 8  Hz) => 125 mS (TBC)
 
+#if !USE_20MHZ
    ; A priori 16 MHz ...
 	ldi		REG_TEMP_R16, (1600 / 256)
 	ldi		REG_TEMP_R17, (1600 % 256)
@@ -47,6 +49,18 @@ _uos_init_hard_no_rc_osc_8mhz:
    ; ... et non -> 8 MHz
 	ldi		REG_TEMP_R16, (800 / 256)
 	ldi		REG_TEMP_R17, (800 % 256)
+#else
+   ; A priori 20 MHz ...
+	ldi		REG_TEMP_R16, (2000 / 256)
+	ldi		REG_TEMP_R17, (2000 % 256)
+
+   sbrs     REG_TEMP_R23, FLG_0_RC_OSC_8MHZ_IDX
+   rjmp     _uos_init_hard_ocr1a_init
+
+   ; ... et non -> 8 MHz
+	ldi		REG_TEMP_R16, (800 / 256)
+	ldi		REG_TEMP_R17, (800 % 256)
+#endif
 
 _uos_init_hard_ocr1a_init:
 	sts		OCR1AH, REG_TEMP_R16
@@ -73,7 +87,15 @@ _uos_init_hard_ocr1a_init:
 	sts		TIMSK1, REG_TEMP_R16
 	; Fin: Cadencement a xxx uS
 
-	; Initialisation de l'UART
+	; Initialisation de 'UCSR0A' et 'TIFR1' comme au Reset
+	ldi		REG_TEMP_R16, (1 << UDRE0)
+	sts		UCSR0A, REG_TEMP_R16
+
+	clr		REG_TEMP_R16
+	out		TIFR1, REG_TEMP_R16
+	; Fin: Initialisation de 'UCSR0A' et 'TIFR1' comme au Reset
+
+	; Initialisation de l'UART pour un chip a 16 MHz
         ; Valeurs de programmation pour:
         ; - 4800 bauds: 208
         ; - 9600 bauds: 104
@@ -92,7 +114,7 @@ _uos_init_hard_ocr1a_init:
 	sts		UBRR0H, REG_TEMP_R16
 	sts		UBRR0L, REG_TEMP_R17
 
-	rcall		read_and_set_bauds_rate_from_eeprom
+	call		read_and_set_bauds_rate_from_eeprom
 
 	; Enable receiver and transmitter + Rx interrupt
 	ldi		REG_TEMP_R16, (1 << RXEN0) | (1 << TXEN0) | (1 << RXCIE0)
@@ -112,9 +134,14 @@ _uos_init_hard_ocr1a_init:
 	sts		PCMSK2, REG_TEMP_R16
 	; Fin: Initialisation pour la gestion des 4 boutons
 
-   ; Configuration des PULLUP sur PORTD<7:4>
+	; Configuration du PORTD
+   ; - PULLUP sur PORTD<7:4> pour les 4 boutons
 	ldi		REG_TEMP_R16, 0xF0
 	out		PORTD, REG_TEMP_R16
+
+   ; - PORTD<2> pour la sortie Scope It (seule broche en sortie)
+	ldi		REG_TEMP_R16, (1 << DDD2)
+	out		DDRD, REG_TEMP_R16
 
 	ret
 ; ---------
@@ -169,6 +196,7 @@ _uos_if_execution_into_zone_bootloader:
 	ret
 ; ---------
 
+#ifdef USE_ATMEGA328P
 ; ---------
 _uos_presentation_connexion:
 	lds		REG_TEMP_R23, UOS_G_FLAGS_1
@@ -206,6 +234,7 @@ _uos_presentation_connexion_reinit_timer:
 _uos_presentation_connexion_rtn:
 	ret
 ; ---------
+#endif
 
 ; ---------
 ; Allumage fugitif Led RED Externe si erreur

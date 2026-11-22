@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#ident "@(#) micro-infos $Id: goGenerateProject.sh,v 1.10 2026/02/25 13:31:32 administrateur Exp $"
+#ident "@(#) micro-infos $Id: goGenerateProject.sh,v 1.2 2026/11/22 16:43:43 administrateur Exp $"
 
 # Script de production (clean et generation) d'un projet passe en argument
 # Exemples:
@@ -15,6 +15,7 @@
 set -e
 
 AVRA_DIR="/home/administrateur/Programmes/avra-master_1.4.3"
+#AVRA_DIR="/home/crudel/Programmes/avra-master_1.4.3"
 AVRA_BIN="${AVRA_DIR}/src/avra"
 AVRA_INC="${AVRA_DIR}/includes"
 
@@ -25,6 +26,8 @@ if [ -z ${1} ]; then
 	echo "Examples:"
 	echo "  - $0 clean"
 	echo "  - $0 ATmega328P_uOS"
+	echo "  - $0 ATmega328P_uOS ATmega328P_Optiboot"
+	echo "  - $0 ATmega328P_Optiboot (if 'ATmega328P_Optiboot' already produced)"
 	exit 2
 elif [ "${1}" == "clean" ]; then
 	echo "Clean project..."
@@ -33,7 +36,7 @@ elif [ "${1}" == "clean" ]; then
 	echo "Remove files produced from [${BASE_PROJECT}]..."
 
 	rm -f *.hex *.obj *.map *.lst *.tag *.pub *.eep.hex *_for_C.def *.opcodes *.disa
-	rm -f Products/*
+	#rm -f Products/*
 
 	exit 0
 fi
@@ -62,7 +65,7 @@ echo
 echo "################## Production of '${PROJECTS_FILE}' ##################"
 
 # Warning: USE_AVRSIMU=1 pour la cible et USE_AVRSIMU=0 pour la simulation
-${AVRA_BIN} -D USE_AVRSIMU=0 -I ${PROJECTS} -I ${AVRA_INC} -m ${PROJECTS_FILE}.${EXT_MAP} -l ${PROJECTS_FILE}.${EXT_LST} ${PROJECTS_FILE}.${EXT_ASM}
+${AVRA_BIN} -D USE_ATMEGA328P -D USE_AVRSIMU=0 -D USE_20MHZ=0 -D USE_WATCHDOG=1 -I ${PROJECTS} -I ${AVRA_INC} -m ${PROJECTS_FILE}.${EXT_MAP} -l ${PROJECTS_FILE}.${EXT_LST} ${PROJECTS_FILE}.${EXT_ASM}
 
 if [ ! -f ${PROJECTS_FILE}.${EXT_LST} ]; then
 	echo "Error: No build ;-("	
@@ -138,6 +141,36 @@ test -d Products || mkdir Products
 
 cp -p ${PROJECTS_FILE}.hex ${PROJECTS_FILE}.lst ${PROJECTS_FILE}.map Products
 echo
+
+# Preparation pour un televersement par 'OptiBoot'
+PWD=`pwd`
+
+echo
+FILE_CONVERTED=`basename ${PWD}`
+echo "Convert [${PROJECTS_FILE}.hex] to [${FILE_CONVERTED}.ino.hex]..."
+
+convertHexFile -s Word2Byte -i 1 -T 0 -o ${FILE_CONVERTED}.ino.hex ${PROJECTS_FILE}.hex
+
+cp -p ${FILE_CONVERTED}.ino.hex Products
+
+# Determination de la cle MD5
+KEY_MD5=`echo ${PWD} | tr -d "\n" | md5sum | tr [:lower:] [:upper:] | cut -d' ' -f1`
+echo
+echo "Key MD5 [${KEY_MD5}]"
+
+test -d /tmp/arduino || mkdir /tmp/arduino
+test -d /tmp/arduino/sketches || mkdir /tmp/arduino/sketches
+
+DIR_TMP_SKETCHES="/tmp/arduino/sketches/${KEY_MD5}"
+test -d ${DIR_TMP_SKETCHES} || mkdir ${DIR_TMP_SKETCHES}
+cp -p ${FILE_CONVERTED}.ino.hex ${DIR_TMP_SKETCHES}
+
+echo
+echo "Arduino Sketches Temporary [${DIR_TMP_SKETCHES}]"
+ls -ltr ${DIR_TMP_SKETCHES}
+# Fin: Preparation pour un televersement par 'OptiBoot'
+# ######
+
 echo "List of files under './Products'"
 ls -ltr Products
 
