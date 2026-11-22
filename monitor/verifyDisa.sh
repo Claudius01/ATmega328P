@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#ident "$Id: verifyDisa.sh,v 1.1 2026/02/18 18:03:10 administrateur Exp $"
+#ident "$Id: verifyDisa.sh,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
 #set -x
 #set -e

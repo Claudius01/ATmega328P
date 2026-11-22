@@ -1,4 +1,4 @@
-; "$Id: ATmega328P_monitor.asm,v 1.24 2026/02/28 16:08:12 administrateur Exp $"
+; "$Id: ATmega328P_monitor.asm,v 1.5 2026/11/22 15:37:56 administrateur Exp $"
 
 ; 2024/06/01 - Add description...
 ; 2024/06/07 - Test sections for CRC8-MAXIM calculataion...
@@ -22,8 +22,15 @@
 ; 2026/01/19 - Reprise du projet 'ATmega328P_monitor_P8A'
 
 .include		"m328Pdef.inc"				; Labels and identifiers for ATmega328p
+
+#ifdef USE_ATMEGA328P
 .include		"ATmega328P_uOS.def"		; Definitions propres a 'ATmega328P_uOS'
 .include		"ATmega328P_monitor.h"	; Definitions propres a 'ATmega328P_monitor'
+#endif
+#ifdef USE_ATMEGA328PB
+.include		"ATmega328PB_uOS.def"	; Definitions propres a 'ATmega328P_uOS'
+.include		"ATmega328PB_monitor.h"	; Definitions propres a 'ATmega328P_monitor'
+#endif
 
 #define USE_TRACE_BUTTON					1
 #define USE_PRINT_BARGRAPH_COUNTER		0
@@ -1309,14 +1316,32 @@ monitor_command_x_min:
 
 	; Si execution du 'Reset' (adresse 0x0000)
 	; => Reinitialisation de 'SPH:SPL' a 'RAMEND'
+	cpi 		REG_Z_MSB, 0
+	brne		monitor_command_x_min_more
+	cpi		REG_Z_LSB, 1
+	brne		monitor_command_x_min_test_if_0
+
+	; Commande "<x1" -> Reset dans le Boolloader (Z equal to 'uos_main_bootloader'))
+	ldi		REG_Z_MSB, high(uos_main_bootloader)
+	ldi		REG_Z_LSB, low(uos_main_bootloader)
+	rjmp		monitor_command_x_min_reset
+
+monitor_command_x_min_test_if_0:
 	adiw		REG_Z_LSB, 0
 	brne		monitor_command_x_min_more
+
+	; Commande "<x0" -> Reset dans le Program (Z already equal to 0)
+
+monitor_command_x_min_reset:
+	cli		; Sequence critique d'initialisation de 'SPH:SPL'
 
 	ldi		REG_TEMP_R16, high(RAMEND)
 	out		SPH, REG_TEMP_R16
 
 	ldi		REG_TEMP_R16, low(RAMEND)
 	out		SPL, REG_TEMP_R16
+
+	ijmp
 	; Fin: Si execution du 'Reset' (adresse 0x0000)
 
 	; Saut a un programme dont l'adresse est passe en argument
@@ -1325,9 +1350,15 @@ monitor_command_x_min:
 	;              l'instruction 'rcall exec_command'
 
 monitor_command_x_min_more:
+	; Execution de la methode a l'adresse "ZH:ZL"
 	icall
 
-	set											; Commande reconnue
+	; Retablissement des registres "hard"...
+	call		uos_init_hard
+
+	set								; Commande reconnue
+
+	; Retour au Monitor
 	ret
 ; ---------
 
@@ -1604,7 +1635,7 @@ monitor_command_test_epilogue_xmega_core_opcodes_rtn:
 .dw	CHAR_SEPARATOR		; Debut section datas	; NE PAS SUPPRIMER ;-)
 
 text_monitor_prompt:
-.db	"### Monitor $Revision: 1.24 $", CHAR_LF, CHAR_NULL, CHAR_NULL
+.db	"### Monitor (Optiboot) $Revision: 1.5 $", CHAR_LF, CHAR_NULL, CHAR_NULL
 
 text_monitor_init:
 .db	"### Initialization...", CHAR_LF, CHAR_NULL, CHAR_NULL
@@ -1628,7 +1659,9 @@ text_monitor_desc:
 
 .db	"### - '<SAddress+Value'      Write in SRAM ", CHAR_LF
 .db	"### - '<tValue1-Value2'      Test compare", CHAR_LF
-.db	"### - '<xAddress'            Call to Address", CHAR_LF, CHAR_NULL	; Dernier texte avec '\0' terminal
+.db	"### - '<xAddress'            Call to Address ", CHAR_LF
+.db	"### -  <x0 Reset dans le Moniteur", CHAR_LF
+.db	"### -  <x1 Reset dans le Bootloader (uOS ou OptiBoot) ", CHAR_LF, CHAR_NULL
 
 text_crc8_maxim:
 .db	"CRC8-MAXIM ", CHAR_NULL

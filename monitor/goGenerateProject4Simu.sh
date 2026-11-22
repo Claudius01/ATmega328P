@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#ident "@(#) micro-infos $Id: goGenerateProject4Simu.sh,v 1.3 2026/02/24 16:51:32 administrateur Exp $"
+#ident "@(#) micro-infos $Id: goGenerateProject4Simu.sh,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
 # Script de production d'un projet passe en argument
 # Exemples:
@@ -88,7 +88,7 @@ echo
 echo "################## Production of '${PROJECTS_FILE}' ##################"
 
 # Warning: USE_AVRSIMU=0 pour la cible et USE_AVRSIMU=1 pour la simulation
-${AVRA_BIN} -D USE_AVRSIMU=1 -I ${PROJECTS} -I ../uOS -I ${AVRA_INC} -m ${PROJECTS_FILE}.${EXT_MAP} -l ${PROJECTS_FILE}.${EXT_LST} ${PROJECTS_FILE}.${EXT_ASM}
+${AVRA_BIN} -D USE_ATMEGA328 -D USE_AVRSIMU=1 -D USE_20MHZ -I ${PROJECTS} -I ../uOS -I ${AVRA_INC} -m ${PROJECTS_FILE}.${EXT_MAP} -l ${PROJECTS_FILE}.${EXT_LST} ${PROJECTS_FILE}.${EXT_ASM}
 
 if [ ! -f ${PROJECTS_FILE}.${EXT_LST} ]; then
 	echo "Error: No build ;-("	
