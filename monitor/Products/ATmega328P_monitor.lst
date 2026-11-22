@@ -1,8 +1,8 @@
 
-AVRA   Ver. 1.4.3 ATmega328P_monitor.asm Sat Feb 28 18:26:45 2026
+AVRA   Ver. 1.4.3 ATmega328P_monitor.asm Sun Nov 22 18:59:37 2026
 
 
-         ; "$Id: ATmega328P_monitor.asm,v 1.24 2026/02/28 16:08:12 administrateur Exp $"
+         ; "$Id: ATmega328P_monitor.asm,v 1.5 2026/11/22 15:37:56 administrateur Exp $"
          
          ; 2024/06/01 - Add description...
          ; 2024/06/07 - Test sections for CRC8-MAXIM calculataion...
@@ -1006,9 +1006,12 @@ AVRA   Ver. 1.4.3 ATmega328P_monitor.asm Sat Feb 28 18:26:45 2026
          
          ; ***** END OF FILE ******************************************************
           ; ***** END OF FILE ******************************************************
-          .include		"ATmega328P_uOS.def"		; Definitions propres a 'ATmega328P_uOS'
-         ; "$Id: ATmega328P_uOS.def,v 1.3 2026/01/21 16:06:50 administrateur Exp $"
          
+          #ifdef USE_ATMEGA328P
+          .include		"ATmega328P_uOS.def"		; Definitions propres a 'ATmega328P_uOS'
+         ; "$Id: ATmega328P_uOS.def,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
+         
+          #ifdef USE_ATMEGA328P
           .include		"ATmega328P_uOS.pub"	; Definitions publiques de Micro OS generees automatiquement
          ; === 'ATmega328P_uOS.pub': Automatic generated (DON'T MODIFY) ===
           #define	UOS_FLG_0_PRINT_SKIP_MSK			0x0020
@@ -1031,11 +1034,11 @@ AVRA   Ver. 1.4.3 ATmega328P_monitor.asm Sat Feb 28 18:26:45 2026
           #define	UOS_FLG_EXTENSIONS_EXEC_COMMAND_IDX			0x0000
           #define	UOS_MSK_BIT_LED_RED			0x0002
           #define	UOS_MSK_BIT_LED_GREEN			0x0004
-          #define	UOS_MSK_BIT_LED_BLUE			0x0010
+          #define	UOS_MSK_BIT_LED_BLUE			0x0001
           #define	UOS_MSK_BIT_LED_YELLOW			0x0020
           #define	UOS_IDX_BIT_LED_RED			0x0001
           #define	UOS_IDX_BIT_LED_GREEN			0x0002
-          #define	UOS_IDX_BIT_LED_BLUE			0x0004
+          #define	UOS_IDX_BIT_LED_BLUE			0x0000
           #define	UOS_IDX_BIT_LED_YELLOW			0x0005
           #define	UOS_BUTTON_1_NUM			0x0001
           #define	UOS_BUTTON_2_NUM			0x0002
@@ -1085,85 +1088,93 @@ AVRA   Ver. 1.4.3 ATmega328P_monitor.asm Sat Feb 28 18:26:45 2026
           #define	UOS_G_SAVE_R30			0x0532
           #define	UOS_G_SAVE_R31			0x0533
           #define	UOS_G_FLAGS_EXTENSIONS			0x0534
-          #define	uos_main_program			0x3580
-          #define	uos_derivation_delay_5uS_cont_d			0x35ff
-          #define	uos_save_reg_r0_r31			0x3607
-          #define	uos_restore_reg_r0_r31			0x3648
-          #define	uos_print_frequency			0x3689
-          #define	uos_print_frequency_end			0x3691
-          #define	uos_delay_big			0x3693
-          #define	uos_delay_big_2			0x3694
-          #define	uos_eeprom_write_byte			0x36cb
-          #define	uos_eeprom_write_byte_wait			0x36d4
-          #define	uos_tim1_compa_isr_program			0x36d7
-          #define	uos_usart_rx_complete_isr_program			0x3731
-          #define	uos_pcint2_isr_program			0x3754
-          #define	uos_set_error			0x38ef
-          #define	uos_start_timer			0x3939
-          #define	uos_restart_timer			0x394e
-          #define	uos_stop_timer			0x395f
-          #define	uos_test_timer			0x3970
-          #define	uos_set_context_timer			0x3987
-          #define	uos_get_context_timer			0x399a
-          #define	uos_uart_fifo_tx_write			0x3a64
-          #define	uos_fifo_tx_to_send_async			0x3ac3
-          #define	uos_fifo_tx_to_send_sync			0x3ad6
-          #define	UOS_G_STATES_BUTTON			0x06c0
-          #define	UOS_G_STATES_BUTTON_NBR_TOUCH			0x06c1
-          #define	UOS_G_STATES_BUTTON_NOTIF			0x06c2
-          #define	UOS_G_STATES_BUTTON_NBR_TOUCH_NOTIF			0x06c3
-          #define	uos_set_infos_from_eeprom			0x3c96
-          #define	uos_set_infos_from_eeprom_more			0x3cbb
-          #define	uos_reset_skip_print			0x3cc1
-          #define	uos_set_skip_print			0x3cc7
-          #define	uos_push_text_flash_in_fifo_tx_skip			0x3ccd
-          #define	uos_push_text_flash_in_fifo_tx			0x3cd1
-          #define	uos_push_text_sram_in_fifo_tx_skip			0x3cd7
-          #define	uos_push_text_sram_in_fifo_tx			0x3cdb
-          #define	uos_push_1_char_in_fifo_tx_skip			0x3cf5
-          #define	uos_push_1_char_in_fifo_tx			0x3cf9
-          #define	uos_convert_and_put_fifo_tx			0x3d04
-          #define	uos_print_line_feed_skip			0x3d0c
-          #define	uos_print_line_feed			0x3d10
-          #define	uos_print_1_byte_hexa_skip			0x3d1d
-          #define	uos_print_1_byte_hexa			0x3d21
-          #define	uos_print_2_bytes_hexa_skip			0x3d2e
-          #define	uos_print_2_bytes_hexa			0x3d32
-          #define	uos_print_mark_skip			0x3d41
-          #define	uos_print_mark			0x3d45
-          #define	uos_print_mark_3_char_skip			0x3d54
-          #define	uos_print_mark_3_char			0x3d58
-          #define	uos_push_text_in_fifo_tx_from_eeprom_skip			0x3d61
-          #define	uos_push_text_in_fifo_tx_from_eeprom			0x3d65
-          #define	uos_push_text_in_fifo_tx_from_eeprom_loop			0x3d65
-          #define	uos_push_text_in_fifo_tx_from_eeprom_end			0x3d6e
-          #define	uos_puts			0x3d6f
-          #define	uos_puts_loop			0x3d70
-          #define	uos_puts_end			0x3d76
-          #define	UOS_G_TEST_FLAGS			0x06c4
-          #define	UOS_G_TEST_COMMAND_TYPE			0x06c5
-          #define	UOS_G_TEST_VALUE_MSB			0x06c6
-          #define	UOS_G_TEST_VALUE_LSB			0x06c7
-          #define	UOS_G_TEST_VALUE_MSB_MORE			0x06c8
-          #define	UOS_G_TEST_VALUE_LSB_MORE			0x06c9
-          #define	UOS_G_TEST_VALUE_DEC_MSB			0x06ca
-          #define	UOS_G_TEST_VALUE_DEC_LSB			0x06cb
-          #define	UOS_G_TEST_VALUES_IDX_WRK			0x06cc
-          #define	UOS_G_TEST_VALUES_IDX			0x06cd
-          #define	UOS_G_TEST_VALUES_ZONE			0x06ce
-          #define	UOS_G_TEST_COMMAND_IDX			0x074e
-          #define	UOS_G_TEST_COMMAND			0x074f
-          #define	uos_print_command_ok			0x3dd5
-          #define	uos_print_command_ko			0x3dda
-          #define	uos_print_command			0x3dde
-          #define	uos_char_to_hex_incremental			0x3ecc
-          #define	uos_eeprom_read_byte			0x3f30
-          #define	UOS_G_SRAM_BOOTLOADER_END_OF_USE			0x075f
-          #define	uos_text_eeprom_error			0x3fb6
-          #define	uos_text_hexa_value			0x3fc7
-          #define	uos_text_hexa_value_lf_end			0x3fca
+          #define	uos_main_program			0x3000
+          #define	uos_main_bootloader			0x3011
+          #define	uos_derivation_delay_5uS_cont_d			0x3090
+          #define	uos_save_reg_r0_r31			0x3098
+          #define	uos_restore_reg_r0_r31			0x30d9
+          #define	uos_print_frequency			0x311a
+          #define	uos_print_frequency_end			0x3122
+          #define	uos_delay_big			0x3124
+          #define	uos_delay_big_2			0x3125
+          #define	uos_eeprom_write_byte			0x3159
+          #define	uos_eeprom_write_byte_wait			0x3162
+          #define	uos_tim1_compa_isr_program			0x3165
+          #define	uos_usart_rx_complete_isr_program			0x31b6
+          #define	uos_pcint2_isr_program			0x31d9
+          #define	uos_push_text_in_fifo_tx_from_eeprom_skip			0x322c
+          #define	uos_push_text_in_fifo_tx_from_eeprom			0x3230
+          #define	uos_push_text_in_fifo_tx_from_eeprom_loop			0x3230
+          #define	uos_push_text_in_fifo_tx_from_eeprom_end			0x323a
+          #define	uos_init_hard			0x323b
+          #define	uos_set_error			0x32d0
+          #define	uos_start_timer			0x331a
+          #define	uos_restart_timer			0x332f
+          #define	uos_stop_timer			0x3340
+          #define	uos_test_timer			0x3351
+          #define	uos_set_context_timer			0x3368
+          #define	uos_get_context_timer			0x337b
+          #define	uos_uart_fifo_tx_write			0x3445
+          #define	uos_uart_tx_send			0x349c
+          #define	uos_fifo_tx_to_send_async			0x34a4
+          #define	uos_fifo_tx_to_send_sync			0x34b7
+          #define	UOS_G_STATES_BUTTON			0x0600
+          #define	UOS_G_STATES_BUTTON_NBR_TOUCH			0x0601
+          #define	UOS_G_STATES_BUTTON_NOTIF			0x0602
+          #define	UOS_G_STATES_BUTTON_NBR_TOUCH_NOTIF			0x0603
+          #define	uos_disable_programmation			0x34f9
+          #define	uos_enable_programmation			0x3521
+          #define	uos_set_infos_from_eeprom			0x3677
+          #define	uos_set_infos_from_eeprom_more			0x369c
+          #define	uos_reset_skip_print			0x36a2
+          #define	uos_set_skip_print			0x36a8
+          #define	uos_push_text_flash_in_fifo_tx_skip			0x36ae
+          #define	uos_push_text_flash_in_fifo_tx			0x36b2
+          #define	uos_push_text_sram_in_fifo_tx_skip			0x36b8
+          #define	uos_push_text_sram_in_fifo_tx			0x36bc
+          #define	uos_push_1_char_in_fifo_tx_skip			0x36d5
+          #define	uos_push_1_char_in_fifo_tx			0x36d9
+          #define	uos_convert_and_put_fifo_tx			0x36e4
+          #define	uos_print_line_feed_skip			0x36ec
+          #define	uos_print_line_feed			0x36f0
+          #define	uos_print_1_byte_hexa_skip			0x36fd
+          #define	uos_print_1_byte_hexa			0x3701
+          #define	uos_print_2_bytes_hexa_skip			0x370e
+          #define	uos_print_2_bytes_hexa			0x3712
+          #define	uos_print_mark_skip			0x3721
+          #define	uos_print_mark			0x3725
+          #define	uos_print_mark_3_char_skip			0x3734
+          #define	uos_print_mark_3_char			0x3738
+          #define	uos_puts			0x3741
+          #define	uos_puts_loop			0x3742
+          #define	uos_puts_end			0x3748
+          #define	UOS_G_TEST_FLAGS			0x0604
+          #define	UOS_G_TEST_COMMAND_TYPE			0x0605
+          #define	UOS_G_TEST_VALUE_MSB			0x0606
+          #define	UOS_G_TEST_VALUE_LSB			0x0607
+          #define	UOS_G_TEST_VALUE_MSB_MORE			0x0608
+          #define	UOS_G_TEST_VALUE_LSB_MORE			0x0609
+          #define	UOS_G_TEST_VALUE_DEC_MSB			0x060a
+          #define	UOS_G_TEST_VALUE_DEC_LSB			0x060b
+          #define	UOS_G_TEST_VALUES_IDX_WRK			0x060c
+          #define	UOS_G_TEST_VALUES_IDX			0x060d
+          #define	UOS_G_TEST_VALUES_ZONE			0x060e
+          #define	UOS_G_TEST_COMMAND_IDX			0x068e
+          #define	UOS_G_TEST_COMMAND			0x068f
+          #define	uos_print_command_ok			0x38f5
+          #define	uos_print_command_ko			0x38fa
+          #define	uos_print_command			0x38fe
+          #define	uos_char_to_hex_incremental			0x39ed
+          #define	uos_eeprom_read_byte			0x3a51
+          #define	UOS_G_SRAM_BOOTLOADER_END_OF_USE			0x069f
+          #define	uos_text_eeprom_error			0x3aea
+          #define	uos_text_hexa_value			0x3afb
+          #define	uos_text_hexa_value_lf_end			0x3afe
          ; === End of Automatic generated (DON'T MODIFY) ===
           ; === End of Automatic generated (DON'T MODIFY) ===
+          #endif
+          #ifdef USE_ATMEGA328PB
+          #endif
          
          ; Definition des masques de bits [0x00, 0x01, ..., 0xff] pour les opcodes suivants:
          ; - ori  -> Logical OR with Immediate
@@ -1198,8 +1209,8 @@ AVRA   Ver. 1.4.3 ATmega328P_monitor.asm Sat Feb 28 18:26:45 2026
           #define	IDX_BIT1				1
           #define	IDX_BIT0				0
          
-         ;.def		REG_R0				= r0		; Warning: Used by program C
-         ;.def		REG_R1				= r1		; Warning: Used by program C
+          .def		REG_R0				= r0		; Warning: Used by program C
+          .def		REG_R1				= r1		; Warning: Used by program C
           .def		REG_R2				= r2
           .def		REG_R3				= r3
           .def		REG_R4				= r4
@@ -1213,6 +1224,11 @@ AVRA   Ver. 1.4.3 ATmega328P_monitor.asm Sat Feb 28 18:26:45 2026
           .def		REG_R12				= r12
           .def		REG_R13				= r13
           .def		REG_R14				= r14
+         
+         ; TODO: Suppress "Warning : r15 is already assigned to 'REG_R15'!"
+          #undef		REG_R15
+          .def		REG_R15				= r15
+         
           .def		REG_SAVE_SREG		= r15		; Sauvegarde temporaire de SREG dans les methodes ISR
          
           .def		REG_TEMP_R16		= r16
@@ -1324,7 +1340,7 @@ AVRA   Ver. 1.4.3 ATmega328P_monitor.asm Sat Feb 28 18:26:45 2026
          ; End of file
           ; End of file
           .include		"ATmega328P_monitor.h"	; Definitions propres a 'ATmega328P_monitor'
-         ; "$Id: ATmega328P_monitor.h,v 1.9 2026/02/25 16:40:57 administrateur Exp $"
+         ; "$Id: ATmega328P_monitor.h,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
          
           #define USE_XMEGA_CORE_OPCODES			1
          
@@ -1351,28 +1367,31 @@ D:000100    G_SRAM_SPACE_OF_UOS:					.byte		(UOS_G_SRAM_BOOTLOADER_END_OF_USE - 
          ;    qui est la derniere adresse en SRAM du Micro OS
          ;
          ; ---------
-D:000760    G_CALC_CRC8:							.byte		1
+D:0006a0    G_CALC_CRC8:							.byte		1
          
-D:000761    G_BARGRAPH_COUNTER:					.byte		1
-D:000762    G_BARGRAPH_PASS_MSB:					.byte		1
-D:000763    G_BARGRAPH_PASS_LSB:					.byte		1
-D:000764    G_BARGRAPH_IMAGE:						.byte		1
+D:0006a1    G_BARGRAPH_COUNTER:					.byte		1
+D:0006a2    G_BARGRAPH_PASS_MSB:					.byte		1
+D:0006a3    G_BARGRAPH_PASS_LSB:					.byte		1
+D:0006a4    G_BARGRAPH_IMAGE:						.byte		1
          
          
           #if USE_XMEGA_CORE_OPCODES
          ; ---------
          ; Test des 2 instructions 'LAC - Load and Clear' et 'LAS - Load and Set"
          ; ---------
-D:000765    G_RESULT_XMEGA_OPCODE:				.byte		1
+D:0006a5    G_RESULT_XMEGA_OPCODE:				.byte		1
           #endif
          
          ; Fin des variables propres au PROGRAM d'extension
-D:000766    G_SRAM_EXTENSION_END_OF_USE:		.byte		1		; Initialisee a 0xff pour reperage dans la SRAM
+D:0006a6    G_SRAM_EXTENSION_END_OF_USE:		.byte		1		; Initialisee a 0xff pour reperage dans la SRAM
          ; ---------
          
          ; End of file
          
           
+          #endif
+          #ifdef USE_ATMEGA328PB
+          #endif
          
           #define USE_TRACE_BUTTON					1
           #define USE_PRINT_BARGRAPH_COUNTER		0
@@ -1390,7 +1409,7 @@ D:000766    G_SRAM_EXTENSION_END_OF_USE:		.byte		1		; Initialisee a 0xff pour re
          	;    => Origine: 'FLG_WRONG_IT_PROGRAM' (Bit<7>)
          	;       Num It:  Bits<0-5>
          	;
-C:000000 940c 3580 	jmp		uos_main_program					; # 1 RESET (Mandatory)
+C:000000 940c 3000 	jmp		uos_main_program					; # 1 RESET (Mandatory)
          
 C:000002 e012      	ldi		REG_TEMP_R17, 0x02
 C:000003 c05e      	rjmp		monitor_invalid_it_near			; # 2 INT0
@@ -1404,7 +1423,7 @@ C:000007 c05a      	rjmp		monitor_invalid_it_near			; # 4 PCINT0
 C:000008 e015      	ldi		REG_TEMP_R17, 0x05
 C:000009 c058      	rjmp		monitor_invalid_it_near			; # 5 PCINT1
          
-C:00000a 940c 3754 	jmp		uos_pcint2_isr_program			; # 6 PCINT2 (Mandatory)
+C:00000a 940c 31d9 	jmp		uos_pcint2_isr_program			; # 6 PCINT2 (Mandatory)
          
 C:00000c e017      	ldi		REG_TEMP_R17, 0x07
 C:00000d c054      	rjmp		monitor_invalid_it_near			; # 7 WDT
@@ -1421,7 +1440,7 @@ C:000013 c04e      	rjmp		monitor_invalid_it_near			; #10 TIMER2 OVF
 C:000014 e111      	ldi		REG_TEMP_R17, 0x11
 C:000015 c04c      	rjmp		monitor_invalid_it_near			; #11 TIMER1 CAPT
          
-C:000016 940c 36d7 	jmp		uos_tim1_compa_isr_program		; #12 TIMER1 COMPA (Mandatory)
+C:000016 940c 3165 	jmp		uos_tim1_compa_isr_program		; #12 TIMER1 COMPA (Mandatory)
          
 C:000018 e113      	ldi		REG_TEMP_R17, 0x13
 C:000019 c048      	rjmp		monitor_invalid_it_near			; #13 TIMER1 COMPB
@@ -1441,7 +1460,7 @@ C:000021 c040      	rjmp		monitor_invalid_it_near			; #17 TIMER0 OVF
 C:000022 e118      	ldi		REG_TEMP_R17, 0x18
 C:000023 c03e      	rjmp		monitor_invalid_it_near			; #18 SPI, SPC
          
-C:000024 940c 3731 	jmp		uos_usart_rx_complete_isr_program	; #19 USART, RX (Mandatory)
+C:000024 940c 31b6 	jmp		uos_usart_rx_complete_isr_program	; #19 USART, RX (Mandatory)
          
 C:000026 e210      	ldi		REG_TEMP_R17, 0x20
 C:000027 c03a      	rjmp		monitor_invalid_it_near			; #20 USART, UDRE
@@ -1572,11 +1591,11 @@ C:001009 e00f      	ldi		REG_TEMP_R16, 0x0F
 C:00100a b908      	out		PORTC, REG_TEMP_R16
          
 C:00100b 2700      	clr		REG_TEMP_R16
-C:00100c 9300 0762 	sts		G_BARGRAPH_PASS_MSB, REG_TEMP_R16
-C:00100e 9300 0763 	sts		G_BARGRAPH_PASS_LSB, REG_TEMP_R16
+C:00100c 9300 06a2 	sts		G_BARGRAPH_PASS_MSB, REG_TEMP_R16
+C:00100e 9300 06a3 	sts		G_BARGRAPH_PASS_LSB, REG_TEMP_R16
          
 C:001010 e00f      	ldi		REG_TEMP_R16, 0x0F
-C:001011 9300 0764 	sts		G_BARGRAPH_IMAGE, REG_TEMP_R16
+C:001011 9300 06a4 	sts		G_BARGRAPH_IMAGE, REG_TEMP_R16
          	; Fin: Add initialisations materielles propres au Monitor
          
 C:001013 9478      	sei
@@ -1584,12 +1603,12 @@ C:001013 9478      	sei
          
          	; Print du passage dans l'initialisation 'text_monitor_init'
 C:001014 e2f7      	ldi		REG_Z_MSB, high(text_monitor_init << 1)
-C:001015 e1e0      	ldi		REG_Z_LSB, low(text_monitor_init << 1)
-C:001016 940e 3cd1 	call		uos_push_text_flash_in_fifo_tx
+C:001015 e3e0      	ldi		REG_Z_LSB, low(text_monitor_init << 1)
+C:001016 940e 36b2 	call		uos_push_text_flash_in_fifo_tx
          
          	; TODO: Si pas d'appel a 'uos_fifo_tx_to_send_sync'
          	;       => Emission differe suite a d'autres ecriture dans le FIFO/Tx ?!..
-C:001018 940e 3ad6 	call		uos_fifo_tx_to_send_sync
+C:001018 940e 34b7 	call		uos_fifo_tx_to_send_sync
          
          ;callback_init_end:
 C:00101a 9508      	ret
@@ -1597,11 +1616,11 @@ C:00101a 9508      	ret
          
           callback_1_ms:
          	; Test de clignotement sur le bargraphe
-C:00101b 91b0 0762 	lds		REG_X_MSB, G_BARGRAPH_PASS_MSB
-C:00101d 91a0 0763 	lds		REG_X_LSB, G_BARGRAPH_PASS_LSB
+C:00101b 91b0 06a2 	lds		REG_X_MSB, G_BARGRAPH_PASS_MSB
+C:00101d 91a0 06a3 	lds		REG_X_LSB, G_BARGRAPH_PASS_LSB
 C:00101f 9611      	adiw		REG_X_LSB, 1
-C:001020 93b0 0762 	sts		G_BARGRAPH_PASS_MSB, REG_X_MSB
-C:001022 93a0 0763 	sts		G_BARGRAPH_PASS_LSB, REG_X_LSB
+C:001020 93b0 06a2 	sts		G_BARGRAPH_PASS_MSB, REG_X_MSB
+C:001022 93a0 06a3 	sts		G_BARGRAPH_PASS_LSB, REG_X_LSB
          
          	; Clignotement a 1Hz
 C:001024 30b3      	cpi		REG_X_MSB, (1000 / 256)
@@ -1611,8 +1630,8 @@ C:001026 3ea8      	cpi		REG_X_LSB, (1000 % 256)
 C:001027 f449      	brne		callback_1_ms_end
          
 C:001028 2700      	clr		REG_TEMP_R16
-C:001029 9300 0762 	sts		G_BARGRAPH_PASS_MSB, REG_TEMP_R16
-C:00102b 9300 0763 	sts		G_BARGRAPH_PASS_LSB, REG_TEMP_R16
+C:001029 9300 06a2 	sts		G_BARGRAPH_PASS_MSB, REG_TEMP_R16
+C:00102b 9300 06a3 	sts		G_BARGRAPH_PASS_LSB, REG_TEMP_R16
          
          	; Methode sans image (generation par 'avr-gcc')
 C:00102d b108      	in		r16, 0x08		; Read PORTC
@@ -1638,25 +1657,25 @@ C:001031 9508      	ret
 C:001032 e21d      	ldi		REG_TEMP_R17, '-'
 C:001033 e720      	ldi		REG_TEMP_R18, 'p'				; Marquage 'p' avant 'P'
 C:001034 e23d      	ldi		REG_TEMP_R19, '-'
-C:001035 940e 3d58 	call		uos_print_mark_3_char
-C:001037 940e 3d10 	call		uos_print_line_feed
+C:001035 940e 3738 	call		uos_print_mark_3_char
+C:001037 940e 36f0 	call		uos_print_line_feed
          
-C:001039 9110 06c2 	lds		REG_TEMP_R17, UOS_G_STATES_BUTTON_NOTIF
-C:00103b 9100 06c3 	lds		REG_TEMP_R16, UOS_G_STATES_BUTTON_NBR_TOUCH_NOTIF
+C:001039 9110 0602 	lds		REG_TEMP_R17, UOS_G_STATES_BUTTON_NOTIF
+C:00103b 9100 0603 	lds		REG_TEMP_R16, UOS_G_STATES_BUTTON_NBR_TOUCH_NOTIF
          
 C:00103d 01d8      	movw		REG_X_LSB, REG_TEMP_R16		; Recopie de 'G_STATES_BUTTON' et 'G_STATES_BUTTON_NBR_TOUCH'
-C:00103e 940e 3d32 	call		uos_print_2_bytes_hexa		; Trace du bouton "courant" [0x<States+Num Button><Counter>] (ie. "B[0xc301]")
+C:00103e 940e 3712 	call		uos_print_2_bytes_hexa		; Trace du bouton "courant" [0x<States+Num Button><Counter>] (ie. "B[0xc301]")
          
-C:001040 940e 3d10 	call		uos_print_line_feed
+C:001040 940e 36f0 	call		uos_print_line_feed
           #endif
          
          	; Determination si appui court; sinon ignore
-C:001042 9110 06c2 	lds		REG_TEMP_R17, UOS_G_STATES_BUTTON_NOTIF
+C:001042 9110 0602 	lds		REG_TEMP_R17, UOS_G_STATES_BUTTON_NOTIF
 C:001044 ff16      	sbrs		REG_TEMP_R17, UOS_FLG_STATE_BUTTON_SHORT_TOUCH_IDX
 C:001045 c01a      	rjmp		callback_gest_buttons_end
          
          	; Determination du bouton #N [1, 2, 3, 4]
-C:001046 9110 06c2 	lds		REG_TEMP_R17, UOS_G_STATES_BUTTON_NOTIF
+C:001046 9110 0602 	lds		REG_TEMP_R17, UOS_G_STATES_BUTTON_NOTIF
 C:001048 701f      	andi		REG_TEMP_R17, 0x0F						; Button #1, #2, #3 or #4
          
          	; Origine de l'appui bouton
@@ -1674,7 +1693,7 @@ C:00104a f039      	breq		callback_gest_buttons_bargraph_end
 C:00104b 950a      	dec		REG_TEMP_R16
          
 C:00104c e2fa      	ldi		REG_Z_MSB, high(text_convert_for_bargraph_table << 1)
-C:00104d e6ea      	ldi		REG_Z_LSB, low(text_convert_for_bargraph_table << 1)
+C:00104d eee4      	ldi		REG_Z_LSB, low(text_convert_for_bargraph_table << 1)
 C:00104e 0fe0      	add		REG_Z_LSB, REG_TEMP_R16
 C:00104f 2700      	clr		REG_TEMP_R16
 C:001050 1ff0      	adc		REG_Z_MSB, REG_TEMP_R16
@@ -1713,7 +1732,7 @@ C:00105c c003      	rjmp		callback_gest_buttons_end
          	; Effacement button #3 dans 'UOS_G_STATES_BUTTON' pour ne pas traiter l'appui dans uOS ;-)
          	; TODO: Inoperant -> Le bouton est traite egalement dans uOS ;-(
 C:00105d 2711      	clr		REG_TEMP_R17
-C:00105e 9310 06c0 	sts		UOS_G_STATES_BUTTON, REG_TEMP_R17	
+C:00105e 9310 0600 	sts		UOS_G_STATES_BUTTON, REG_TEMP_R17	
          
           callback_gest_buttons_end:
 C:001060 9508      	ret
@@ -1730,7 +1749,7 @@ C:001063 6001      	sbr		REG_TEMP_R16, UOS_FLG_EXTENSIONS_EXEC_COMMAND_MSK
 C:001064 9300 0534 	sts		UOS_G_FLAGS_EXTENSIONS, REG_TEMP_R16
          
          	; Interpretation des commandes etendues
-C:001066 9100 06c5 	lds		REG_TEMP_R16, UOS_G_TEST_COMMAND_TYPE
+C:001066 9100 0605 	lds		REG_TEMP_R16, UOS_G_TEST_COMMAND_TYPE
          
 C:001068 94e8      	clt											; Commande non reconnue a priori
          
@@ -1746,35 +1765,35 @@ C:001068 94e8      	clt											; Commande non reconnue a priori
           #if USE_XMEGA_CORE_OPCODES
          	; Test de l'opcode 'LAT'...
 C:001069 e2fa      	ldi		REG_Z_MSB, high(text_command_test_lat << 1)
-C:00106a e8e4      	ldi		REG_Z_LSB, low(text_command_test_lat << 1)
-C:00106b d2c0      	rcall		monitor_test_long_command
+C:00106a efee      	ldi		REG_Z_LSB, low(text_command_test_lat << 1)
+C:00106b d2cb      	rcall		monitor_test_long_command
 C:00106c b71f      	in			REG_TEMP_R17, SREG	
 C:00106d fd11      	sbrc		REG_TEMP_R17, SREG_Z
-C:00106e c2d2      	rjmp		monitor_command_lat
+C:00106e c2dd      	rjmp		monitor_command_lat
          
          	; Test de l'opcode 'LAC'...
-C:00106f e2fa      	ldi		REG_Z_MSB, high(text_command_test_lac << 1)
-C:001070 e8e8      	ldi		REG_Z_LSB, low(text_command_test_lac << 1)
-C:001071 d2ba      	rcall		monitor_test_long_command
+C:00106f e2fb      	ldi		REG_Z_MSB, high(text_command_test_lac << 1)
+C:001070 e0e2      	ldi		REG_Z_LSB, low(text_command_test_lac << 1)
+C:001071 d2c5      	rcall		monitor_test_long_command
 C:001072 b71f      	in			REG_TEMP_R17, SREG	
 C:001073 fd11      	sbrc		REG_TEMP_R17, SREG_Z
-C:001074 c2d0      	rjmp		monitor_command_lac
+C:001074 c2db      	rjmp		monitor_command_lac
          
          	; Test de l'opcode 'LAS'...
-C:001075 e2fa      	ldi		REG_Z_MSB, high(text_command_test_las << 1)
-C:001076 e8ec      	ldi		REG_Z_LSB, low(text_command_test_las << 1)
-C:001077 d2b4      	rcall		monitor_test_long_command
+C:001075 e2fb      	ldi		REG_Z_MSB, high(text_command_test_las << 1)
+C:001076 e0e6      	ldi		REG_Z_LSB, low(text_command_test_las << 1)
+C:001077 d2bf      	rcall		monitor_test_long_command
 C:001078 b71f      	in			REG_TEMP_R17, SREG	
 C:001079 fd11      	sbrc		REG_TEMP_R17, SREG_Z
-C:00107a c2ce      	rjmp		monitor_command_las
+C:00107a c2d9      	rjmp		monitor_command_las
          
          	; Test de l'opcode 'XCH'...
-C:00107b e2fa      	ldi		REG_Z_MSB, high(text_command_test_xch << 1)
-C:00107c e9e0      	ldi		REG_Z_LSB, low(text_command_test_xch << 1)
-C:00107d d2ae      	rcall		monitor_test_long_command
+C:00107b e2fb      	ldi		REG_Z_MSB, high(text_command_test_xch << 1)
+C:00107c e0ea      	ldi		REG_Z_LSB, low(text_command_test_xch << 1)
+C:00107d d2b9      	rcall		monitor_test_long_command
 C:00107e b71f      	in			REG_TEMP_R17, SREG	
 C:00107f fd11      	sbrc		REG_TEMP_R17, SREG_Z
-C:001080 c2cc      	rjmp		monitor_command_xch
+C:001080 c2d7      	rjmp		monitor_command_xch
           #endif
          
          	; Fin: Accueil des syntaxes "longues" comme  "lat", "lac", "las" et "xch"...
@@ -1883,17 +1902,17 @@ C:0010c0 9508      	ret
          
          ; ---------
           monitor_command_prompt:
-C:0010c1 940e 3dd5 	call		uos_print_command_ok
+C:0010c1 940e 38f5 	call		uos_print_command_ok
          
          	; Print de 'text_monitor_prompt' en mode non bloquant
-C:0010c3 e2f6      	ldi		REG_Z_MSB, high(text_monitor_prompt << 1)
-C:0010c4 efe0      	ldi		REG_Z_LSB, low(text_monitor_prompt << 1)
-C:0010c5 940e 3ccd 	call		uos_push_text_flash_in_fifo_tx_skip
+C:0010c3 e2f7      	ldi		REG_Z_MSB, high(text_monitor_prompt << 1)
+C:0010c4 e0e6      	ldi		REG_Z_LSB, low(text_monitor_prompt << 1)
+C:0010c5 940e 36ae 	call		uos_push_text_flash_in_fifo_tx_skip
          
          	; Suite avec le detail des fonctionnalites supportees
 C:0010c7 e2f7      	ldi		REG_Z_MSB, high(text_monitor_desc << 1)
-C:0010c8 e2e8      	ldi		REG_Z_LSB, low(text_monitor_desc << 1)
-C:0010c9 940e 3ccd 	call		uos_push_text_flash_in_fifo_tx_skip
+C:0010c8 e4e8      	ldi		REG_Z_LSB, low(text_monitor_desc << 1)
+C:0010c9 940e 36ae 	call		uos_push_text_flash_in_fifo_tx_skip
          
 C:0010cb 9468      	set													; Commande reconnue
 C:0010cc 9508      	ret
@@ -1905,15 +1924,15 @@ C:0010cc 9508      	ret
          ; ---------
           monitor_init_sram_fill:
 C:0010cd 2700      	clr		REG_TEMP_R16
-C:0010ce e0b7      	ldi		REG_X_MSB, high(G_SRAM_EXTENSION_END_OF_USE - 1)
-C:0010cf e6a5      	ldi		REG_X_LSB, low(G_SRAM_EXTENSION_END_OF_USE - 1)
+C:0010ce e0b6      	ldi		REG_X_MSB, high(G_SRAM_EXTENSION_END_OF_USE - 1)
+C:0010cf eaa5      	ldi		REG_X_LSB, low(G_SRAM_EXTENSION_END_OF_USE - 1)
          
           monitor_init_sram_fill_loop_a:
 C:0010d0 930c      	st			X, REG_TEMP_R16
 C:0010d1 9711      	sbiw		REG_X_LSB, 1
-C:0010d2 30b7      	cpi		REG_X_MSB, high(UOS_G_SRAM_BOOTLOADER_END_OF_USE)
+C:0010d2 30b6      	cpi		REG_X_MSB, high(UOS_G_SRAM_BOOTLOADER_END_OF_USE)
 C:0010d3 f7e1      	brne		monitor_init_sram_fill_loop_a
-C:0010d4 35af      	cpi		REG_X_LSB, low(UOS_G_SRAM_BOOTLOADER_END_OF_USE)
+C:0010d4 39af      	cpi		REG_X_LSB, low(UOS_G_SRAM_BOOTLOADER_END_OF_USE)
 C:0010d5 f7d1      	brne		monitor_init_sram_fill_loop_a
          
 C:0010d6 9508      	ret
@@ -1935,7 +1954,7 @@ C:0010db 9310 0501 	sts		UOS_G_STATES_POST_MORTEM, REG_TEMP_R17
          	; Extinction de toutes les Leds
 C:0010dd   +  	setLedBlueOff
 C:0010dd 9170 050f lds		REG_TEMP_R23, UOS_G_PORTB_IMAGE
-C:0010df 6170      sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_BLUE	
+C:0010df 6071      sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_BLUE	
 C:0010e0 9370 050f sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
 C:0010e2 b975      out		PORTB, REG_TEMP_R23					
 
@@ -1977,7 +1996,7 @@ C:001104 7f7d      cbr		REG_TEMP_R23, UOS_MSK_BIT_LED_RED
 C:001105 9370 050f sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
 C:001107 b975      out		PORTB, REG_TEMP_R23					
 
-C:001108 940e 3694 	call		uos_delay_big_2
+C:001108 940e 3125 	call		uos_delay_big_2
 C:00110a 910f      	pop		REG_TEMP_R16
 C:00110b 930f      	push		REG_TEMP_R16
 C:00110c   +  	setLedRedOff
@@ -1991,7 +2010,7 @@ C:001113 6072      sbr		REG_TEMP_R23, UOS_MSK_BIT_LED_RED
 C:001114 9370 050f sts		UOS_G_PORTB_IMAGE, REG_TEMP_R23
 C:001116 b975      out		PORTB, REG_TEMP_R23					
 
-C:001117 940e 3694 	call		uos_delay_big_2
+C:001117 940e 3125 	call		uos_delay_big_2
 C:001119 910f      	pop		REG_TEMP_R16
 C:00111a cfdf      	rjmp		monitor_invalid_it_loop
          ; ---------
@@ -2007,15 +2026,15 @@ C:00111a cfdf      	rjmp		monitor_invalid_it_loop
          ;          "TODO"
          ; ---------
           monitor_command_a_min:
-C:00111b 940e 3dd5 	call		uos_print_command_ok			; Commande acceptee
+C:00111b 940e 38f5 	call		uos_print_command_ok			; Commande acceptee
          
          	; Prises des parametres
          	; => 
-C:00111d 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB			; Adresse du 1st byte a lire et calculer
-C:00111f 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+C:00111d 91b0 0606 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB			; Adresse du 1st byte a lire et calculer
+C:00111f 91a0 0607 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
          
-C:001121 91d0 06c8 	lds		REG_Y_MSB, UOS_G_TEST_VALUE_MSB_MORE	; Adresse du dernier byte inclus a lire et calculer
-C:001123 91c0 06c9 	lds		REG_Y_LSB, UOS_G_TEST_VALUE_LSB_MORE
+C:001121 91d0 0608 	lds		REG_Y_MSB, UOS_G_TEST_VALUE_MSB_MORE	; Adresse du dernier byte inclus a lire et calculer
+C:001123 91c0 0609 	lds		REG_Y_LSB, UOS_G_TEST_VALUE_LSB_MORE
          
          	; TODO: Test si Adresse TO > Adresse FROM
 C:001125 93bf      	push		REG_X_MSB
@@ -2023,15 +2042,15 @@ C:001126 93af      	push		REG_X_LSB
 C:001127 93df      	push		REG_Y_MSB
 C:001128 93cf      	push		REG_Y_LSB
          
-C:001129 940e 3d32 	call		uos_print_2_bytes_hexa		; Adresse FROM
+C:001129 940e 3712 	call		uos_print_2_bytes_hexa		; Adresse FROM
          
 C:00112b 91af      	pop		REG_X_LSB						; Recuperation adresse du dernier byte inclus a lire et calculer
 C:00112c 91bf      	pop		REG_X_MSB
 C:00112d 93bf      	push		REG_X_MSB
 C:00112e 93af      	push		REG_X_LSB
          
-C:00112f 940e 3d32 	call		uos_print_2_bytes_hexa		; Adresse TO
-C:001131 940e 3d10 	call		uos_print_line_feed
+C:00112f 940e 3712 	call		uos_print_2_bytes_hexa		; Adresse TO
+C:001131 940e 36f0 	call		uos_print_line_feed
          
 C:001133 91cf      	pop		REG_Y_LSB
 C:001134 91df      	pop		REG_Y_MSB
@@ -2054,7 +2073,7 @@ C:00113f 27bb      	clr		REG_X_MSB			; Calcul a partir de l'adresse 0x0000
 C:001140 27aa      	clr		REG_X_LSB			; jusqu'a 'end_of_program' non incluse par defaut
          
 C:001141 e1d5      	ldi		REG_Y_MSB, high(end_of_program - 1)
-C:001142 e4ca      	ldi		REG_Y_LSB, low(end_of_program - 1)
+C:001142 e8c7      	ldi		REG_Y_LSB, low(end_of_program - 1)
          
           monitor_command_a_min_calcul:
          	; Adresse sur des mots en flash
@@ -2063,14 +2082,14 @@ C:001144 1fbb      	rol		REG_X_MSB
          
          	; Raz CRC8
 C:001145 2700      	clr		REG_TEMP_R16
-C:001146 9300 0760 	sts		G_CALC_CRC8, REG_TEMP_R16
+C:001146 9300 06a0 	sts		G_CALC_CRC8, REG_TEMP_R16
          
           monitor_command_a_min_loop_0:
          	; Impression de 'X' ("[0xHHHH] ")
          	; Remarque: Division par 2 car dump de word ;-)
 C:001148 95b6      	lsr		REG_X_MSB
 C:001149 95a7      	ror		REG_X_LSB
-C:00114a 940e 3d32 	call		uos_print_2_bytes_hexa
+C:00114a 940e 3712 	call		uos_print_2_bytes_hexa
          
          	; Retablissement de 'X' qui est toujours pair ici
 C:00114c 0faa      	lsl		REG_X_LSB
@@ -2079,8 +2098,8 @@ C:00114d 1fbb      	rol		REG_X_MSB
          	; Impression du dump ("[0x....]")
          	; => TODO: Si saut 'end_of_program' est de la forme 0xhhh0, pas de valeur apres [0x...]
 C:00114e e2fa      	ldi		REG_Z_MSB, ((text_hexa_value << 1) / 256)
-C:00114f e5e2      	ldi		REG_Z_LSB, ((text_hexa_value << 1) % 256)
-C:001150 940e 3cd1 	call		uos_push_text_flash_in_fifo_tx
+C:00114f ecec      	ldi		REG_Z_LSB, ((text_hexa_value << 1) % 256)
+C:001150 940e 36b2 	call		uos_push_text_flash_in_fifo_tx
          
 C:001152 e220      	ldi		REG_TEMP_R18, 32
          
@@ -2116,7 +2135,7 @@ C:001163 e001      	ldi		REG_TEMP_R16, 0x01
 C:001164 27e0      	eor		REG_Z_LSB, REG_TEMP_R16		; Lecture MSB puis LSB
 C:001165 9104      	lpm		REG_TEMP_R16, Z
 C:001166 930f      	push		REG_TEMP_R16
-C:001167 940e 3d04 	call		uos_convert_and_put_fifo_tx
+C:001167 940e 36e4 	call		uos_convert_and_put_fifo_tx
          
 C:001169 910f      	pop		REG_TEMP_R16
 C:00116a d02e      	rcall		calc_crc8_maxim
@@ -2125,44 +2144,44 @@ C:00116b 952a      	dec		REG_TEMP_R18
 C:00116c f731      	brne		monitor_command_a_min_loop_1
          
 C:00116d e50d      	ldi		REG_TEMP_R16, ']'
-C:00116e 940e 3cf9 	call		uos_push_1_char_in_fifo_tx
+C:00116e 940e 36d9 	call		uos_push_1_char_in_fifo_tx
          
 C:001170 93af      	push		REG_X_LSB
-C:001171 91a0 0760 	lds		REG_X_LSB, G_CALC_CRC8
-C:001173 940e 3d21 	call		uos_print_1_byte_hexa
-C:001175 940e 3d10 	call		uos_print_line_feed
+C:001171 91a0 06a0 	lds		REG_X_LSB, G_CALC_CRC8
+C:001173 940e 3701 	call		uos_print_1_byte_hexa
+C:001175 940e 36f0 	call		uos_print_line_feed
 C:001177 91af      	pop		REG_X_LSB
          
 C:001178 cfcf      	rjmp		monitor_command_a_min_loop_0
          
           monitor_command_a_min_end:
 C:001179 e50d      	ldi		REG_TEMP_R16, ']'
-C:00117a 940e 3cf9 	call		uos_push_1_char_in_fifo_tx
+C:00117a 940e 36d9 	call		uos_push_1_char_in_fifo_tx
 C:00117c 93af      	push		REG_X_LSB
-C:00117d 91a0 0760 	lds		REG_X_LSB, G_CALC_CRC8
-C:00117f 940e 3d21 	call		uos_print_1_byte_hexa
-C:001181 940e 3d10 	call		uos_print_line_feed
+C:00117d 91a0 06a0 	lds		REG_X_LSB, G_CALC_CRC8
+C:00117f 940e 3701 	call		uos_print_1_byte_hexa
+C:001181 940e 36f0 	call		uos_print_line_feed
 C:001183 91af      	pop		REG_X_LSB
          
           monitor_command_a_min_rtn:
 C:001184 e2fa      	ldi		REG_Z_MSB, ((text_crc8_maxim << 1) / 256)
-C:001185 e4e6      	ldi		REG_Z_LSB, ((text_crc8_maxim << 1) % 256)
-C:001186 940e 3cd1 	call		uos_push_text_flash_in_fifo_tx
+C:001185 ece0      	ldi		REG_Z_LSB, ((text_crc8_maxim << 1) % 256)
+C:001186 940e 36b2 	call		uos_push_text_flash_in_fifo_tx
          
          	; Reprise et print de la 1st adresse testee
-C:001188 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB			; Adresse du 1st byte a lire et calculer
-C:00118a 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
-C:00118c 940e 3d32 	call		uos_print_2_bytes_hexa
+C:001188 91b0 0606 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB			; Adresse du 1st byte a lire et calculer
+C:00118a 91a0 0607 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+C:00118c 940e 3712 	call		uos_print_2_bytes_hexa
          
          	; Print de la derniere adresse testee
 C:00118e 01de      	movw		REG_X_LSB, REG_Y_LSB
-C:00118f 940e 3d32 	call		uos_print_2_bytes_hexa
+C:00118f 940e 3712 	call		uos_print_2_bytes_hexa
          
          	; Print du CRC8-MAXIM final
-C:001191 91a0 0760 	lds		REG_X_LSB, G_CALC_CRC8
-C:001193 940e 3d21 	call		uos_print_1_byte_hexa
+C:001191 91a0 06a0 	lds		REG_X_LSB, G_CALC_CRC8
+C:001193 940e 3701 	call		uos_print_1_byte_hexa
          
-C:001195 940e 3d10 	call		uos_print_line_feed
+C:001195 940e 36f0 	call		uos_print_line_feed
          
 C:001197 9468      	set											; Commande reconnue
 C:001198 9508      	ret
@@ -2181,7 +2200,7 @@ C:00119b 932f      	push		REG_TEMP_R18
 C:00119c 933f      	push		REG_TEMP_R19
          
 C:00119d 2f10      	mov		REG_TEMP_R17, REG_TEMP_R16
-C:00119e 9130 0760 	lds		REG_TEMP_R19, G_CALC_CRC8
+C:00119e 9130 06a0 	lds		REG_TEMP_R19, G_CALC_CRC8
          
 C:0011a0 e028      	ldi		REG_TEMP_R18, 8
          
@@ -2202,7 +2221,7 @@ C:0011a9 e80c      	ldi		REG_TEMP_R16, CRC8_POLYNOMIAL
 C:0011aa 2730      	eor		REG_TEMP_R19, REG_TEMP_R16					; crc ^= (carry ? CRC8_POLYNOMIAL: 0x00);
          
           calc_crc8_maxim_b:
-C:0011ab 9330 0760 	sts		G_CALC_CRC8, REG_TEMP_R19
+C:0011ab 9330 06a0 	sts		G_CALC_CRC8, REG_TEMP_R19
          
 C:0011ad 9516      	lsr		REG_TEMP_R17									; i__byte >>= 1
          
@@ -2229,11 +2248,11 @@ C:0011b4 9508      	ret
          ;          "[0xAAAA] [0xd0d1d2d3d4d5d6d7...]" (0xAAAA actualise @ adresse en cours)
          ; ---------
           monitor_command_e_min:
-C:0011b5 940e 3dd5 	call		uos_print_command_ok			; Commande acceptee
+C:0011b5 940e 38f5 	call		uos_print_command_ok			; Commande acceptee
          
          	; Recuperation de l'adresse du 1st byte a lire
-C:0011b7 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
-C:0011b9 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+C:0011b7 91b0 0606 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
+C:0011b9 91a0 0607 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
          
 C:0011bb 23bb      	tst		REG_X_MSB
 C:0011bc f421      	brne		monitor_command_e_min_cont_d
@@ -2252,19 +2271,19 @@ C:0011c1 e018      	ldi		REG_TEMP_R17, 8
          
           monitor_command_e_min_loop_0:
          	; Impression de 'X' ("[0xHHHH] ")
-C:0011c2 940e 3d32 	call		uos_print_2_bytes_hexa
+C:0011c2 940e 3712 	call		uos_print_2_bytes_hexa
          
          	; Impression du dump ("[0x....]")
 C:0011c4 e2fa      	ldi		REG_Z_MSB, ((text_hexa_value << 1) / 256)
-C:0011c5 e5e2      	ldi		REG_Z_LSB, ((text_hexa_value << 1) % 256)
-C:0011c6 940e 3cd1 	call		uos_push_text_flash_in_fifo_tx
+C:0011c5 ecec      	ldi		REG_Z_LSB, ((text_hexa_value << 1) % 256)
+C:0011c6 940e 36b2 	call		uos_push_text_flash_in_fifo_tx
          
 C:0011c8 e120      	ldi		REG_TEMP_R18, 16
          
           monitor_command_e_min_loop_1:
          	; Valeur de l'EEPROM indexee par 'REG_X_MSB:REG_X_LSB'
-C:0011c9 940e 3f30 	call		uos_eeprom_read_byte
-C:0011cb 940e 3d04 	call		uos_convert_and_put_fifo_tx
+C:0011c9 940e 3a51 	call		uos_eeprom_read_byte
+C:0011cb 940e 36e4 	call		uos_convert_and_put_fifo_tx
          
 C:0011cd 9611      	adiw		REG_X_LSB, 1
          
@@ -2284,8 +2303,8 @@ C:0011d4 952a      	dec		REG_TEMP_R18
 C:0011d5 f799      	brne		monitor_command_e_min_loop_1
          
 C:0011d6 e2fa      	ldi		REG_Z_MSB, ((text_hexa_value_lf_end << 1) / 256)
-C:0011d7 e5e6      	ldi		REG_Z_LSB, ((text_hexa_value_lf_end << 1) % 256)
-C:0011d8 940e 3cd1 	call		uos_push_text_flash_in_fifo_tx
+C:0011d7 ede0      	ldi		REG_Z_LSB, ((text_hexa_value_lf_end << 1) % 256)
+C:0011d8 940e 36b2 	call		uos_push_text_flash_in_fifo_tx
          
 C:0011da 951a      	dec		REG_TEMP_R17
 C:0011db f731      	brne		monitor_command_e_min_loop_0
@@ -2302,15 +2321,15 @@ C:0011dd 9508      	ret
          ; Reponse: "[NN>EAAAA]" (Adresse du byte a ecrire)
          ; ---------
           monitor_command_e_maj:
-C:0011de 91a0 06cc 	lds		REG_X_LSB, UOS_G_TEST_VALUES_IDX_WRK
+C:0011de 91a0 060c 	lds		REG_X_LSB, UOS_G_TEST_VALUES_IDX_WRK
 C:0011e0 95a6      	lsr		REG_X_LSB									; REG_X_LSB /= 2 pour nbr de bytes a ecrire
          
 C:0011e1 2f2a      	mov		REG_TEMP_R18, REG_X_LSB
          	; Fin: Prise du nombre de mots passes en arguments
          
          	; Recuperation de l'adresse du 1st byte a ecrire
-C:0011e2 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
-C:0011e4 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+C:0011e2 91b0 0606 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
+C:0011e4 91a0 0607 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
          
          	; Test de 'REG_X_MSB:REG_X_LSB' dans la plage [0, ..., EEPROMEND] @ 'REG_TEMP_R18'
 C:0011e6 e001      	ldi		REG_TEMP_R16, low(EEPROMEND + 2)
@@ -2323,26 +2342,26 @@ C:0011eb 07b1      	cpc		REG_X_MSB, REG_TEMP_R17
 C:0011ec f52a      	brpl		monitor_command_e_maj_out_of_range
          	; Fin: Test de 'REG_X_MSB:REG_X_LSB' dans la plage [0, ..., EEPROMEND] @ 'REG_TEMP_R18'
          
-C:0011ed 940e 3dd5 	call		uos_print_command_ok			; Commande reconnue
+C:0011ed 940e 38f5 	call		uos_print_command_ok			; Commande reconnue
          
          	; Lecture des 'REG_TEMP_R18' mots de la SRAM dont seule la partie LSB sera ecrite
 C:0011ef 2f12      	mov		REG_TEMP_R17, REG_TEMP_R18
 C:0011f0 e0d6      	ldi		REG_Y_MSB, high(UOS_G_TEST_VALUES_ZONE)
-C:0011f1 ecce      	ldi		REG_Y_LSB, low(UOS_G_TEST_VALUES_ZONE)
+C:0011f1 e0ce      	ldi		REG_Y_LSB, low(UOS_G_TEST_VALUES_ZONE)
          
          	; Clear error
-C:0011f2 9100 06c4 	lds		REG_TEMP_R16, UOS_G_TEST_FLAGS
+C:0011f2 9100 0604 	lds		REG_TEMP_R16, UOS_G_TEST_FLAGS
 C:0011f4 7b0f      	cbr		REG_TEMP_R16, UOS_FLG_TEST_EEPROM_ERROR_MSK
-C:0011f5 9300 06c4 	sts		UOS_G_TEST_FLAGS, REG_TEMP_R16
+C:0011f5 9300 0604 	sts		UOS_G_TEST_FLAGS, REG_TEMP_R16
          
           monitor_command_e_maj_loop:
 C:0011f7 8108      	ld			REG_TEMP_R16, Y
-C:0011f8 d127      	rcall		eeprom_write_byte
+C:0011f8 d132      	rcall		eeprom_write_byte
          
          	; Verification de l'ecriture
 C:0011f9 2f20      	mov		REG_TEMP_R18, REG_TEMP_R16		; Save data writed
 C:0011fa 2700      	clr		REG_TEMP_R16						; Raz before read eeprom @ 'X'
-C:0011fb 940e 3f30 	call		uos_eeprom_read_byte	
+C:0011fb 940e 3a51 	call		uos_eeprom_read_byte	
          
 C:0011fd 1302      	cpse		REG_TEMP_R16, REG_TEMP_R18
 C:0011fe c005      	rjmp		monitor_command_e_maj_ko
@@ -2357,18 +2376,18 @@ C:001203 c010      	rjmp		monitor_command_e_maj_end
          
           monitor_command_e_maj_ko:
 C:001204 e2fa      	ldi      REG_Z_MSB, ((text_eeprom_error << 1) / 256)
-C:001205 e5ea      	ldi      REG_Z_LSB, ((text_eeprom_error << 1) % 256)
-C:001206 940e 3cd1 	call		uos_push_text_flash_in_fifo_tx
-C:001208 940e 3d32 	call		uos_print_2_bytes_hexa
-C:00120a 940e 3d10 	call		uos_print_line_feed
+C:001205 ede4      	ldi      REG_Z_LSB, ((text_eeprom_error << 1) % 256)
+C:001206 940e 36b2 	call		uos_push_text_flash_in_fifo_tx
+C:001208 940e 3712 	call		uos_print_2_bytes_hexa
+C:00120a 940e 36f0 	call		uos_print_line_feed
          
-C:00120c 9100 06c4 	lds		REG_TEMP_R16, UOS_G_TEST_FLAGS
+C:00120c 9100 0604 	lds		REG_TEMP_R16, UOS_G_TEST_FLAGS
 C:00120e 6400      	sbr		REG_TEMP_R16, UOS_FLG_TEST_EEPROM_ERROR_MSK
-C:00120f 9300 06c4 	sts		UOS_G_TEST_FLAGS, REG_TEMP_R16
+C:00120f 9300 0604 	sts		UOS_G_TEST_FLAGS, REG_TEMP_R16
 C:001211 c002      	rjmp		monitor_command_e_maj_end
          
           monitor_command_e_maj_out_of_range:
-C:001212 940e 3dda 	call		uos_print_command_ko			; Commande non executee
+C:001212 940e 38fa 	call		uos_print_command_ko			; Commande non executee
          
           monitor_command_e_maj_end:
 C:001214 9468      	set											; Commande reconnue
@@ -2387,11 +2406,11 @@ C:001215 9508      	ret
          ;          "[0xAAAA] [0xd0d1d2d3d4d5d6d7...]" (0xAAAA actualise @ adresse en cours)
          ; ---------
           monitor_command_i_min:
-C:001216 940e 3dd5 	call		uos_print_command_ok			; Commande reconnue
+C:001216 940e 38f5 	call		uos_print_command_ok			; Commande reconnue
          
          	; Recuperation de l'adresse du 1st byte a lire
-C:001218 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
-C:00121a 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+C:001218 91b0 0606 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
+C:00121a 91a0 0607 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
          
 C:00121c 23bb      	tst		REG_X_MSB
 C:00121d f431      	brne		_uos_exec_command_type_i_read_cont_d
@@ -2413,19 +2432,19 @@ C:001224 e018      	ldi		REG_TEMP_R17, 8
          
           _uos_exec_command_type_i_read_loop_0:
          	; Impression de 'X' ("[0xHHHH] ")
-C:001225 940e 3d32 	call		uos_print_2_bytes_hexa
+C:001225 940e 3712 	call		uos_print_2_bytes_hexa
          
          	; Impression du dump ("[0x....]")
 C:001227 e2fa      	ldi		REG_Z_MSB, ((text_hexa_value << 1) / 256)
-C:001228 e5e2      	ldi		REG_Z_LSB, ((text_hexa_value << 1) % 256)
-C:001229 940e 3cd1 	call		uos_push_text_flash_in_fifo_tx
+C:001228 ecec      	ldi		REG_Z_LSB, ((text_hexa_value << 1) % 256)
+C:001229 940e 36b2 	call		uos_push_text_flash_in_fifo_tx
          
 C:00122b e120      	ldi		REG_TEMP_R18, 16
          
           _uos_exec_command_type_i_read_loop_1:
          	; Valeur de la SRAM indexee par 'REG_X_MSB:REG_X_LSB'
 C:00122c 910d      	ld			REG_TEMP_R16, X+
-C:00122d 940e 3d04 	call		uos_convert_and_put_fifo_tx
+C:00122d 940e 36e4 	call		uos_convert_and_put_fifo_tx
          
          	; Test limite '0xFF'
          	; => On suppose qu'au depart 'X <= 0xFF'
@@ -2443,8 +2462,8 @@ C:001235 952a      	dec		REG_TEMP_R18
 C:001236 f7a9      	brne		_uos_exec_command_type_i_read_loop_1
          
 C:001237 e2fa      	ldi		REG_Z_MSB, ((text_hexa_value_lf_end << 1) / 256)
-C:001238 e5e6      	ldi		REG_Z_LSB, ((text_hexa_value_lf_end << 1) % 256)
-C:001239 940e 3cd1 	call		uos_push_text_flash_in_fifo_tx
+C:001238 ede0      	ldi		REG_Z_LSB, ((text_hexa_value_lf_end << 1) % 256)
+C:001239 940e 36b2 	call		uos_push_text_flash_in_fifo_tx
          
 C:00123b 951a      	dec		REG_TEMP_R17
 C:00123c f741      	brne		_uos_exec_command_type_i_read_loop_0
@@ -2462,18 +2481,18 @@ C:00123e 9508      	ret
          ; Reponse: "[NN>IAAAA-BBBB]"
          ; ---------
           monitor_command_i_maj:
-C:00123f 940e 3dd5 	call		uos_print_command_ok			; Commande reconnue
+C:00123f 940e 38f5 	call		uos_print_command_ok			; Commande reconnue
          
          	; Recuperation de l'adresse du byte a ecrire
-C:001241 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
-C:001243 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+C:001241 91b0 0606 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
+C:001243 91a0 0607 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
          
          	; Valeur a ecrire
          	; Fix: Harmonisation des commandes d'ecritures '<SAddress-Value' et '<EAddress+Value'
          	;      => '+Value' semble correct d'un point de vue ergonomique ;-)
          
          	;lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB_MORE	; Syntaxe "<IAddress-Value"
-C:001245 9100 06ce 	lds		REG_TEMP_R16, UOS_G_TEST_VALUES_ZONE		; Syntaxe "<IAddress+Value"
+C:001245 9100 060e 	lds		REG_TEMP_R16, UOS_G_TEST_VALUES_ZONE		; Syntaxe "<IAddress+Value"
 C:001247 930c      	st			X, REG_TEMP_R16
          
 C:001248 9468      	set													; Commande reconnue
@@ -2495,12 +2514,12 @@ C:001249 9508      	ret
          	; Print de la reponse en mode bloquant car certains registres peuvent
          	; affecter la vitesse de transmission ;-)
 C:00124a e2fa      	ldi		REG_Z_MSB, high(text_response_j_maj << 1)
-C:00124b e7ea      	ldi		REG_Z_LSB, low(text_response_j_maj << 1)
+C:00124b efe4      	ldi		REG_Z_LSB, low(text_response_j_maj << 1)
 C:00124c de61      	rcall		print_blocking_string
          
          	; Recuperation de l'adresse du word a ecrire
-C:00124d 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
-C:00124f 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+C:00124d 91b0 0606 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
+C:00124f 91a0 0607 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
          
          	; Valeur a ecrire
          	; Fix: Harmonisation des commandes d'ecritures '<SAddress+Value' et '<EAddress+Value'
@@ -2508,11 +2527,11 @@ C:00124f 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
          
 C:001251 94f8      	cli		; Ecriture atomique
          
-C:001252 9100 06cf 	lds		REG_TEMP_R16, (UOS_G_TEST_VALUES_ZONE + 1)	; Ecriture de la partie MSB
+C:001252 9100 060f 	lds		REG_TEMP_R16, (UOS_G_TEST_VALUES_ZONE + 1)	; Ecriture de la partie MSB
 C:001254 930c      	st			X, REG_TEMP_R16
          
 C:001255 9711      	sbiw		REG_X_LSB, 1											; Acces a l'adresse LSB
-C:001256 9100 06ce 	lds		REG_TEMP_R16, UOS_G_TEST_VALUES_ZONE			; Ecriture de la partie LSB
+C:001256 9100 060e 	lds		REG_TEMP_R16, UOS_G_TEST_VALUES_ZONE			; Ecriture de la partie LSB
 C:001258 930c      	st			X, REG_TEMP_R16
          
 C:001259 9478      	sei		; Fin: Ecriture atomique
@@ -2530,18 +2549,18 @@ C:00125b 9508      	ret
          ; Reponse: "[NN>SAAAA-BBBB]"
          ; ---------
           monitor_command_s_maj:
-C:00125c 940e 3dd5 	call		uos_print_command_ok			; Commande reconnue
+C:00125c 940e 38f5 	call		uos_print_command_ok			; Commande reconnue
          
          	; Recuperation de l'adresse du byte a ecrire
-C:00125e 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
-C:001260 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
+C:00125e 91b0 0606 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB
+C:001260 91a0 0607 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB
          
          	; Valeur a ecrire
          	; Fix: Harmonisation des commandes d'ecritures '<SAddress-Value' et '<EAddress+Value'
          	;      => '+Value' semble correct d'un point de vue ergonomique ;-)
          
          	;lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB_MORE	; Syntaxe "<SAddress-Value"
-C:001262 9100 06ce 	lds		REG_TEMP_R16, UOS_G_TEST_VALUES_ZONE		; Syntaxe "<SAddress+Value"
+C:001262 9100 060e 	lds		REG_TEMP_R16, UOS_G_TEST_VALUES_ZONE		; Syntaxe "<SAddress+Value"
 C:001264 930c      	st			X, REG_TEMP_R16
          
 C:001265 9468      	set													; Commande reconnue
@@ -2553,50 +2572,50 @@ C:001266 9508      	ret
          ;          "TODO"
          ; ---------
           monitor_command_t_min:
-C:001267 940e 3dd5 	call		uos_print_command_ok			; Commande acceptee
+C:001267 940e 38f5 	call		uos_print_command_ok			; Commande acceptee
          
          	; Prises des parametres
          	; => 
-C:001269 91b0 06c6 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB			; hh
-C:00126b 91a0 06c7 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB			; hl
+C:001269 91b0 0606 	lds		REG_X_MSB, UOS_G_TEST_VALUE_MSB			; hh
+C:00126b 91a0 0607 	lds		REG_X_LSB, UOS_G_TEST_VALUE_LSB			; hl
          
-C:00126d 91d0 06c8 	lds		REG_Y_MSB, UOS_G_TEST_VALUE_MSB_MORE	; Hh
-C:00126f 91c0 06c9 	lds		REG_Y_LSB, UOS_G_TEST_VALUE_LSB_MORE	; Hl
+C:00126d 91d0 0608 	lds		REG_Y_MSB, UOS_G_TEST_VALUE_MSB_MORE	; Hh
+C:00126f 91c0 0609 	lds		REG_Y_LSB, UOS_G_TEST_VALUE_LSB_MORE	; Hl
          
 C:001271 93bf      	push		REG_X_MSB
 C:001272 93af      	push		REG_X_LSB
 C:001273 93df      	push		REG_Y_MSB
 C:001274 93cf      	push		REG_Y_LSB
          
-C:001275 940e 3d32 	call		uos_print_2_bytes_hexa		; Print 'hhhl' contenu dans 'X'
+C:001275 940e 3712 	call		uos_print_2_bytes_hexa		; Print 'hhhl' contenu dans 'X'
          
 C:001277 91af      	pop		REG_X_LSB						; Recuperation 'HhHl'
 C:001278 91bf      	pop		REG_X_MSB
 C:001279 93bf      	push		REG_X_MSB
 C:00127a 93af      	push		REG_X_LSB
          
-C:00127b 940e 3d32 	call		uos_print_2_bytes_hexa		; Print 'HhHl' contenu dans 'X'
-C:00127d 940e 3d10 	call		uos_print_line_feed
+C:00127b 940e 3712 	call		uos_print_2_bytes_hexa		; Print 'HhHl' contenu dans 'X'
+C:00127d 940e 36f0 	call		uos_print_line_feed
          
 C:00127f 91cf      	pop		REG_Y_LSB
 C:001280 91df      	pop		REG_Y_MSB
 C:001281 91af      	pop		REG_X_LSB
 C:001282 91bf      	pop		REG_X_MSB
          
-C:001283 9120 06c7 	lds		REG_TEMP_R18, UOS_G_TEST_VALUE_LSB			; hl
-C:001285 9140 06c9 	lds		REG_TEMP_R20, UOS_G_TEST_VALUE_LSB_MORE	; Hl
+C:001283 9120 0607 	lds		REG_TEMP_R18, UOS_G_TEST_VALUE_LSB			; hl
+C:001285 9140 0609 	lds		REG_TEMP_R20, UOS_G_TEST_VALUE_LSB_MORE	; Hl
 C:001287 1724      	cp 		REG_TEMP_R18, REG_TEMP_R20
          
 C:001288 b60f      	in			r0, SREG
-C:001289 d051      	rcall		extract_and_print_sreg
+C:001289 d05c      	rcall		extract_and_print_sreg
          
-C:00128a 9130 06c6 	lds		REG_TEMP_R19, UOS_G_TEST_VALUE_MSB			; hl
-C:00128c 9150 06c8 	lds		REG_TEMP_R21, UOS_G_TEST_VALUE_MSB_MORE	; Hl
+C:00128a 9130 0606 	lds		REG_TEMP_R19, UOS_G_TEST_VALUE_MSB			; hl
+C:00128c 9150 0608 	lds		REG_TEMP_R21, UOS_G_TEST_VALUE_MSB_MORE	; Hl
          
 C:00128e be0f      	out		SREG, r0
 C:00128f 0735      	cpc		REG_TEMP_R19, REG_TEMP_R21
          
-C:001290 d04a      	rcall		extract_and_print_sreg
+C:001290 d055      	rcall		extract_and_print_sreg
          
 C:001291 9468      	set											; Commande reconnue
 C:001292 9508      	ret
@@ -2607,7 +2626,7 @@ C:001292 9508      	ret
          ; => Lecture des fuses
          ; ---------
           monitor_command_f_min:
-C:001293 940e 3dd5 	call		uos_print_command_ok			; Commande reconnue
+C:001293 940e 38f5 	call		uos_print_command_ok			; Commande reconnue
          
          	; Signature...
 C:001295 e201      	ldi		REG_TEMP_R16, (1 << SIGRD) | (1 << SPMEN)
@@ -2616,7 +2635,7 @@ C:001296 bf07      	out		SPMCSR, REG_TEMP_R16
 C:001297 e0f0      	ldi		REG_Z_MSB, 0x00
 C:001298 e0e0      	ldi		REG_Z_LSB, 0x00
 C:001299 91a4      	lpm		REG_X_LSB, Z
-C:00129a 940e 3d21 	call		uos_print_1_byte_hexa
+C:00129a 940e 3701 	call		uos_print_1_byte_hexa
          
 C:00129c e201      	ldi		REG_TEMP_R16, (1 << SIGRD) | (1 << SPMEN)
 C:00129d bf07      	out		SPMCSR, REG_TEMP_R16
@@ -2624,7 +2643,7 @@ C:00129d bf07      	out		SPMCSR, REG_TEMP_R16
 C:00129e e0f0      	ldi		REG_Z_MSB, 0x00
 C:00129f e0e2      	ldi		REG_Z_LSB, 0x02
 C:0012a0 91a4      	lpm		REG_X_LSB, Z
-C:0012a1 940e 3d21 	call		uos_print_1_byte_hexa
+C:0012a1 940e 3701 	call		uos_print_1_byte_hexa
          
 C:0012a3 e201      	ldi		REG_TEMP_R16, (1 << SIGRD) | (1 << SPMEN)
 C:0012a4 bf07      	out		SPMCSR, REG_TEMP_R16
@@ -2632,9 +2651,9 @@ C:0012a4 bf07      	out		SPMCSR, REG_TEMP_R16
 C:0012a5 e0f0      	ldi		REG_Z_MSB, 0x00
 C:0012a6 e0e4      	ldi		REG_Z_LSB, 0x04
 C:0012a7 91a4      	lpm		REG_X_LSB, Z
-C:0012a8 940e 3d21 	call		uos_print_1_byte_hexa
+C:0012a8 940e 3701 	call		uos_print_1_byte_hexa
          
-C:0012aa 940e 3d10 	call		uos_print_line_feed
+C:0012aa 940e 36f0 	call		uos_print_line_feed
          	; Fin: Signature...
          
          	; Read Fuse Low Byte
@@ -2644,7 +2663,7 @@ C:0012ad bf07      	out		SPMCSR, REG_TEMP_R16
 C:0012ae e0f0      	ldi		REG_Z_MSB, 0x00
 C:0012af e0e0      	ldi		REG_Z_LSB, 0x00
 C:0012b0 91a4      	lpm		REG_X_LSB, Z
-C:0012b1 940e 3d21 	call		uos_print_1_byte_hexa
+C:0012b1 940e 3701 	call		uos_print_1_byte_hexa
          
          	; Read Lock bits
 C:0012b3 e009      	ldi		REG_TEMP_R16, (1 << BLBSET) | (1 << SELFPRGEN)
@@ -2653,7 +2672,7 @@ C:0012b4 bf07      	out		SPMCSR, REG_TEMP_R16
 C:0012b5 e0f0      	ldi		REG_Z_MSB, 0x00
 C:0012b6 e0e1      	ldi		REG_Z_LSB, 0x01
 C:0012b7 91a4      	lpm		REG_X_LSB, Z
-C:0012b8 940e 3d21 	call		uos_print_1_byte_hexa
+C:0012b8 940e 3701 	call		uos_print_1_byte_hexa
          
          	; Read Read Fuse Extended Byte
 C:0012ba e009      	ldi		REG_TEMP_R16, (1 << BLBSET) | (1 << SELFPRGEN)
@@ -2662,7 +2681,7 @@ C:0012bb bf07      	out		SPMCSR, REG_TEMP_R16
 C:0012bc e0f0      	ldi		REG_Z_MSB, 0x00
 C:0012bd e0e2      	ldi		REG_Z_LSB, 0x02
 C:0012be 91a4      	lpm		REG_X_LSB, Z
-C:0012bf 940e 3d21 	call		uos_print_1_byte_hexa
+C:0012bf 940e 3701 	call		uos_print_1_byte_hexa
          
          	; Read Fuse High Byte
 C:0012c1 e009      	ldi		REG_TEMP_R16, (1 << BLBSET) | (1 << SELFPRGEN)
@@ -2671,9 +2690,9 @@ C:0012c2 bf07      	out		SPMCSR, REG_TEMP_R16
 C:0012c3 e0f0      	ldi		REG_Z_MSB, 0x00
 C:0012c4 e0e3      	ldi		REG_Z_LSB, 0x03
 C:0012c5 91a4      	lpm		REG_X_LSB, Z
-C:0012c6 940e 3d21 	call		uos_print_1_byte_hexa
+C:0012c6 940e 3701 	call		uos_print_1_byte_hexa
          
-C:0012c8 940e 3d10 	call		uos_print_line_feed
+C:0012c8 940e 36f0 	call		uos_print_line_feed
          
 C:0012ca 9468      	set													; Commande reconnue
 C:0012cb 9508      	ret
@@ -2684,22 +2703,40 @@ C:0012cb 9508      	ret
          ; => Execution a une adresse
          ; ---------
           monitor_command_x_min:
-C:0012cc 940e 3dd5 	call		uos_print_command_ok			; Commande reconnue
+C:0012cc 940e 38f5 	call		uos_print_command_ok			; Commande reconnue
          
          	; Recuperation de l'adresse d'execution
-C:0012ce 91f0 06c6 	lds      REG_Z_MSB, UOS_G_TEST_VALUE_MSB
-C:0012d0 91e0 06c7 	lds      REG_Z_LSB, UOS_G_TEST_VALUE_LSB
+C:0012ce 91f0 0606 	lds      REG_Z_MSB, UOS_G_TEST_VALUE_MSB
+C:0012d0 91e0 0607 	lds      REG_Z_LSB, UOS_G_TEST_VALUE_LSB
          
          	; Si execution du 'Reset' (adresse 0x0000)
          	; => Reinitialisation de 'SPH:SPL' a 'RAMEND'
-C:0012d2 9630      	adiw		REG_Z_LSB, 0
-C:0012d3 f421      	brne		monitor_command_x_min_more
+C:0012d2 30f0      	cpi 		REG_Z_MSB, 0
+C:0012d3 f469      	brne		monitor_command_x_min_more
+C:0012d4 30e1      	cpi		REG_Z_LSB, 1
+C:0012d5 f419      	brne		monitor_command_x_min_test_if_0
          
-C:0012d4 e008      	ldi		REG_TEMP_R16, high(RAMEND)
-C:0012d5 bf0e      	out		SPH, REG_TEMP_R16
+         	; Commande "<x1" -> Reset dans le Boolloader (Z equal to 'uos_main_bootloader'))
+C:0012d6 e3f0      	ldi		REG_Z_MSB, high(uos_main_bootloader)
+C:0012d7 e1e1      	ldi		REG_Z_LSB, low(uos_main_bootloader)
+C:0012d8 c002      	rjmp		monitor_command_x_min_reset
          
-C:0012d6 ef0f      	ldi		REG_TEMP_R16, low(RAMEND)
-C:0012d7 bf0d      	out		SPL, REG_TEMP_R16
+          monitor_command_x_min_test_if_0:
+C:0012d9 9630      	adiw		REG_Z_LSB, 0
+C:0012da f431      	brne		monitor_command_x_min_more
+         
+         	; Commande "<x0" -> Reset dans le Program (Z already equal to 0)
+         
+          monitor_command_x_min_reset:
+C:0012db 94f8      	cli		; Sequence critique d'initialisation de 'SPH:SPL'
+         
+C:0012dc e008      	ldi		REG_TEMP_R16, high(RAMEND)
+C:0012dd bf0e      	out		SPH, REG_TEMP_R16
+         
+C:0012de ef0f      	ldi		REG_TEMP_R16, low(RAMEND)
+C:0012df bf0d      	out		SPL, REG_TEMP_R16
+         
+C:0012e0 9409      	ijmp
          	; Fin: Si execution du 'Reset' (adresse 0x0000)
          
          	; Saut a un programme dont l'adresse est passe en argument
@@ -2708,10 +2745,16 @@ C:0012d7 bf0d      	out		SPL, REG_TEMP_R16
          	;              l'instruction 'rcall exec_command'
          
           monitor_command_x_min_more:
-C:0012d8 9509      	icall
+         	; Execution de la methode a l'adresse "ZH:ZL"
+C:0012e1 9509      	icall
          
-C:0012d9 9468      	set											; Commande reconnue
-C:0012da 9508      	ret
+         	; Retablissement des registres "hard"...
+C:0012e2 940e 323b 	call		uos_init_hard
+         
+C:0012e4 9468      	set								; Commande reconnue
+         
+         	; Retour au Monitor
+C:0012e5 9508      	ret
          ; ---------
          
          ; ---------
@@ -2719,93 +2762,93 @@ C:0012da 9508      	ret
          ; ---------
           extract_and_print_sreg:
          	; Valeur de SREG
-C:0012db b7af      	in			REG_X_LSB, SREG
-C:0012dc 93af      	push		REG_X_LSB
+C:0012e6 b7af      	in			REG_X_LSB, SREG
+C:0012e7 93af      	push		REG_X_LSB
          
-C:0012dd e2fa      	ldi		REG_Z_MSB, high(text_sreg << 1)
-C:0012de e7e4      	ldi		REG_Z_LSB, low(text_sreg << 1)
-C:0012df 940e 3cd1 	call		uos_push_text_flash_in_fifo_tx
+C:0012e8 e2fa      	ldi		REG_Z_MSB, high(text_sreg << 1)
+C:0012e9 eeee      	ldi		REG_Z_LSB, low(text_sreg << 1)
+C:0012ea 940e 36b2 	call		uos_push_text_flash_in_fifo_tx
          
-C:0012e1 91af      	pop		REG_X_LSB
-C:0012e2 93af      	push		REG_X_LSB
-C:0012e3 940e 3d21 	call		uos_print_1_byte_hexa
+C:0012ec 91af      	pop		REG_X_LSB
+C:0012ed 93af      	push		REG_X_LSB
+C:0012ee 940e 3701 	call		uos_print_1_byte_hexa
          
-C:0012e5 91af      	pop		REG_X_LSB
-C:0012e6 2f1a      	mov		REG_TEMP_R17, REG_X_LSB
+C:0012f0 91af      	pop		REG_X_LSB
+C:0012f1 2f1a      	mov		REG_TEMP_R17, REG_X_LSB
          
-C:0012e7 e50b      	ldi		REG_TEMP_R16, '['
-C:0012e8 940e 3cf9 	call		uos_push_1_char_in_fifo_tx
+C:0012f2 e50b      	ldi		REG_TEMP_R16, '['
+C:0012f3 940e 36d9 	call		uos_push_1_char_in_fifo_tx
          
-C:0012ea 1f11      	rol		REG_TEMP_R17
-C:0012eb e20e      	ldi		REG_TEMP_R16, '.'
-C:0012ec f408      	brcc		extract_and_print_sreg_no_i
-C:0012ed e409      	ldi		REG_TEMP_R16, 'I'
+C:0012f5 1f11      	rol		REG_TEMP_R17
+C:0012f6 e20e      	ldi		REG_TEMP_R16, '.'
+C:0012f7 f408      	brcc		extract_and_print_sreg_no_i
+C:0012f8 e409      	ldi		REG_TEMP_R16, 'I'
          
           extract_and_print_sreg_no_i:
-C:0012ee 940e 3cf9 	call		uos_push_1_char_in_fifo_tx
+C:0012f9 940e 36d9 	call		uos_push_1_char_in_fifo_tx
          
-C:0012f0 1f11      	rol		REG_TEMP_R17
-C:0012f1 e20e      	ldi		REG_TEMP_R16, '.'
-C:0012f2 f408      	brcc		extract_and_print_sreg_no_t
-C:0012f3 e504      	ldi		REG_TEMP_R16, 'T'
+C:0012fb 1f11      	rol		REG_TEMP_R17
+C:0012fc e20e      	ldi		REG_TEMP_R16, '.'
+C:0012fd f408      	brcc		extract_and_print_sreg_no_t
+C:0012fe e504      	ldi		REG_TEMP_R16, 'T'
          
           extract_and_print_sreg_no_t:
-C:0012f4 940e 3cf9 	call		uos_push_1_char_in_fifo_tx
+C:0012ff 940e 36d9 	call		uos_push_1_char_in_fifo_tx
          
-C:0012f6 1f11      	rol		REG_TEMP_R17
-C:0012f7 e20e      	ldi		REG_TEMP_R16, '.'
-C:0012f8 f408      	brcc		extract_and_print_sreg_no_h
-C:0012f9 e408      	ldi		REG_TEMP_R16, 'H'
+C:001301 1f11      	rol		REG_TEMP_R17
+C:001302 e20e      	ldi		REG_TEMP_R16, '.'
+C:001303 f408      	brcc		extract_and_print_sreg_no_h
+C:001304 e408      	ldi		REG_TEMP_R16, 'H'
          
           extract_and_print_sreg_no_h:
-C:0012fa 940e 3cf9 	call		uos_push_1_char_in_fifo_tx
+C:001305 940e 36d9 	call		uos_push_1_char_in_fifo_tx
          
-C:0012fc 1f11      	rol		REG_TEMP_R17
-C:0012fd e20e      	ldi		REG_TEMP_R16, '.'
-C:0012fe f408      	brcc		extract_and_print_sreg_no_s
-C:0012ff e503      	ldi		REG_TEMP_R16, 'S'
+C:001307 1f11      	rol		REG_TEMP_R17
+C:001308 e20e      	ldi		REG_TEMP_R16, '.'
+C:001309 f408      	brcc		extract_and_print_sreg_no_s
+C:00130a e503      	ldi		REG_TEMP_R16, 'S'
          
           extract_and_print_sreg_no_s:
-C:001300 940e 3cf9 	call		uos_push_1_char_in_fifo_tx
+C:00130b 940e 36d9 	call		uos_push_1_char_in_fifo_tx
          
-C:001302 1f11      	rol		REG_TEMP_R17
-C:001303 e20e      	ldi		REG_TEMP_R16, '.'
-C:001304 f408      	brcc		extract_and_print_sreg_no_v
-C:001305 e506      	ldi		REG_TEMP_R16, 'V'
+C:00130d 1f11      	rol		REG_TEMP_R17
+C:00130e e20e      	ldi		REG_TEMP_R16, '.'
+C:00130f f408      	brcc		extract_and_print_sreg_no_v
+C:001310 e506      	ldi		REG_TEMP_R16, 'V'
          
           extract_and_print_sreg_no_v:
-C:001306 940e 3cf9 	call		uos_push_1_char_in_fifo_tx
+C:001311 940e 36d9 	call		uos_push_1_char_in_fifo_tx
          
-C:001308 1f11      	rol		REG_TEMP_R17
-C:001309 e20e      	ldi		REG_TEMP_R16, '.'
-C:00130a f408      	brcc		extract_and_print_sreg_no_n
-C:00130b e40e      	ldi		REG_TEMP_R16, 'N'
+C:001313 1f11      	rol		REG_TEMP_R17
+C:001314 e20e      	ldi		REG_TEMP_R16, '.'
+C:001315 f408      	brcc		extract_and_print_sreg_no_n
+C:001316 e40e      	ldi		REG_TEMP_R16, 'N'
          
           extract_and_print_sreg_no_n:
-C:00130c 940e 3cf9 	call		uos_push_1_char_in_fifo_tx
+C:001317 940e 36d9 	call		uos_push_1_char_in_fifo_tx
          
-C:00130e 1f11      	rol		REG_TEMP_R17
-C:00130f e20e      	ldi		REG_TEMP_R16, '.'
-C:001310 f408      	brcc		extract_and_print_sreg_no_z
-C:001311 e50a      	ldi		REG_TEMP_R16, 'Z'
+C:001319 1f11      	rol		REG_TEMP_R17
+C:00131a e20e      	ldi		REG_TEMP_R16, '.'
+C:00131b f408      	brcc		extract_and_print_sreg_no_z
+C:00131c e50a      	ldi		REG_TEMP_R16, 'Z'
          
           extract_and_print_sreg_no_z:
-C:001312 940e 3cf9 	call		uos_push_1_char_in_fifo_tx
+C:00131d 940e 36d9 	call		uos_push_1_char_in_fifo_tx
          
-C:001314 1f11      	rol		REG_TEMP_R17
-C:001315 e20e      	ldi		REG_TEMP_R16, '.'
-C:001316 f408      	brcc		extract_and_print_sreg_no_c
-C:001317 e403      	ldi		REG_TEMP_R16, 'C'
+C:00131f 1f11      	rol		REG_TEMP_R17
+C:001320 e20e      	ldi		REG_TEMP_R16, '.'
+C:001321 f408      	brcc		extract_and_print_sreg_no_c
+C:001322 e403      	ldi		REG_TEMP_R16, 'C'
          
           extract_and_print_sreg_no_c:
-C:001318 940e 3cf9 	call		uos_push_1_char_in_fifo_tx
+C:001323 940e 36d9 	call		uos_push_1_char_in_fifo_tx
          
-C:00131a e50d      	ldi		REG_TEMP_R16, ']'
-C:00131b 940e 3cf9 	call		uos_push_1_char_in_fifo_tx
+C:001325 e50d      	ldi		REG_TEMP_R16, ']'
+C:001326 940e 36d9 	call		uos_push_1_char_in_fifo_tx
          
-C:00131d 940e 3d10 	call		uos_print_line_feed
+C:001328 940e 36f0 	call		uos_print_line_feed
          
-C:00131f 9508      	ret
+C:00132a 9508      	ret
          ; ---------
          
          ; ======================================================= Monitoring des commandes
@@ -2815,65 +2858,65 @@ C:00131f 9508      	ret
          ; ---------
           eeprom_write_byte:
          	; Set address
-C:001320 bda1      	out		EEARL, REG_X_LSB
-C:001321 bdb2      	out		EEARH, REG_X_MSB
+C:00132b bda1      	out		EEARL, REG_X_LSB
+C:00132c bdb2      	out		EEARH, REG_X_MSB
          
          	; Set data
-C:001322 bd00      	out		EEDR, REG_TEMP_R16
+C:00132d bd00      	out		EEDR, REG_TEMP_R16
          
          	; Ecriture a l'adresse 'REG_X_MSB:REG_X_LSB' d'un byte
-C:001323 98fd      	cbi		EECR, EEPM1
-C:001324 98fc      	cbi		EECR, EEPM0
+C:00132e 98fd      	cbi		EECR, EEPM1
+C:00132f 98fc      	cbi		EECR, EEPM0
          
          	; Sequence interruptible
-C:001325 94f8      	cli
-C:001326 9afa      	sbi		EECR, EEMPE		; Start EEPROM write
-C:001327 9af9      	sbi		EECR, EEPE
-C:001328 9478      	sei
+C:001330 94f8      	cli
+C:001331 9afa      	sbi		EECR, EEMPE		; Start EEPROM write
+C:001332 9af9      	sbi		EECR, EEPE
+C:001333 9478      	sei
          	; Fin: Sequence interruptible
          	; Fin: Ecriture a l'adresse 'REG_X_MSB:REG_X_LSB' d'un byte
          
           eeprom_write_byte_wait:
-C:001329 99f9      	sbic		EECR, EEPE
-C:00132a cffe      	rjmp		eeprom_write_byte_wait
+C:001334 99f9      	sbic		EECR, EEPE
+C:001335 cffe      	rjmp		eeprom_write_byte_wait
          
-C:00132b 9508      	ret
+C:001336 9508      	ret
          ; ---------
          
           #if USE_XMEGA_CORE_OPCODES
          ; ---------
           monitor_test_long_command:
-C:00132c 930f      	push		REG_TEMP_R16
-C:00132d 931f      	push		REG_TEMP_R17
-C:00132e 932f      	push		REG_TEMP_R18
-C:00132f 93bf      	push		REG_X_MSB
-C:001330 93af      	push		REG_X_LSB
+C:001337 930f      	push		REG_TEMP_R16
+C:001338 931f      	push		REG_TEMP_R17
+C:001339 932f      	push		REG_TEMP_R18
+C:00133a 93bf      	push		REG_X_MSB
+C:00133b 93af      	push		REG_X_LSB
          
-C:001331 e0b7      	ldi		REG_X_MSB, high(UOS_G_TEST_COMMAND)
-C:001332 e4af      	ldi		REG_X_LSB, low(UOS_G_TEST_COMMAND)
+C:00133c e0b6      	ldi		REG_X_MSB, high(UOS_G_TEST_COMMAND)
+C:00133d e8af      	ldi		REG_X_LSB, low(UOS_G_TEST_COMMAND)
          
           monitor_test_long_command_loop:
-C:001333 9115      	lpm      REG_TEMP_R17, Z+
-C:001334 2311      	tst		REG_TEMP_R17
-C:001335 f029      	breq		monitor_test_long_command_rtn		; Fin du pattern atteint -> Return avec SREG<Z> a 0
+C:00133e 9115      	lpm      REG_TEMP_R17, Z+
+C:00133f 2311      	tst		REG_TEMP_R17
+C:001340 f029      	breq		monitor_test_long_command_rtn		; Fin du pattern atteint -> Return avec SREG<Z> a 0
          
-C:001336 912d      	ld			REG_TEMP_R18, X+
-C:001337 1312      	cpse		REG_TEMP_R17, REG_TEMP_R18
-C:001338 c001      	rjmp		monitor_test_long_command_not_found
+C:001341 912d      	ld			REG_TEMP_R18, X+
+C:001342 1312      	cpse		REG_TEMP_R17, REG_TEMP_R18
+C:001343 c001      	rjmp		monitor_test_long_command_not_found
          
          	; Identite de la commande saisie et celle attendue -> Continue...
-C:001339 cff9      	rjmp		monitor_test_long_command_loop
+C:001344 cff9      	rjmp		monitor_test_long_command_loop
          
           monitor_test_long_command_not_found:
-C:00133a 9498      	clz
+C:001345 9498      	clz
          
           monitor_test_long_command_rtn:
-C:00133b 91af      	pop		REG_X_LSB
-C:00133c 91bf      	pop		REG_X_MSB
-C:00133d 912f      	pop		REG_TEMP_R18
-C:00133e 911f      	pop		REG_TEMP_R17
-C:00133f 910f      	pop		REG_TEMP_R16
-C:001340 9508      	ret
+C:001346 91af      	pop		REG_X_LSB
+C:001347 91bf      	pop		REG_X_MSB
+C:001348 912f      	pop		REG_TEMP_R18
+C:001349 911f      	pop		REG_TEMP_R17
+C:00134a 910f      	pop		REG_TEMP_R16
+C:00134b 9508      	ret
          ; ---------
          
          ; ---------
@@ -2881,100 +2924,100 @@ C:001340 9508      	ret
          ; ---------
           monitor_command_lat:
           test_lat:
-C:001341 d00f      	rcall		monitor_command_test_prologue_xmega_core_opcodes
+C:00134c d00f      	rcall		monitor_command_test_prologue_xmega_core_opcodes
          
-C:001342 9307      	lat		Z, REG_TEMP_R16				; Execute (Z) <- Rd ^ (Z), Rd <- (Z)
+C:00134d 9307      	lat		Z, REG_TEMP_R16				; Execute (Z) <- Rd ^ (Z), Rd <- (Z)
          
-C:001343 d026      	rcall		monitor_command_test_epilogue_xmega_core_opcodes
+C:00134e d026      	rcall		monitor_command_test_epilogue_xmega_core_opcodes
          
           test_lat_rtn:
-C:001344 9508      	ret
+C:00134f 9508      	ret
          ; ---------
          
          ; ---------
           monitor_command_lac:
           test_lac:
-C:001345 d00b      	rcall		monitor_command_test_prologue_xmega_core_opcodes
+C:001350 d00b      	rcall		monitor_command_test_prologue_xmega_core_opcodes
          
-C:001346 9306      	lac		Z, REG_TEMP_R16				; Execute (Z) <- ($FF - Rd) and (Z), Rd <- (Z)
+C:001351 9306      	lac		Z, REG_TEMP_R16				; Execute (Z) <- ($FF - Rd) and (Z), Rd <- (Z)
          
-C:001347 d022      	rcall		monitor_command_test_epilogue_xmega_core_opcodes
+C:001352 d022      	rcall		monitor_command_test_epilogue_xmega_core_opcodes
          
           test_lac_rtn:
-C:001348 9508      	ret
+C:001353 9508      	ret
          ; ---------
          
          ; ---------
           monitor_command_las:
           test_las:
-C:001349 d007      	rcall		monitor_command_test_prologue_xmega_core_opcodes
+C:001354 d007      	rcall		monitor_command_test_prologue_xmega_core_opcodes
          
-C:00134a 9305      	las		Z, REG_TEMP_R16				; Execute (Z) <- Rd or (Z), Rd <- (Z)
+C:001355 9305      	las		Z, REG_TEMP_R16				; Execute (Z) <- Rd or (Z), Rd <- (Z)
          
-C:00134b d01e      	rcall		monitor_command_test_epilogue_xmega_core_opcodes
+C:001356 d01e      	rcall		monitor_command_test_epilogue_xmega_core_opcodes
          
           test_las_rtn:
-C:00134c 9508      	ret
+C:001357 9508      	ret
          ; ---------
          
          ; ---------
           monitor_command_xch:
           test_xch:
-C:00134d d003      	rcall		monitor_command_test_prologue_xmega_core_opcodes
+C:001358 d003      	rcall		monitor_command_test_prologue_xmega_core_opcodes
          
-C:00134e 9304      	xch		Z, REG_TEMP_R16				; Execute (Z) <- Rd, Rd <- (Z)
+C:001359 9304      	xch		Z, REG_TEMP_R16				; Execute (Z) <- Rd, Rd <- (Z)
          
-C:00134f d01a      	rcall		monitor_command_test_epilogue_xmega_core_opcodes
+C:00135a d01a      	rcall		monitor_command_test_epilogue_xmega_core_opcodes
          
           test_xch_rtn:
-C:001350 9508      	ret
+C:00135b 9508      	ret
          ; ---------
          
          ; ---------
           monitor_command_test_prologue_xmega_core_opcodes:
-C:001351 940e 3dd5 	call		uos_print_command_ok			; Commande reconnue
+C:00135c 940e 38f5 	call		uos_print_command_ok			; Commande reconnue
          
          	; Conversion ASCII -> Hexa de la valeur sur 2 caracteres derriere la commande "xxx" de 3 caracteres
-C:001353 2700      	clr		REG_TEMP_R16
-C:001354 9300 06c6 	sts		UOS_G_TEST_VALUE_MSB, REG_TEMP_R16
-C:001356 9300 06c7 	sts		UOS_G_TEST_VALUE_LSB, REG_TEMP_R16
+C:00135e 2700      	clr		REG_TEMP_R16
+C:00135f 9300 0606 	sts		UOS_G_TEST_VALUE_MSB, REG_TEMP_R16
+C:001361 9300 0607 	sts		UOS_G_TEST_VALUE_LSB, REG_TEMP_R16
          
-C:001358 e0d7      	ldi		REG_Y_MSB, high(UOS_G_TEST_COMMAND + 3)
-C:001359 e5c2      	ldi		REG_Y_LSB, low(UOS_G_TEST_COMMAND + 3)
-C:00135a 9029      	ld			r2, Y+
-C:00135b 940e 3ecc 	call		uos_char_to_hex_incremental
-C:00135d 8028      	ld			r2, Y
-C:00135e 940e 3ecc 	call		uos_char_to_hex_incremental		; Resultat dans 'UOS_G_TEST_VALUE_LSB'
+C:001363 e0d6      	ldi		REG_Y_MSB, high(UOS_G_TEST_COMMAND + 3)
+C:001364 e9c2      	ldi		REG_Y_LSB, low(UOS_G_TEST_COMMAND + 3)
+C:001365 9029      	ld			r2, Y+
+C:001366 940e 39ed 	call		uos_char_to_hex_incremental
+C:001368 8028      	ld			r2, Y
+C:001369 940e 39ed 	call		uos_char_to_hex_incremental		; Resultat dans 'UOS_G_TEST_VALUE_LSB'
          	; Fin: Conversion ASCII -> Hexa de la valeur sur 2 caracteres derriere la commande "xxx" de 3 caracteres
          
-C:001360 9100 06c7 	lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB
-C:001362 930f      	push		REG_TEMP_R16
-C:001363 2fa0      	mov		REG_X_LSB, REG_TEMP_R16
-C:001364 940e 3d21 	call		uos_print_1_byte_hexa
-C:001366 910f      	pop		REG_TEMP_R16
+C:00136b 9100 0607 	lds		REG_TEMP_R16, UOS_G_TEST_VALUE_LSB
+C:00136d 930f      	push		REG_TEMP_R16
+C:00136e 2fa0      	mov		REG_X_LSB, REG_TEMP_R16
+C:00136f 940e 3701 	call		uos_print_1_byte_hexa
+C:001371 910f      	pop		REG_TEMP_R16
          
          	; Adresse du resultat initialise a 0
-C:001367 e0f7      	ldi		REG_Z_MSB, high(G_RESULT_XMEGA_OPCODE)
-C:001368 e6e5      	ldi		REG_Z_LSB, low(G_RESULT_XMEGA_OPCODE)
+C:001372 e0f6      	ldi		REG_Z_MSB, high(G_RESULT_XMEGA_OPCODE)
+C:001373 eae5      	ldi		REG_Z_LSB, low(G_RESULT_XMEGA_OPCODE)
          
           monitor_command_test_prologue_xmega_core_opcodes_rtn:
-C:001369 9508      	ret
+C:001374 9508      	ret
          ; ---------
          
          ; ---------
           monitor_command_test_epilogue_xmega_core_opcodes:
-C:00136a 930f      	push		REG_TEMP_R16
-C:00136b 2fa0      	mov		REG_X_LSB, REG_TEMP_R16
-C:00136c 940e 3d21 	call		uos_print_1_byte_hexa
-C:00136e 910f      	pop		REG_TEMP_R16
+C:001375 930f      	push		REG_TEMP_R16
+C:001376 2fa0      	mov		REG_X_LSB, REG_TEMP_R16
+C:001377 940e 3701 	call		uos_print_1_byte_hexa
+C:001379 910f      	pop		REG_TEMP_R16
          
-C:00136f 91a0 0765 	lds		REG_X_LSB, G_RESULT_XMEGA_OPCODE
-C:001371 940e 3d21 	call		uos_print_1_byte_hexa
-C:001373 940e 3d10 	call		uos_print_line_feed
+C:00137a 91a0 06a5 	lds		REG_X_LSB, G_RESULT_XMEGA_OPCODE
+C:00137c 940e 3701 	call		uos_print_1_byte_hexa
+C:00137e 940e 36f0 	call		uos_print_line_feed
          
           monitor_command_test_epilogue_xmega_core_opcodes_rtn:
-C:001375 9468      	set											; Commande executee
-C:001376 9508      	ret
+C:001380 9468      	set											; Commande executee
+C:001381 9508      	ret
          ; ---------
           #endif
          
@@ -2985,105 +3028,109 @@ C:001376 9508      	ret
          ; Warning: Adresse multiple de 64 pour etre programme page par page par uOS
          
           .dw	CHAR_SEPARATOR		; Debut section datas	; NE PAS SUPPRIMER ;-)
-C:001377 ffff
+C:001382 ffff
          
           text_monitor_prompt:
-          .db	"### Monitor $Revision: 1.24 $", CHAR_LF, CHAR_NULL, CHAR_NULL
-C:001378 232323204D6F6E69746F7220245265766973696F6E3A20312E323420240A0000
+          .db	"### Monitor (Optiboot) $Revision: 1.5 $", CHAR_LF, CHAR_NULL, CHAR_NULL
+C:001383 232323204D6F6E69746F7220284F707469626F6F742920245265766973696F6E3A20312E3520240A0000
          
           text_monitor_init:
           .db	"### Initialization...", CHAR_LF, CHAR_NULL, CHAR_NULL
-C:001388 23232320496E697469616C697A6174696F6E2E2E2E0A0000
+C:001398 23232320496E697469616C697A6174696F6E2E2E2E0A0000
          
           text_monitor_desc:
           .db	"### - '<?'                   Whoami", CHAR_LF
-C:001394 232323202D20273C3F272020202020202020202020202020202020202057686F616D690A
+C:0013A4 232323202D20273C3F272020202020202020202020202020202020202057686F616D690A
           .db	"### - '<a[AddrFrom-AddrTo]'  Calculate CRC8-MAXIM", CHAR_LF
-C:0013A6 232323202D20273C615B4164647246726F6D2D41646472546F5D27202043616C63756C61746520435243382D4D4158494D0A
+C:0013B6 232323202D20273C615B4164647246726F6D2D41646472546F5D27202043616C63756C61746520435243382D4D4158494D0A
           .db	"### - '<e[AddrFrom]'         Dump of EEPROM", CHAR_LF
-C:0013BF 232323202D20273C655B4164647246726F6D5D2720202020202020202044756D70206F6620454550524F4D0A
+C:0013CF 232323202D20273C655B4164647246726F6D5D2720202020202020202044756D70206F6620454550524F4D0A
           .db	"### - '<EAddress+v0+v1+...'  Writes values in EEPROM ", CHAR_LF
-C:0013D5 232323202D20273C45416464726573732B76302B76312B2E2E2E2720205772697465732076616C75657320696E20454550524F4D200A
+C:0013E5 232323202D20273C45416464726573732B76302B76312B2E2E2E2720205772697465732076616C75657320696E20454550524F4D200A
           .db	"### - '<f'                   Read signature [#0][#1][#2] and the fuses [Low][Lock][Ext][High]", CHAR_LF
-C:0013F0 232323202D20273C66272020202020202020202020202020202020202052656164207369676E6174757265205B23305D5B23315D5B23325D20616E6420746865206675736573205B4C6F775D5B4C6F636B5D5B4578745D5B486967685D0A
+C:001400 232323202D20273C66272020202020202020202020202020202020202052656164207369676E6174757265205B23305D5B23315D5B23325D20616E6420746865206675736573205B4C6F775D5B4C6F636B5D5B4578745D5B486967685D0A
           .db	"### - '<i[AddrFrom]'         Dump of I/O ", CHAR_LF
-C:00141F 232323202D20273C695B4164647246726F6D5D2720202020202020202044756D70206F6620492F4F200A
+C:00142F 232323202D20273C695B4164647246726F6D5D2720202020202020202044756D70206F6620492F4F200A
           .db	"### - '<IAddress+Value'      Write byte in I/O ", CHAR_LF
-C:001434 232323202D20273C49416464726573732B56616C7565272020202020205772697465206279746520696E20492F4F200A
+C:001444 232323202D20273C49416464726573732B56616C7565272020202020205772697465206279746520696E20492F4F200A
           .db	"### - '<JAddress+Value'      Write word MSB:LSB in I/O at [Address:(Address-1)]", CHAR_LF
-C:00144C 232323202D20273C4A416464726573732B56616C756527202020202020577269746520776F7264204D53423A4C534220696E20492F4F206174205B416464726573733A28416464726573732D31295D0A
+C:00145C 232323202D20273C4A416464726573732B56616C756527202020202020577269746520776F7264204D53423A4C534220696E20492F4F206174205B416464726573733A28416464726573732D31295D0A
          
           #if USE_XMEGA_CORE_OPCODES
           .db	"### - '<latValue'            XMega Core: Load and Toggle ", CHAR_LF, 
-C:001474 232323202D20273C6C617456616C756527202020202020202020202020584D65676120436F72653A204C6F616420616E6420546F67676C65200A
+C:001484 232323202D20273C6C617456616C756527202020202020202020202020584D65676120436F72653A204C6F616420616E6420546F67676C65200A
           .db	"### - '<lacValue'            XMega Core: Load and Clear", CHAR_LF, 
-C:001491 232323202D20273C6C616356616C756527202020202020202020202020584D65676120436F72653A204C6F616420616E6420436C6561720A
+C:0014A1 232323202D20273C6C616356616C756527202020202020202020202020584D65676120436F72653A204C6F616420616E6420436C6561720A
           .db	"### - '<lasValue'            XMega Core: Load and Set", CHAR_LF, 
-C:0014AD 232323202D20273C6C617356616C756527202020202020202020202020584D65676120436F72653A204C6F616420616E64205365740A
+C:0014BD 232323202D20273C6C617356616C756527202020202020202020202020584D65676120436F72653A204C6F616420616E64205365740A
           .db	"### - '<xchValue'            XMega Core: Exchange", CHAR_LF, 
-C:0014C8 232323202D20273C78636856616C756527202020202020202020202020584D65676120436F72653A2045786368616E67650A
+C:0014D8 232323202D20273C78636856616C756527202020202020202020202020584D65676120436F72653A2045786368616E67650A
           #endif
          
           .db	"### - '<SAddress+Value'      Write in SRAM ", CHAR_LF
-C:0014E1 232323202D20273C53416464726573732B56616C756527202020202020577269746520696E205352414D200A
+C:0014F1 232323202D20273C53416464726573732B56616C756527202020202020577269746520696E205352414D200A
           .db	"### - '<tValue1-Value2'      Test compare", CHAR_LF
-C:0014F7 232323202D20273C7456616C7565312D56616C756532272020202020205465737420636F6D706172650A
-          .db	"### - '<xAddress'            Call to Address", CHAR_LF, CHAR_NULL	; Dernier texte avec '\0' terminal
-C:00150C 232323202D20273C78416464726573732720202020202020202020202043616C6C20746F20416464726573730A00
+C:001507 232323202D20273C7456616C7565312D56616C756532272020202020205465737420636F6D706172650A
+          .db	"### - '<xAddress'            Call to Address ", CHAR_LF
+C:00151C 232323202D20273C78416464726573732720202020202020202020202043616C6C20746F2041646472657373200A
+          .db	"### -  <x0 Reset dans le Moniteur", CHAR_LF
+C:001533 232323202D20203C78302052657365742064616E73206C65204D6F6E69746575720A
+          .db	"### -  <x1 Reset dans le Bootloader (uOS ou OptiBoot) ", CHAR_LF, CHAR_NULL
+C:001544 232323202D20203C78312052657365742064616E73206C6520426F6F746C6F616465722028754F53206F75204F707469426F6F7429200A00
          
           text_crc8_maxim:
           .db	"CRC8-MAXIM ", CHAR_NULL
-C:001523 435243382D4D4158494D2000
+C:001560 435243382D4D4158494D2000
          
           text_hexa_value:
           .db	"[0x", CHAR_NULL
-C:001529 5B307800
+C:001566 5B307800
          
           text_hexa_value_lf_end:
           .db	"]", CHAR_LF, CHAR_NULL, CHAR_NULL
-C:00152B 5D0A0000
+C:001568 5D0A0000
          
           text_eeprom_error:
           .db	"Err: EEPROM at ", CHAR_NULL
-C:00152D 4572723A20454550524F4D2061742000
+C:00156A 4572723A20454550524F4D2061742000
          
           text_convert_for_bargraph_table:
           .db   0x7, 0xB, 0xD, 0xE				; [0, 1, 2, 3] -> [0x7, 0xB, 0xD, 0xE]
-C:001535 070B0D0E
+C:001572 070B0D0E
          
           text_monitor_short_message:
           .db	"### ", CHAR_NULL, CHAR_NULL
-C:001537 232323200000
+C:001574 232323200000
          
           text_sreg:
           .db	"SREG ", CHAR_NULL
-C:00153A 535245472000
+C:001577 535245472000
          
           text_response_j_maj:
           .db   ">J [Ok]", CHAR_LF, CHAR_NULL, CHAR_NULL
-C:00153D 3E4A205B4F6B5D0A0000
+C:00157A 3E4A205B4F6B5D0A0000
          
           #if USE_XMEGA_CORE_OPCODES
           text_command_test_lat:
           .db	"lat", CHAR_NULL
-C:001542 6C617400
+C:00157F 6C617400
          
           text_command_test_lac:
           .db	"lac", CHAR_NULL
-C:001544 6C616300
+C:001581 6C616300
          
           text_command_test_las:
           .db	"las", CHAR_NULL
-C:001546 6C617300
+C:001583 6C617300
          
           text_command_test_xch:
           .db	"xch", CHAR_NULL
-C:001548 78636800
+C:001585 78636800
           #endif
          
           monitor_magic_const:
           .dw	0x1234
-C:00154a 1234
+C:001587 1234
          
           end_of_program:
          
@@ -3091,13 +3138,13 @@ C:00154a 1234
          
 Used memory blocks:
    code      :  Start = 0x0000, End = 0x0063, Length = 0x0064 (100 words), Overlap=N
-   code      :  Start = 0x1000, End = 0x154A, Length = 0x054B (1355 words), Overlap=N
-   data      :  Start = 0x0100, End = 0x0766, Length = 0x0667 (1639 bytes), Overlap=N
+   code      :  Start = 0x1000, End = 0x1587, Length = 0x0588 (1416 words), Overlap=N
+   data      :  Start = 0x0100, End = 0x06A6, Length = 0x05A7 (1447 bytes), Overlap=N
 
 
 Segment usage:
-   Code      :      1455 words (2910 bytes)
-   Data      :      1639 bytes
+   Code      :      1516 words (3032 bytes)
+   Data      :      1447 bytes
    EEPROM    :         0 bytes
 
 Assembly completed with no errors.
