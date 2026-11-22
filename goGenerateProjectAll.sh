@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#ident "@(#) micro-infos $Id: goGenerateProjectAll.sh,v 1.1 2026/02/05 14:02:07 administrateur Exp $"
+#ident "@(#) micro-infos $Id: goGenerateProjectAll.sh,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
 
 # Script de production (clean et generation) de tous les projets
 # Exemples:
@@ -22,6 +22,11 @@ if [ ${1} == "clean" ]; then
 		cd monitor
 		./goGenerateProject.sh clean
 	)
+
+	(
+		cd optiBoot
+		./goGenerateProject.sh clean
+	)
 else
 	(
 		cd uOS
@@ -31,6 +36,11 @@ else
 	(
 		cd monitor
 		./goGenerateProject.sh ATmega328P_monitor
+	)
+
+	(
+		cd optiBoot
+		./goGenerateProject.sh ATmega328P_optiBoot
 	)
 fi
 
