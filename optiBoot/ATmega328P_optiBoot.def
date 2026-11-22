@@ -1,0 +1,12 @@
+; "$Id: ATmega328P_optiBoot.def,v 1.1.1.1 2026/11/11 17:36:19 administrateur Exp $"
+
+; 1! Led est allumee a la fois et indique la progression:
+#define LED_GREEN		PB2     ; Allumee si en attente de la commande 'STK500'
+#define LED_YELLOW		PB5     ; Allumee si en attente des donnees
+#define LED_BLUE		PB0     ; Allumee si en attente de 'CRC_EOP'
+#define LED_RED			PB1     ; Allumee si erreur de protocole:
+
+.def		REG_R0				= r0		; Warning: Used by program C
+.def		REG_R1				= r1		; Warning: Used by program C
+
+; End of file
